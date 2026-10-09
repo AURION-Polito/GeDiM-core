@@ -764,22 +764,6 @@ struct MeshUtilities
                                                           const Gedim::IMeshDAO &triangular_mesh,
                                                           Gedim::IMeshDAO &mesh);
 
-    static void CreateQuadrilateralMeshFromTriangularMesh(const Gedim::GeometryUtilities &geometryUtilities,
-                                                          const Eigen::MatrixXd &polygonVertices,
-                                                          const double &maxTriangleArea,
-                                                          Gedim::IMeshDAO &mesh);
-
-    /// \brief Create triangular mesh on 2D polygon
-    /// \param polygonVertices the 2D polygon vertices, size 3xnumVertices
-    /// \param maxTriangleArea the maximum triangular area
-    /// \param options mesh options, see https://www.cs.cmu.edu/~quake/triangle.switch.html
-    /// \note markers on border are set as { 1, 2, 3, 4, ..., numVertices } for cell0Ds and { 5, 6, 7, 8, ..., 2 *
-    /// numVertices } for cell1Ds \note use triangle library
-    static void CreateTriangularMesh(const Eigen::MatrixXd &polygonVertices,
-                                     const double &maxTriangleArea,
-                                     Gedim::IMeshDAO &mesh,
-                                     const std::string &options = "-QDzpqnea");
-
     static void MakeMeshTriangularFaces(const std::vector<std::vector<unsigned int>> &faces_triangulation, Gedim::IMeshDAO &mesh);
 
     /// \brief Import triangular 2D mesh (non standard simple format)

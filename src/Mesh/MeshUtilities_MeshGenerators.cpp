@@ -10,7 +10,6 @@
 // This file can be used citing references in CITATION.cff file.
 
 #include "MeshUtilities.hpp"
-#include "TriangleInterface.hpp"
 
 #include <numbers>
 #include <numeric>
@@ -2170,16 +2169,6 @@ void MeshUtilities::CreateParallelepipedMesh(const Eigen::Vector3d &parallelepip
     }
 }
 // ***************************************************************************
-void MeshUtilities::CreateTriangularMesh(const Eigen::MatrixXd &polygonVertices,
-                                         const double &maxTriangleArea,
-                                         Gedim::IMeshDAO &mesh,
-                                         const string &options)
-{
-    TriangleInterface triangleInterface;
-
-    triangleInterface.CreateMesh(polygonVertices, maxTriangleArea, mesh, options);
-}
-// ***************************************************************************
 void MeshUtilities::CreateQuadrilateralMeshFromTriangularMesh(const GeometryUtilities &geometryUtilities,
                                                               const Gedim::IMeshDAO &triangular_mesh,
                                                               Gedim::IMeshDAO &mesh)
@@ -2292,19 +2281,6 @@ void MeshUtilities::CreateQuadrilateralMeshFromTriangularMesh(const GeometryUtil
             cell2DIndex++;
         }
     }
-}
-// ***************************************************************************
-void MeshUtilities::CreateQuadrilateralMeshFromTriangularMesh(const GeometryUtilities &geometryUtilities,
-                                                              const Eigen::MatrixXd &polygonVertices,
-                                                              const double &maxTriangleArea,
-                                                              Gedim::IMeshDAO &mesh)
-{
-    Gedim::MeshMatrices triangular_mesh_data;
-    Gedim::MeshMatricesDAO triangular_mesh(triangular_mesh_data);
-
-    CreateTriangularMesh(polygonVertices, maxTriangleArea, triangular_mesh);
-
-    CreateQuadrilateralMeshFromTriangularMesh(geometryUtilities, triangular_mesh, mesh);
 }
 // ***************************************************************************
 } // namespace Gedim

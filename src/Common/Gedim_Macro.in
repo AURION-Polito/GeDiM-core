@@ -1,11 +1,6 @@
 #ifndef __GEDIM_MACRO_H
 #define __GEDIM_MACRO_H
 
-/// Enable Triangle
-/// - 0 false
-/// - 1 true
-#cmakedefine01 ENABLE_TRIANGLE
-
 /// Enable MKL
 /// - 0 false
 /// - 1 true
