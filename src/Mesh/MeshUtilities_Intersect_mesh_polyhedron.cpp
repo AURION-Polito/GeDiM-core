@@ -49,7 +49,7 @@ Gedim::MeshUtilities::Intersect_mesh_polyhedron_result Gedim::MeshUtilities::Int
     const std::vector<std::vector<Eigen::Vector3d>> &mesh_cell3Ds_faces_normal,
     const std::vector<std::vector<bool>> &mesh_cell3Ds_faces_normal_directions,
     const std::vector<std::vector<Eigen::Vector3d>> &mesh_cell3Ds_faces_translation,
-    const std::vector<std::vector<Eigen::Matrix3d>> &mesh_cell3Ds_faces_rotation_matrix) const
+    const std::vector<std::vector<Eigen::Matrix3d>> &mesh_cell3Ds_faces_rotation_matrix)
 {
     struct Intersection final
     {

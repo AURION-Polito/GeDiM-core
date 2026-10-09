@@ -10,15 +10,17 @@
 // This file can be used citing references in CITATION.cff file.
 
 #include "ConformMeshUtilities.hpp"
+#include "CommonUtilities.hpp"
 
 using namespace std;
 
 namespace Gedim
 {
 // ***************************************************************************
-ConformMeshUtilities::ConformMeshUtilities(const GeometryUtilities &geometryUtilities, const MeshUtilities &meshUtilities)
-    : geometryUtilities(geometryUtilities), meshUtilities(meshUtilities)
+ConformMeshUtilities::ConformMeshUtilities(const GeometryUtilities &geometryUtilities, MeshUtilities &meshUtilities)
+    : geometryUtilities(geometryUtilities)
 {
+    Gedim::Utilities::Unused(meshUtilities);
 }
 ConformMeshUtilities::~ConformMeshUtilities()
 {
@@ -114,7 +116,7 @@ void ConformMeshUtilities::ComputeConformedMeshWithSegments(const std::vector<st
 
         if (!options.VtkExportFolder.empty())
         {
-            meshUtilities.ExportMeshToVTU(domainMesh, options.VtkExportFolder, "ConformedMesh");
+            MeshUtilities::ExportMeshToVTU(domainMesh, options.VtkExportFolder, "ConformedMesh");
         }
 
         // Update mesh 1D with updated mesh 2D
@@ -125,11 +127,11 @@ void ConformMeshUtilities::ComputeConformedMeshWithSegments(const std::vector<st
 
         // Clean mesh 2D
         Gedim::MeshUtilities::ExtractActiveMeshData extractionData;
-        meshUtilities.ExtractActiveMesh(domainMesh, extractionData);
+        MeshUtilities::ExtractActiveMesh(domainMesh, extractionData);
 
         if (!options.VtkExportFolder.empty())
         {
-            meshUtilities.ExportMeshToVTU(domainMesh, options.VtkExportFolder, "ConformedMesh");
+            MeshUtilities::ExportMeshToVTU(domainMesh, options.VtkExportFolder, "ConformedMesh");
         }
 
         // Update mesh 1D with cleaned mesh 2D

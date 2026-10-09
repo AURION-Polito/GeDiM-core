@@ -18,7 +18,7 @@ namespace Gedim
 void Gedim::MeshUtilities::ImportRegnFaceMesh(const Gedim::GeometryUtilities &geometry_utilities,
                                               const std::string &node_file_path,
                                               const std::string &ele_file_path,
-                                              IMeshDAO &mesh) const
+                                              IMeshDAO &mesh)
 {
     std::vector<unsigned int> original_cell0Ds_id_to_new_id;
     Eigen::MatrixXd cell0Ds;
@@ -150,7 +150,7 @@ void Gedim::MeshUtilities::ImportRegnFaceMesh(const Gedim::GeometryUtilities &ge
 // ***************************************************************************
 void Gedim::MeshUtilities::FillMesh3D(const Eigen::MatrixXd &cell0Ds,
                                       const std::vector<std::vector<std::vector<unsigned int>>> &cell3Ds_faces_vertices,
-                                      Gedim::IMeshDAO &mesh) const
+                                      Gedim::IMeshDAO &mesh)
 {
     const unsigned int num_cell3Ds = cell3Ds_faces_vertices.size();
 
@@ -281,7 +281,7 @@ void Gedim::MeshUtilities::FillMesh3D(const Eigen::MatrixXd &cell0Ds,
     FillMesh3D(cell0Ds, cell1Ds_vertices, cell2Ds_vertices, cell2Ds_edges, cell3Ds_vertices, cell3Ds_edges, cell3Ds_faces, mesh);
 }
 // ***************************************************************************
-void Gedim::MeshUtilities::FixCell2DsOrientation(const Gedim::GeometryUtilities &geometryUtilities, Gedim::IMeshDAO &mesh) const
+void Gedim::MeshUtilities::FixCell2DsOrientation(const Gedim::GeometryUtilities &geometryUtilities, Gedim::IMeshDAO &mesh)
 {
 
     for (unsigned int cc = 0; cc < mesh.Cell3DTotalNumber(); cc++)
@@ -339,7 +339,7 @@ void Gedim::MeshUtilities::FixCell2DsOrientation(const Gedim::GeometryUtilities 
     }
 }
 // ***************************************************************************
-void Gedim::MeshUtilities::SetMesh3DMarker(const unsigned int marker, Gedim::IMeshDAO &mesh) const
+void Gedim::MeshUtilities::SetMesh3DMarker(const unsigned int marker, Gedim::IMeshDAO &mesh)
 {
     for (unsigned int c_2D = 0; c_2D < mesh.Cell2DTotalNumber(); ++c_2D)
     {

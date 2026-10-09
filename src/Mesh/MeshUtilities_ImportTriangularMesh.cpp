@@ -20,7 +20,7 @@ void Gedim::MeshUtilities::ImportTriangularMesh(const Gedim::GeometryUtilities &
                                                 const std::string &cell2Ds_file_path,
                                                 const std::string &marker_file_path,
                                                 const char separator,
-                                                IMeshDAO &mesh) const
+                                                IMeshDAO &mesh)
 {
     Eigen::MatrixXd cell0Ds;
     std::vector<Eigen::VectorXi> originalCell2Ds;

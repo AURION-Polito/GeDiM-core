@@ -16,7 +16,7 @@ namespace Gedim
 // ***************************************************************************
 void Gedim::MeshUtilities::Mesh3DFromPolyhedra(const Gedim::GeometryUtilities &geometry_utilities,
                                                const std::vector<Gedim::GeometryUtilities::Polyhedron> &polyhedra,
-                                               Gedim::IMeshDAO &mesh) const
+                                               Gedim::IMeshDAO &mesh)
 {
     if (polyhedra.empty())
         return;

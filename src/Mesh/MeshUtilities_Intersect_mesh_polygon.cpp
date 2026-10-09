@@ -17,7 +17,7 @@ namespace Gedim
 // ***************************************************************************
 void Gedim::MeshUtilities::CreatePolygonIntersectionMesh(const Gedim::GeometryUtilities &geometry_utilities,
                                                          const Eigen::MatrixXd &interface_vertices,
-                                                         Gedim::IMeshDAO &mesh) const
+                                                         Gedim::IMeshDAO &mesh)
 {
 
     const unsigned int num_domains_1D = interface_vertices.cols();

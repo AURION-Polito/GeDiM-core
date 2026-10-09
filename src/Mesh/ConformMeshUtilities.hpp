@@ -31,10 +31,9 @@ class ConformMeshUtilities final
 
   private:
     const GeometryUtilities &geometryUtilities;
-    const MeshUtilities &meshUtilities;
 
   public:
-    ConformMeshUtilities(const GeometryUtilities &geometryUtilities, const MeshUtilities &meshUtilities);
+    ConformMeshUtilities(const GeometryUtilities &geometryUtilities, MeshUtilities &meshUtilities);
     ~ConformMeshUtilities();
 
     void ComputeConformedMeshWithSegments(const std::vector<std::list<double>> &segmentsAdditionalPoints,

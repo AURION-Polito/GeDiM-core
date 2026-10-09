@@ -23,7 +23,7 @@ namespace Gedim
 void MeshUtilities::FillMesh2D(const Eigen::MatrixXd &cell0Ds,
                                const Eigen::MatrixXi &cell1Ds,
                                const std::vector<Eigen::MatrixXi> &cell2Ds,
-                               Gedim::IMeshDAO &mesh) const
+                               Gedim::IMeshDAO &mesh)
 {
     mesh.InitializeDimension(2);
 
@@ -73,8 +73,7 @@ void MeshUtilities::FillMesh2D(const Eigen::MatrixXd &cell0Ds,
     }
 }
 // ***************************************************************************
-MeshUtilities::FilterMeshData MeshUtilities::FilterMesh2D(const std::vector<unsigned int> &cell2DsFilter,
-                                                          const Gedim::IMeshDAO &mesh) const
+MeshUtilities::FilterMeshData MeshUtilities::FilterMesh2D(const std::vector<unsigned int> &cell2DsFilter, const Gedim::IMeshDAO &mesh)
 {
     std::list<unsigned int> cell2Ds;
     std::set<unsigned int> cell0Ds, cell1Ds;
@@ -113,7 +112,7 @@ MeshUtilities::ExtractMeshData MeshUtilities::ExtractMesh2D(const std::vector<un
                                                             const std::vector<unsigned int> &cell1DsFilter,
                                                             const std::vector<unsigned int> &cell2DsFilter,
                                                             const Gedim::IMeshDAO &originalMesh,
-                                                            Gedim::IMeshDAO &mesh) const
+                                                            Gedim::IMeshDAO &mesh)
 {
     ExtractMeshData result;
     result.NewCell0DToOldCell0D.resize(cell0DsFilter.size(), std::numeric_limits<unsigned int>::max());
@@ -193,7 +192,7 @@ MeshUtilities::ExtractMeshData MeshUtilities::ExtractMesh2D(const std::vector<un
 }
 // ***************************************************************************
 MeshUtilities::ComputeMesh2DCell1DsResult MeshUtilities::ComputeMesh2DCell1Ds(const Eigen::MatrixXd &cell0Ds,
-                                                                              const std::vector<Eigen::VectorXi> &cell2Ds) const
+                                                                              const std::vector<Eigen::VectorXi> &cell2Ds)
 {
     ComputeMesh2DCell1DsResult result;
 
@@ -268,7 +267,7 @@ MeshUtilities::ComputeMesh2DCell1DsResult MeshUtilities::ComputeMesh2DCell1Ds(co
 // ***************************************************************************
 void MeshUtilities::CheckMesh2D(const CheckMesh2DConfiguration &configuration,
                                 const Gedim::GeometryUtilities &geometryUtilities,
-                                const Gedim::IMeshDAO &convexMesh) const
+                                const Gedim::IMeshDAO &convexMesh)
 {
     Output::Assert(convexMesh.Dimension() == 2);
 
@@ -415,7 +414,7 @@ void MeshUtilities::CheckMesh2D(const CheckMesh2DConfiguration &configuration,
 void MeshUtilities::CheckMeshGeometricData2D(const CheckMeshGeometricData2DConfiguration &configuration,
                                              const GeometryUtilities &geometryUtilities,
                                              const Gedim::IMeshDAO &mesh,
-                                             const MeshGeometricData2D &geometricData) const
+                                             const MeshGeometricData2D &geometricData)
 {
     if (configuration.Cell1D_CheckMeasure)
     {
@@ -500,7 +499,7 @@ void MeshUtilities::CheckMeshGeometricData2D(const CheckMeshGeometricData2DConfi
 void MeshUtilities::Mesh2DFromPolygon(const Eigen::MatrixXd &polygonVertices,
                                       const std::vector<unsigned int> vertexMarkers,
                                       const std::vector<unsigned int> edgeMarkers,
-                                      Gedim::IMeshDAO &mesh) const
+                                      Gedim::IMeshDAO &mesh)
 {
     mesh.InitializeDimension(2);
 
@@ -561,7 +560,7 @@ void MeshUtilities::SetMeshMarkersOnLine(const Gedim::GeometryUtilities &geometr
                                          const Eigen::Vector3d &lineTangent,
                                          const double &lineTangentSquaredLength,
                                          const unsigned int &marker,
-                                         Gedim::IMeshDAO &mesh) const
+                                         Gedim::IMeshDAO &mesh)
 {
     // set cell0Ds markers
     std::vector<bool> vertices_on_line(mesh.Cell0DTotalNumber(), false);
@@ -591,7 +590,7 @@ void MeshUtilities::SetMeshMarkersOnSegment(const Gedim::GeometryUtilities &geom
                                             const Eigen::Vector3d &segment_tangent,
                                             const double &segment_tangent_squared_length,
                                             const unsigned int &marker,
-                                            Gedim::IMeshDAO &mesh) const
+                                            Gedim::IMeshDAO &mesh)
 {
     // set cell0Ds markers
     std::vector<bool> vertices_on_segment(mesh.Cell0DTotalNumber(), false);
@@ -636,7 +635,7 @@ void MeshUtilities::SetMeshMarkersOnSegment(const Gedim::GeometryUtilities &geom
     }
 }
 // ***************************************************************************
-std::vector<unsigned int> MeshUtilities::MeshCell2DRoots(const Gedim::IMeshDAO &mesh) const
+std::vector<unsigned int> MeshUtilities::MeshCell2DRoots(const Gedim::IMeshDAO &mesh)
 {
     std::vector<unsigned int> rootCell2Ds(mesh.Cell2DTotalNumber());
 
@@ -653,7 +652,7 @@ std::vector<unsigned int> MeshUtilities::MeshCell2DRoots(const Gedim::IMeshDAO &
 }
 // ***************************************************************************
 MeshUtilities::MeshGeometricData2D MeshUtilities::FillMesh2DGeometricData(const Gedim::GeometryUtilities &geometryUtilities,
-                                                                          const Gedim::IMeshDAO &convexMesh) const
+                                                                          const Gedim::IMeshDAO &convexMesh)
 {
     MeshGeometricData2D result;
 
@@ -745,7 +744,7 @@ MeshUtilities::MeshGeometricData2D MeshUtilities::FillMesh2DGeometricData(const 
 MeshUtilities::MeshGeometricData2D MeshUtilities::FillMesh2DGeometricData(const Gedim::GeometryUtilities &geometryUtilities,
                                                                           const Gedim::IMeshDAO &mesh,
                                                                           const std::vector<Gedim::GeometryUtilities::PolygonTypes> &meshCell2DsPolygonType,
-                                                                          const MeshGeometricData2DConfig &config) const
+                                                                          const MeshGeometricData2DConfig &config)
 {
     MeshGeometricData2D result;
 
@@ -920,7 +919,7 @@ MeshUtilities::MeshGeometricData2D MeshUtilities::FillMesh2DGeometricData(const 
 MeshUtilities::MeshGeometricData2D MeshUtilities::FillMesh2DGeometricData(const GeometryUtilities &geometryUtilities,
                                                                           const Gedim::IMeshDAO &mesh,
                                                                           const Gedim::IMeshDAO &convexMesh,
-                                                                          const std::vector<std::vector<unsigned int>> &meshCell2DToConvexCell2DIndices) const
+                                                                          const std::vector<std::vector<unsigned int>> &meshCell2DToConvexCell2DIndices)
 {
     MeshGeometricData2D result;
 
@@ -1091,7 +1090,7 @@ void MeshUtilities::ExportMeshGeometricData2DToTxt(const MeshGeometricData2D &me
     file.close();
 }
 // ***************************************************************************
-void MeshUtilities::ComputeCell0DCell1DNeighbours(IMeshDAO &mesh) const
+void MeshUtilities::ComputeCell0DCell1DNeighbours(IMeshDAO &mesh)
 {
     // Compute Cell0D neighbours starting from cell1Ds
     std::vector<std::list<unsigned int>> cell0DsNeighbours(mesh.Cell0DTotalNumber());
@@ -1121,7 +1120,7 @@ void MeshUtilities::ComputeCell0DCell1DNeighbours(IMeshDAO &mesh) const
     }
 }
 // ***************************************************************************
-void MeshUtilities::ComputeCell0DCell2DNeighbours(IMeshDAO &mesh) const
+void MeshUtilities::ComputeCell0DCell2DNeighbours(IMeshDAO &mesh)
 {
     // Compute Cell0D neighbours starting from cell2Ds
     std::vector<std::list<unsigned int>> cell0DsNeighbours(mesh.Cell0DTotalNumber());
@@ -1151,7 +1150,7 @@ void MeshUtilities::ComputeCell0DCell2DNeighbours(IMeshDAO &mesh) const
     }
 }
 // ***************************************************************************
-void MeshUtilities::ComputeCell0DCell3DNeighbours(IMeshDAO &mesh) const
+void MeshUtilities::ComputeCell0DCell3DNeighbours(IMeshDAO &mesh)
 {
     // Compute Cell0D neighbours starting from cell3Ds
     std::vector<std::list<unsigned int>> cell0DsNeighbours(mesh.Cell0DTotalNumber());
@@ -1181,7 +1180,7 @@ void MeshUtilities::ComputeCell0DCell3DNeighbours(IMeshDAO &mesh) const
     }
 }
 // ***************************************************************************
-void MeshUtilities::ComputeCell1DCell2DNeighbours(IMeshDAO &mesh) const
+void MeshUtilities::ComputeCell1DCell2DNeighbours(IMeshDAO &mesh)
 {
     if (mesh.Dimension() == 2)
     {
@@ -1248,7 +1247,7 @@ void MeshUtilities::ComputeCell1DCell2DNeighbours(IMeshDAO &mesh) const
 // ***************************************************************************
 std::vector<unsigned int> MeshUtilities::SplitCell2D(const unsigned int &cell2DIndex,
                                                      const std::vector<Eigen::MatrixXi> &subCell2Ds,
-                                                     Gedim::IMeshDAO &mesh) const
+                                                     Gedim::IMeshDAO &mesh)
 {
     const unsigned int numSubCells = subCell2Ds.size();
     unsigned int newCell2DsStartingIndex = mesh.Cell2DAppend(numSubCells);
@@ -1316,7 +1315,7 @@ std::vector<unsigned int> MeshUtilities::SplitCell2D(const unsigned int &cell2DI
 }
 // ***************************************************************************
 std::vector<unsigned int> MeshUtilities::FindCell2DsCommonVertices(const std::vector<unsigned int> &cell2DsIndex,
-                                                                   const Gedim::IMeshDAO &mesh) const
+                                                                   const Gedim::IMeshDAO &mesh)
 {
     const unsigned int numPolygons = cell2DsIndex.size();
 
@@ -1369,7 +1368,7 @@ std::vector<unsigned int> MeshUtilities::FindCell2DsCommonVertices(const std::ve
 }
 // ***************************************************************************
 std::vector<unsigned int> MeshUtilities::FindCell2DsCommonEdges(const std::vector<unsigned int> &cell2DsIndex,
-                                                                const Gedim::IMeshDAO &mesh) const
+                                                                const Gedim::IMeshDAO &mesh)
 {
     const unsigned int numPolygons = cell2DsIndex.size();
 
@@ -1399,7 +1398,7 @@ std::vector<unsigned int> MeshUtilities::FindCell2DsCommonEdges(const std::vecto
 }
 // ***************************************************************************
 MeshUtilities::AgglomerateTrianglesResult MeshUtilities::AgglomerateTriangles(const std::vector<unsigned int> &trianglesIndexToAgglomerate,
-                                                                              Gedim::IMeshDAO &triangularMesh) const
+                                                                              Gedim::IMeshDAO &triangularMesh)
 {
     const unsigned int numTriangles = trianglesIndexToAgglomerate.size();
 
@@ -1467,7 +1466,7 @@ MeshUtilities::AgglomerateTrianglesResult MeshUtilities::AgglomerateTriangles(co
 // ***************************************************************************
 MeshUtilities::AgglomerateMeshFromTriangularMeshResult MeshUtilities::AgglomerateMeshFromTriangularMesh(
     const std::vector<std::vector<unsigned int>> &trianglesIndicesToAgglomerate,
-    Gedim::IMeshDAO &triangularMesh) const
+    Gedim::IMeshDAO &triangularMesh)
 {
     AgglomerateMeshFromTriangularMeshResult result;
 
@@ -1527,7 +1526,7 @@ MeshUtilities::AgglomerationInformation MeshUtilities::ImportAgglomerationInform
                                                                                              const Gedim::IMeshDAO &originalMesh,
                                                                                              const Gedim::IMeshDAO &agglomeratedMesh,
                                                                                              const std::string &fileName,
-                                                                                             const char &separator) const
+                                                                                             const char &separator)
 {
     AgglomerationInformation result;
 
@@ -1739,7 +1738,7 @@ MeshUtilities::AgglomerationInformation MeshUtilities::ImportAgglomerationInform
                                                                                              const Gedim::IMeshDAO &originalMesh,
                                                                                              const Gedim::IMeshDAO &agglomeratedMesh,
                                                                                              const std::string &fileName,
-                                                                                             const char &separator) const
+                                                                                             const char &separator)
 {
     AgglomerationInformation result;
 
@@ -1969,7 +1968,7 @@ MeshUtilities::AgglomerationInformation MeshUtilities::ImportAgglomerationInform
 void MeshUtilities::ExportConcaveMesh2DToCsv(const Gedim::IMeshDAO &mesh,
                                              const std::vector<std::vector<unsigned int>> &convexCell2DsIndex,
                                              const char &separator,
-                                             const std::string &exportFolderPath) const
+                                             const std::string &exportFolderPath)
 {
     // export mesh
     Gedim::MeshFromCsvUtilities meshFromCsvUtilities;
@@ -2016,7 +2015,7 @@ void MeshUtilities::ExportConcaveMesh2DToCsv(const Gedim::IMeshDAO &mesh,
 void MeshUtilities::ChangePolygonMeshMarkers(const Eigen::MatrixXd &polygonVertices,
                                              const std::vector<unsigned int> &cell0DMarkers,
                                              const std::vector<unsigned int> &cell1DMarkers,
-                                             Gedim::IMeshDAO &mesh) const
+                                             Gedim::IMeshDAO &mesh)
 {
     Output::Assert(mesh.Dimension() == 2);
 
@@ -2049,7 +2048,7 @@ void MeshUtilities::SetPolygonMeshMarkers(const Gedim::GeometryUtilities &geomet
                                           const Eigen::MatrixXd &polygonVertices,
                                           const std::vector<unsigned int> &cell0DMarkers,
                                           const std::vector<unsigned int> &cell1DMarkers,
-                                          Gedim::IMeshDAO &mesh) const
+                                          Gedim::IMeshDAO &mesh)
 {
     Output::Assert(mesh.Dimension() == 2);
 
@@ -2116,7 +2115,7 @@ void MeshUtilities::SetPolygonMeshMarkers(const Gedim::GeometryUtilities &geomet
 // ***************************************************************************
 MeshUtilities::AgglomerateCell2DInformation MeshUtilities::AgglomerateCell2Ds(const Gedim::GeometryUtilities &geometryUtilities,
                                                                               const std::unordered_set<unsigned int> &cell2DsIndex,
-                                                                              const Gedim::IMeshDAO &mesh) const
+                                                                              const Gedim::IMeshDAO &mesh)
 {
     AgglomerateCell2DInformation result;
 
@@ -2284,7 +2283,7 @@ unsigned int MeshUtilities::AgglomerateCell2Ds(const std::unordered_set<unsigned
                                                const std::vector<unsigned int> &subCell2DsRemovedCell0Ds,
                                                const std::vector<unsigned int> &subCell2DsRemovedCell1Ds,
                                                Gedim::IMeshDAO &mesh,
-                                               std::vector<std::vector<unsigned int>> &meshCell2DsOriginalCell2Ds) const
+                                               std::vector<std::vector<unsigned int>> &meshCell2DsOriginalCell2Ds)
 {
     if (subCell2DsIndex.size() == 0)
         return mesh.Cell2DTotalNumber();
@@ -2391,7 +2390,7 @@ MeshUtilities::FindPointCell2DResult MeshUtilities::FindPointCell2D(const Gedim:
                                                                     const std::vector<Eigen::MatrixXd> &cell2DsVertices,
                                                                     const std::vector<Eigen::MatrixXd> &cell2DsBoundingBox,
                                                                     const bool find_only_first_cell2D,
-                                                                    const unsigned int starting_cell2D_index) const
+                                                                    const unsigned int starting_cell2D_index)
 {
     std::list<Gedim::MeshUtilities::FindPointCell2DResult::PointCell2DFound> cell2Ds_found;
 
@@ -2429,7 +2428,7 @@ MeshUtilities::FindPointCell2DResult MeshUtilities::FindPointCell2D(const Gedim:
 }
 // ***************************************************************************
 MeshUtilities::FindPointMeshPositionResult MeshUtilities::FindPointMeshPosition(const Gedim::MeshUtilities::FindPointCell2DResult &find_point_cell2D_result,
-                                                                                const Gedim::IMeshDAO &mesh) const
+                                                                                const Gedim::IMeshDAO &mesh)
 {
     if (find_point_cell2D_result.Cell2Ds_found.empty())
         return {};

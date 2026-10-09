@@ -13,7 +13,6 @@
 
 #include "TetgenInterface.hpp"
 #include "TriangleInterface.hpp"
-#include "VoroInterface.hpp"
 
 #include <numbers>
 #include <numeric>
@@ -29,7 +28,7 @@ void MeshUtilities::CreateRectangleMesh(const Eigen::Vector3d &rectangleOrigin,
                                         const Eigen::Vector3d &rectangleHeightTangent,
                                         const vector<double> &baseMeshCurvilinearCoordinates,
                                         const vector<double> &heightMeshCurvilinearCoordinates,
-                                        Gedim::IMeshDAO &mesh) const
+                                        Gedim::IMeshDAO &mesh)
 {
     const unsigned int &numBasePoints = baseMeshCurvilinearCoordinates.size();
     const unsigned int &numHeightPoints = heightMeshCurvilinearCoordinates.size();
@@ -144,7 +143,7 @@ void MeshUtilities::CreateStructuredTriangularMesh(const Eigen::Vector3d &rectan
                                                    const Eigen::Vector3d &rectangleHeightTangent,
                                                    const std::vector<double> &baseMeshCurvilinearCoordinates,
                                                    const std::vector<double> &heightMeshCurvilinearCoordinates,
-                                                   Gedim::IMeshDAO &mesh) const
+                                                   Gedim::IMeshDAO &mesh)
 {
     const unsigned int &numBasePoints = baseMeshCurvilinearCoordinates.size();
     const unsigned int &numHeightPoints = heightMeshCurvilinearCoordinates.size();
@@ -290,7 +289,7 @@ void MeshUtilities::CreateTrianglePlusHangingNodesMesh(const Eigen::Vector3d &re
                                                        const vector<double> &heightMeshCurvilinearCoordinates,
                                                        const vector<unsigned int> &numberOfAddedVerticesForEachRectangle,
                                                        const GeometryUtilities &geometryUtilities,
-                                                       Gedim::IMeshDAO &mesh) const
+                                                       Gedim::IMeshDAO &mesh)
 {
     const unsigned int &numBasePoints = baseMeshCurvilinearCoordinates.size();
     const unsigned int &numHeightPoints = heightMeshCurvilinearCoordinates.size();
@@ -1044,7 +1043,7 @@ void MeshUtilities::CreateRectanglePlusHangingNodesMesh(const Eigen::Vector3d &r
                                                         const vector<double> &heightMeshCurvilinearCoordinates,
                                                         const vector<unsigned int> &numberOfAddedVerticesForEachRectangle,
                                                         const GeometryUtilities &geometryUtilities,
-                                                        Gedim::IMeshDAO &mesh) const
+                                                        Gedim::IMeshDAO &mesh)
 {
     const unsigned int &numBasePoints = baseMeshCurvilinearCoordinates.size();
     const unsigned int &numHeightPoints = heightMeshCurvilinearCoordinates.size();
@@ -1576,7 +1575,7 @@ void MeshUtilities::CreateRandomlyDeformedQuadrilaterals(const GeometryUtilities
                                                          const unsigned int &numQuadrilateralsHeightTangent,
                                                          const double &maxDeformingPercentageBase,
                                                          const double &maxDeformingPercentageHeight,
-                                                         Gedim::IMeshDAO &mesh) const
+                                                         Gedim::IMeshDAO &mesh)
 {
 
     vector<double> baseMeshCurvilinearCoordinates =
@@ -1704,7 +1703,7 @@ void MeshUtilities::CreateDistortedQuadrilaterals(const GeometryUtilities &geome
                                                   const Eigen::Vector3d &rectangleHeightTangent,
                                                   const unsigned int &numQuadrilateralsBaseTangent,
                                                   const unsigned int &numQuadrilateralsHeightTangent,
-                                                  Gedim::IMeshDAO &mesh) const
+                                                  Gedim::IMeshDAO &mesh)
 {
 
     vector<double> baseMeshCurvilinearCoordinates =
@@ -1830,7 +1829,7 @@ void MeshUtilities::CreateParallelepipedMesh(const Eigen::Vector3d &parallelepip
                                              const vector<double> &lengthMeshCurvilinearCoordinates,
                                              const vector<double> &heightMeshCurvilinearCoordinates,
                                              const vector<double> &widthMeshCurvilinearCoordinates,
-                                             Gedim::IMeshDAO &mesh) const
+                                             Gedim::IMeshDAO &mesh)
 {
     const unsigned int numLengthPoints = lengthMeshCurvilinearCoordinates.size();
     const unsigned int numHeightPoints = heightMeshCurvilinearCoordinates.size();
@@ -2176,27 +2175,16 @@ void MeshUtilities::CreateParallelepipedMesh(const Eigen::Vector3d &parallelepip
 void MeshUtilities::CreateTriangularMesh(const Eigen::MatrixXd &polygonVertices,
                                          const double &maxTriangleArea,
                                          Gedim::IMeshDAO &mesh,
-                                         const string &options) const
+                                         const string &options)
 {
     TriangleInterface triangleInterface;
 
     triangleInterface.CreateMesh(polygonVertices, maxTriangleArea, mesh, options);
 }
 // ***************************************************************************
-void MeshUtilities::CreatePolygonalMesh(const Gedim::GeometryUtilities &geometryUtilities,
-                                        const Eigen::MatrixXd &polygonVertices,
-                                        const unsigned int numPoints,
-                                        const unsigned int numIterations,
-                                        Gedim::IMeshDAO &mesh,
-                                        const unsigned int random_seed) const
-{
-    VoroInterface voroInterface(geometryUtilities);
-    voroInterface.GenerateVoronoiTassellations2D(polygonVertices, numPoints, numIterations, mesh, random_seed);
-}
-// ***************************************************************************
 void MeshUtilities::CreateQuadrilateralMeshFromTriangularMesh(const GeometryUtilities &geometryUtilities,
                                                               const Gedim::IMeshDAO &triangular_mesh,
-                                                              Gedim::IMeshDAO &mesh) const
+                                                              Gedim::IMeshDAO &mesh)
 {
     mesh.InitializeDimension(2);
 
@@ -2311,7 +2299,7 @@ void MeshUtilities::CreateQuadrilateralMeshFromTriangularMesh(const GeometryUtil
 void MeshUtilities::CreateQuadrilateralMeshFromTriangularMesh(const GeometryUtilities &geometryUtilities,
                                                               const Eigen::MatrixXd &polygonVertices,
                                                               const double &maxTriangleArea,
-                                                              Gedim::IMeshDAO &mesh) const
+                                                              Gedim::IMeshDAO &mesh)
 {
     Gedim::MeshMatrices triangular_mesh_data;
     Gedim::MeshMatricesDAO triangular_mesh(triangular_mesh_data);
@@ -2326,7 +2314,7 @@ void MeshUtilities::CreateTetrahedralMesh(const Eigen::MatrixXd &polyhedronVerti
                                           const std::vector<Eigen::MatrixXi> &polyhedronFaces,
                                           const double &maxTetrahedronVolume,
                                           Gedim::IMeshDAO &mesh,
-                                          const string &options) const
+                                          const string &options)
 {
     TetgenInterface tetgenInterface;
 
@@ -2337,34 +2325,18 @@ void MeshUtilities::CreateTetrahedralMesh(const Eigen::MatrixXd &points,
                                           const std::vector<std::vector<unsigned int>> &facets,
                                           const double &maxTetrahedronVolume,
                                           Gedim::IMeshDAO &mesh,
-                                          const std::string &options) const
+                                          const std::string &options)
 {
     TetgenInterface tetgenInterface;
 
     tetgenInterface.CreateMesh(points, facets, maxTetrahedronVolume, mesh, options);
 }
 // ***************************************************************************
-void MeshUtilities::CreateDelaunayMesh3D(const Eigen::MatrixXd &points,
-                                         const std::vector<unsigned int> &points_marker,
-                                         Gedim::IMeshDAO &mesh) const
+void MeshUtilities::CreateDelaunayMesh3D(const Eigen::MatrixXd &points, const std::vector<unsigned int> &points_marker, Gedim::IMeshDAO &mesh)
 {
     TetgenInterface tetgenInterface;
 
     tetgenInterface.CreateDelaunay(points, points_marker, mesh);
-}
-// ***************************************************************************
-void MeshUtilities::CreatePolyhedralMesh(const GeometryUtilities &geometryUtilities,
-                                         const Eigen::MatrixXd &polyhedronVertices,
-                                         const Eigen::MatrixXi &polyhedronEdges,
-                                         const std::vector<Eigen::MatrixXi> &polyhedronFaces,
-                                         const unsigned int numPoints,
-                                         const unsigned int numIterations,
-                                         Gedim::IMeshDAO &mesh,
-                                         const unsigned int random_seed) const
-{
-    VoroInterface voroInterface(geometryUtilities);
-
-    voroInterface.GenerateVoronoiTassellations3D(polyhedronVertices, polyhedronEdges, polyhedronFaces, numPoints, numIterations, mesh, random_seed);
 }
 // ***************************************************************************
 } // namespace Gedim

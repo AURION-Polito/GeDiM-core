@@ -21,7 +21,7 @@ namespace Gedim
 // ***************************************************************************
 void MeshUtilities::CheckMesh3D(const CheckMesh3DConfiguration &configuration,
                                 const GeometryUtilities &geometryUtilities,
-                                const Gedim::IMeshDAO &mesh) const
+                                const Gedim::IMeshDAO &mesh)
 {
     Output::Assert(mesh.Dimension() == 3);
 

@@ -37,7 +37,6 @@ set(ENABLE_TETGEN OFF CACHE BOOL "Enable Tetgen extension")
 set(ENABLE_METIS OFF CACHE BOOL "Enable Metis extension")
 set(ENABLE_VTK OFF CACHE BOOL "Enable VTK extension")
 set(ENABLE_MKL OFF CACHE BOOL "Enable MKL extension")
-set(ENABLE_VORO OFF CACHE BOOL "Enable VORO extension")
 set(ENABLE_SUITESPARSE OFF CACHE BOOL "Enable SuiteSparse extension")
 set(ENABLE_PETSC OFF CACHE BOOL "Enable PETSc extension")
 set(VERBOSE 3 CACHE STRING "Select verbosity level (0, 1, 2 3 or 4)")
@@ -90,12 +89,6 @@ endif()
 if(${ENABLE_TETGEN})
     find_package(tetgen CONFIG REQUIRED)
     list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES PUBLIC tetgen::tetgen)
-endif()
-
-## VORO
-if(${ENABLE_VORO})
-    find_package(VORO CONFIG REQUIRED)
-    list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES PUBLIC VORO::voro++)
 endif()
 
 ## VTK
