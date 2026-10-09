@@ -2403,60 +2403,6 @@ class GeometryUtilities final
     std::vector<unsigned int> PolyhedronCoordinateSystem(const Eigen::MatrixXd &polyhedronVertices,
                                                          const Eigen::MatrixXi &polyhedronEdges);
 
-    /// \brief Export Polyhedron To VTU
-    /// \param polyhedronVertices the polyhedron vertices
-    /// \param polyhedronEdges the polyhedron edges
-    /// \param polyhedronFaces the polyhedron faces
-    /// \param exportFolder the folder in which to export
-    void ExportPolyhedronToVTU(const Eigen::MatrixXd &polyhedronVertices,
-                               const Eigen::MatrixXi &polyhedronEdges,
-                               const std::vector<Eigen::MatrixXi> &polyhedronFaces,
-                               const std::string &exportFolder) const;
-
-    inline void ExportPolyhedronToVTU(const Polyhedron &polyhedron, const std::string &exportFolder) const
-    {
-        ExportPolyhedronToVTU(polyhedron.Vertices, polyhedron.Edges, polyhedron.Faces, exportFolder);
-    }
-
-    /// \brief Export Polyhedron To VTU
-    /// \param polyhedronVertices the polyhedron vertices
-    /// \param polyhedronEdges the polyhedron edges
-    /// \param polyhedronFaces the polyhedron faces
-    /// \param exportFolder the folder in which to export
-    void ExportPolyhedronToVTU(const unsigned int &index,
-                               const Eigen::MatrixXd &polyhedronVertices,
-                               const Eigen::MatrixXi &polyhedronEdges,
-                               const std::vector<Eigen::MatrixXi> &polyhedronFaces,
-                               const std::vector<Eigen::MatrixXd> &polyhedronTetra,
-                               const double &polyhedronVolume,
-                               const Eigen::Vector3d &polyhedronCentroid,
-                               const std::vector<Eigen::MatrixXd> &polyhedronFaces3DVertices,
-                               const std::vector<double> &polyhedronFacesArea,
-                               const std::vector<Eigen::Vector3d> &polyhedronFaces2DCentroid,
-                               const std::vector<Eigen::Vector3d> &polyhedronFacesTranslation,
-                               const std::vector<Eigen::Matrix3d> &polyhedronFacesRotationMatrix,
-                               const std::vector<std::vector<Eigen::Matrix3d>> &polyhedronFaces3DTriangles,
-                               const std::vector<Eigen::Vector3d> &polyhedronFaces3DInternalPoint,
-                               const std::vector<Eigen::Vector3d> &polyhedronFaces3DNormal,
-                               const std::vector<bool> &polyhedronFaces3DNormalDirection,
-                               const std::string &exportFolder) const;
-
-    void ExportPolygonToVTU(const unsigned int &index,
-                            const Eigen::MatrixXd &polygon,
-                            const std::vector<Eigen::Matrix3d> &polygon_triangles,
-                            const double &polygon_volume,
-                            const Eigen::Vector3d &polygon_centroid,
-                            const Eigen::MatrixXd &polygon_edges_centroid,
-                            const Eigen::MatrixXd &polygon_edges_normal,
-                            const std::vector<bool> &polygon_edges_normal_direction,
-                            const std::string &exportFolder) const;
-
-    void ExportPlanteToVTU(const Eigen::Vector3d &plane_origin,
-                           const Eigen::Vector3d &plane_normal,
-                           const Eigen::Vector3d &plane_translation,
-                           const Eigen::Matrix3d &plane_rotation_matrix,
-                           const std::string &exportFolder) const;
-
     MergePolyhedronsInput MergePolyhedronByFace(const std::array<Polyhedron, 2> &polyhedrons,
                                                 const std::array<unsigned int, 2> polyhedrons_common_face_index,
                                                 const bool remove_common_face) const;

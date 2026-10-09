@@ -14,7 +14,6 @@
 #include "IOUtilities.hpp"
 #include "LPUtilities.hpp"
 #include "MapTriangle.hpp"
-#include "VTKUtilities.hpp"
 #include <numeric>
 
 using namespace std;
@@ -1686,116 +1685,6 @@ bool GeometryUtilities::IsPolygonCoplanar(const Eigen::Vector3d &planeNormal,
         return false;
 
     return true;
-}
-// ***************************************************************************
-void GeometryUtilities::ExportPolygonToVTU(const unsigned int &index,
-                                           const Eigen::MatrixXd &polygon,
-                                           const std::vector<Eigen::Matrix3d> &polygon_triangles,
-                                           const double &polygon_volume,
-                                           const Eigen::Vector3d &polygon_centroid,
-                                           const Eigen::MatrixXd &polygon_edges_centroid,
-                                           const Eigen::MatrixXd &polygon_edges_normal,
-                                           const std::vector<bool> &polygon_edges_normal_direction,
-                                           const std::string &exportFolder) const
-{
-    {
-        Gedim::VTKUtilities exporter;
-
-        vector<double> id(1, index);
-        vector<double> volume(1, polygon_volume);
-
-        // Export Polyhedron
-        exporter.AddPolygon(
-            polygon,
-            {{"Id", Gedim::VTPProperty::Formats::Cells, static_cast<unsigned int>(id.size()), id.data()},
-             {"Area", Gedim::VTPProperty::Formats::Cells, static_cast<unsigned int>(volume.size()), volume.data()}});
-
-        exporter.Export(exportFolder + "/" + "Polygon.vtu");
-    }
-
-    {
-        Gedim::VTKUtilities exporter;
-
-        // Export polygon triangles
-        for (unsigned int t = 0; t < polygon_triangles.size(); t++)
-        {
-            vector<double> id(1, t);
-
-            const Eigen::MatrixXd triangle = polygon_triangles.at(t);
-
-            exporter.AddPolygon(triangle,
-                                {{"Id", Gedim::VTPProperty::Formats::Cells, static_cast<unsigned int>(id.size()), id.data()}});
-        }
-
-        exporter.Export(exportFolder + "/" + "Polygon_Triangles.vtu");
-    }
-
-    {
-        Gedim::VTKUtilities exporter;
-
-        // Export edges normal
-        for (unsigned int e = 0; e < polygon.cols(); e++)
-        {
-            vector<double> edge(1, e);
-            vector<double> normalDirection(1, polygon_edges_normal_direction[e] ? 1.0 : -1.0);
-
-            const Eigen::Vector3d normal_origin = polygon_edges_centroid.col(e);
-            const Eigen::Vector3d normal_end = polygon_edges_centroid.col(e) + normalDirection[0] * polygon_edges_normal.col(e);
-
-            exporter.AddSegment(normal_origin,
-                                normal_end,
-                                {{"Face", Gedim::VTPProperty::Formats::Cells, static_cast<unsigned int>(edge.size()), edge.data()},
-                                 {"NormalDirection",
-                                  Gedim::VTPProperty::Formats::Cells,
-                                  static_cast<unsigned int>(normalDirection.size()),
-                                  normalDirection.data()}});
-        }
-
-        exporter.Export(exportFolder + "/" + "Polygon_Edges_Normal.vtu");
-    }
-
-    {
-        Gedim::VTKUtilities exporter;
-
-        // Export centroid
-        exporter.AddPoint(polygon_centroid);
-
-        exporter.Export(exportFolder + "/" + "Polygon_Centroid.vtu");
-    }
-}
-// ***************************************************************************
-void GeometryUtilities::ExportPlanteToVTU(const Eigen::Vector3d &plane_origin,
-                                          const Eigen::Vector3d &plane_normal,
-                                          const Eigen::Vector3d &plane_translation,
-                                          const Eigen::Matrix3d &plane_rotation_matrix,
-                                          const string &exportFolder) const
-{
-    Eigen::Matrix3d plane_triangle_2D;
-    plane_triangle_2D.col(0) << 1.0, 0.0, 0.0;
-    plane_triangle_2D.col(1) << -0.5, +sqrt(3.0) / 2.0, 0.0;
-    plane_triangle_2D.col(2) << -0.5, -sqrt(3.0) / 2.0, 0.0;
-
-    const auto plane_triangle_3D = RotatePointsFrom2DTo3D(plane_triangle_2D, plane_rotation_matrix, plane_translation);
-
-    {
-        Gedim::VTKUtilities exporter;
-        exporter.AddPolygon(plane_triangle_3D);
-        exporter.Export(exportFolder + "/" + "plane.vtu");
-    }
-
-    {
-        Gedim::VTKUtilities exporter;
-        exporter.AddPoint(plane_origin);
-        exporter.Export(exportFolder + "/" + "plane_origin.vtu");
-    }
-
-    {
-        Gedim::VTKUtilities exporter;
-
-        // Export Polyhedron
-        exporter.AddSegment(plane_origin, plane_origin + plane_normal);
-        exporter.Export(exportFolder + "/" + "plane_normal.vtu");
-    }
 }
 // ***************************************************************************
 unsigned int GeometryUtilities::FindPolygonThirdUnalignedPoint(const Eigen::MatrixXd &polygon,

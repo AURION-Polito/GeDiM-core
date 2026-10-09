@@ -831,9 +831,6 @@ struct MeshUtilities
                                        const std::vector<std::vector<bool>> &meshCell3DsFacesOrientation,
                                        const std::string &ovmFilePath);
 
-    /// \brief Import 3D mesh from VTK file
-    static void ImportVtkMesh3D(const std::string &vtkFilePath, Gedim::IMeshDAO &mesh);
-
     /// \brief Import 2D mesh from OFF file
     static void ImportObjectFileFormat(const std::string &offFilePath, Gedim::IMeshDAO &mesh);
 
@@ -873,14 +870,6 @@ struct MeshUtilities
                                             const std::vector<Eigen::Vector3d> &cell2Ds_centroid,
                                             Gedim::IMeshDAO &mesh);
 
-    /// \brief Export Mesh To VTU
-    /// \param mesh the mesh
-    /// \param exportFolder the folder in which the mesh is exported
-    static void ExportMeshToVTU(const Gedim::IMeshDAO &mesh,
-                                const std::string &exportFolder,
-                                const std::string &fileName,
-                                const bool &separateFile = false);
-
     /// \brief Export Mesh To UCD
     /// \param mesh the mesh
     /// \param exportFolder the folder in which the mesh is exported
@@ -898,44 +887,6 @@ struct MeshUtilities
                                   const std::string &fileName,
                                   const bool &separateFile = false,
                                   const unsigned int &order = 1);
-
-    /// \brief Export Cell2D To VTU
-    /// \param mesh the mesh
-    /// \param cell2DIndex the cell2D index
-    /// \param cell2DVertices the cell2D vertices
-    /// \param cell2DTriangulations the cell2D triangulation
-    /// \param cell2DArea the cell2D area
-    /// \param cell2DCentroid the cell2D centroid
-    /// \param exportFolder the folder in which to export
-    static void ExportCell2DToVTU(const Gedim::IMeshDAO &mesh,
-                                  const unsigned int &cell2DIndex,
-                                  const Eigen::MatrixXd &cell2DVertices,
-                                  const std::vector<Eigen::Matrix3d> &cell2DTriangulations,
-                                  const double &cell2DArea,
-                                  const Eigen::Vector3d &cell2DCentroid,
-                                  const std::string &exportFolder);
-
-    static void ExportCell3DToVTU(const Gedim::GeometryUtilities &geometryUtilities,
-                                  const Gedim::IMeshDAO &mesh,
-                                  const unsigned int &cell3DIndex,
-                                  const Eigen::MatrixXd &cell3DVertices,
-                                  const std::vector<Eigen::MatrixXd> &cell3DTetrahedrons,
-                                  const std::vector<std::vector<Eigen::Matrix3d>> &cell3DFaces3DTriangulations,
-                                  const double &cell3DVolume,
-                                  const Eigen::Vector3d &cell3DCentroid,
-                                  const std::vector<Eigen::Vector3d> &cell3DFacesTranslation,
-                                  const std::vector<Eigen::Matrix3d> &cell3DFacesRotationMatrix,
-                                  const std::vector<double> &cell3DFacesArea,
-                                  const std::vector<Eigen::MatrixXd> &cell3DFaces2DVertices,
-                                  const std::vector<Eigen::MatrixXd> &cell3DFaces3DVertices,
-                                  const std::vector<Eigen::VectorXd> &cell3DFacesEdgeLengths,
-                                  const std::vector<std::vector<bool>> &cell3DFacesEdgeDirections,
-                                  const std::vector<Eigen::MatrixXd> &cell3DFacesEdges2DTangent,
-                                  const std::vector<Eigen::MatrixXd> &cell3DFacesEdges2DNormal,
-                                  const std::vector<Eigen::Vector3d> &cell3DFacesNormals,
-                                  const std::vector<bool> &cell3DFacesNormalDirections,
-                                  const std::vector<Eigen::Vector3d> &cell3DFaces2DCentroids,
-                                  const std::string &exportFolder);
 
     /// \brief Convert a mesh cell3D to a geometric polydheron
     /// \param mesh a mesh

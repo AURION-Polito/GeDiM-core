@@ -11,11 +11,6 @@
 /// - 1 true
 #cmakedefine01 ENABLE_TETGEN
 
-/// Enable VTK
-/// - 0 false
-/// - 1 true
-#cmakedefine01 ENABLE_VTK
-
 /// Enable MKL
 /// - 0 false
 /// - 1 true

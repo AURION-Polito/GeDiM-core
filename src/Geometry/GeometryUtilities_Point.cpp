@@ -12,7 +12,6 @@
 #include "GeometryUtilities.hpp"
 #include "IOUtilities.hpp"
 #include "MapTetrahedron.hpp"
-#include "VTKUtilities.hpp"
 
 using namespace std;
 using namespace Eigen;

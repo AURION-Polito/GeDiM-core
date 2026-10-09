@@ -35,7 +35,6 @@ set(USE_MPI OFF CACHE BOOL "Enable MPI support")
 set(ENABLE_TRIANGLE OFF CACHE BOOL "Enable Triangle extension")
 set(ENABLE_TETGEN OFF CACHE BOOL "Enable Tetgen extension")
 set(ENABLE_METIS OFF CACHE BOOL "Enable Metis extension")
-set(ENABLE_VTK OFF CACHE BOOL "Enable VTK extension")
 set(ENABLE_MKL OFF CACHE BOOL "Enable MKL extension")
 set(ENABLE_SUITESPARSE OFF CACHE BOOL "Enable SuiteSparse extension")
 set(ENABLE_PETSC OFF CACHE BOOL "Enable PETSc extension")
@@ -89,12 +88,6 @@ endif()
 if(${ENABLE_TETGEN})
     find_package(tetgen CONFIG REQUIRED)
     list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES PUBLIC tetgen::tetgen)
-endif()
-
-## VTK
-if(${ENABLE_VTK})
-    find_package(VTK CONFIG REQUIRED)
-    list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES PUBLIC ${VTK_LIBRARIES})
 endif()
 
 ## METIS

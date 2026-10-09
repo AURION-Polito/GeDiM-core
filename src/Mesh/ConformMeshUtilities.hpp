@@ -26,7 +26,7 @@ class ConformMeshUtilities final
     struct ComputeDomainConformedMeshOptions final
     {
         bool PrintStatus = false;
-        std::string VtkExportFolder = "";
+        // std::string Vt kExportFolder = "";
     };
 
   private:

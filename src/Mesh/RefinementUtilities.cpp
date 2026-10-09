@@ -10,7 +10,6 @@
 // This file can be used citing references in CITATION.cff file.
 
 #include "RefinementUtilities.hpp"
-#include "VTKUtilities.hpp"
 
 namespace Gedim
 {

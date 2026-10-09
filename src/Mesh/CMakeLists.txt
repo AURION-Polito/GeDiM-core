@@ -20,7 +20,6 @@ list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/RefinementUtilities3D.
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/OpenVolumeMeshInterface.cpp)
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/ObjectFileFormatInterface.cpp)
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/IntersectorMesh3DSegment.cpp)
-list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/VtkMeshInterface.cpp)
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/PlatonicSolid.cpp)
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_Intersect_mesh_polyhedron.cpp)
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_Intersect_mesh_polygon.cpp)
@@ -51,7 +50,6 @@ list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/RefinementUtilities.hp
 list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/OpenVolumeMeshInterface.hpp)
 list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/ObjectFileFormatInterface.hpp)
 list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/IntersectorMesh3DSegment.hpp)
-list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/VtkMeshInterface.hpp)
 list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/WavefrontOBJInterface.hpp)
 
 

@@ -114,10 +114,10 @@ void ConformMeshUtilities::ComputeConformedMeshWithSegments(const std::vector<st
         Gedim::ConformerMeshPolygon conformerMeshDomain(geometryUtilities, conformMeshDomainConfiguration);
         conformerMeshDomain.CreateConformMesh(segmentVertices.col(0), segmentVertices.col(1), segmentTangent, segmentsConformMesh[i], domainMesh);
 
-        if (!options.VtkExportFolder.empty())
-        {
-            MeshUtilities::ExportMeshToVTU(domainMesh, options.VtkExportFolder, "ConformedMesh");
-        }
+        // if (!options.Vt kExportFolder.empty())
+        // {
+        //     MeshUtilities::ExportMeshToV TU(domainMesh, options.Vt kExportFolder, "ConformedMesh");
+        // }
 
         // Update mesh 1D with updated mesh 2D
         for (unsigned int di = 0; di < i; di++)
@@ -129,10 +129,10 @@ void ConformMeshUtilities::ComputeConformedMeshWithSegments(const std::vector<st
         Gedim::MeshUtilities::ExtractActiveMeshData extractionData;
         MeshUtilities::ExtractActiveMesh(domainMesh, extractionData);
 
-        if (!options.VtkExportFolder.empty())
-        {
-            MeshUtilities::ExportMeshToVTU(domainMesh, options.VtkExportFolder, "ConformedMesh");
-        }
+        // if (!options.Vt kExportFolder.empty())
+        // {
+        //     MeshUtilities::ExportMeshToV TU(domainMesh, options.V tkExportFolder, "ConformedMesh");
+        // }
 
         // Update mesh 1D with cleaned mesh 2D
         for (unsigned int di = 0; di < i + 1; di++)
