@@ -6,16 +6,6 @@
 /// - 1 true
 #cmakedefine01 ENABLE_MKL
 
-/// Enable SUITESPARSE
-/// - 0 false
-/// - 1 true
-#cmakedefine01 ENABLE_SUITESPARSE
-
-/// Enable PETSc
-/// - 0 false
-/// - 1 true
-#cmakedefine01 ENABLE_PETSC
-
 /// Adapt for PYBIND11
 /// - 0 false
 /// - 1 true
