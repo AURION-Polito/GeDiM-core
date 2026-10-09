@@ -33,7 +33,6 @@ Message(STATUS "Gedim Library will be installed in: " ${CMAKE_INSTALL_PREFIX})
 set(PYBIND OFF CACHE BOOL "Adapt code for PYBIND support")
 set(USE_MPI OFF CACHE BOOL "Enable MPI support")
 set(ENABLE_TRIANGLE OFF CACHE BOOL "Enable Triangle extension")
-set(ENABLE_TETGEN OFF CACHE BOOL "Enable Tetgen extension")
 set(ENABLE_METIS OFF CACHE BOOL "Enable Metis extension")
 set(ENABLE_MKL OFF CACHE BOOL "Enable MKL extension")
 set(ENABLE_SUITESPARSE OFF CACHE BOOL "Enable SuiteSparse extension")
@@ -84,11 +83,6 @@ if(${ENABLE_TRIANGLE})
     list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES PUBLIC triangle::triangle)
 endif()
 
-## tetgen
-if(${ENABLE_TETGEN})
-    find_package(tetgen CONFIG REQUIRED)
-    list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES PUBLIC tetgen::tetgen)
-endif()
 
 ## METIS
 if(${ENABLE_METIS})

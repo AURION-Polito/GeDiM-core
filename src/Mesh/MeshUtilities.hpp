@@ -780,28 +780,6 @@ struct MeshUtilities
                                      Gedim::IMeshDAO &mesh,
                                      const std::string &options = "-QDzpqnea");
 
-    /// \brief Create tetrahedral mesh on 3D polyhedron
-    /// \param polyhedronVertices the polyhedron vertices, size 3 x numVertices
-    /// \param polyhedronEdges the polyhedron edges, size 2 x numEdges
-    /// \param polyhedronFaces the polyhedron face vertices and edges, size numFaces x 2 x numVertices
-    /// \param maxTetrahedronVolume the maximum tetrahedron area
-    /// \param options mesh options, see https://wias-berlin.de/software/tetgen/1.5/doc/manual/manual005.html#cmd-q
-    /// \note markers on border are set as { 1, 2, 3, 4, ..., numVertices } for cell0Ds and { 5, 6, 7, 8, ..., 2 *
-    /// numVertices } for cell1Ds \note use tetgen library
-    static void CreateTetrahedralMesh(const Eigen::MatrixXd &polyhedronVertices,
-                                      const Eigen::MatrixXi &polyhedronEdges,
-                                      const std::vector<Eigen::MatrixXi> &polyhedronFaces,
-                                      const double &maxTetrahedronVolume,
-                                      Gedim::IMeshDAO &mesh,
-                                      const std::string &options = "Qpqfezna");
-    static void CreateTetrahedralMesh(const Eigen::MatrixXd &points,
-                                      const std::vector<std::vector<unsigned int>> &facets,
-                                      const double &maxTetrahedronVolume,
-                                      Gedim::IMeshDAO &mesh,
-                                      const std::string &options = "Qpqfezna");
-
-    static void CreateDelaunayMesh3D(const Eigen::MatrixXd &points, const std::vector<unsigned int> &points_marker, Gedim::IMeshDAO &mesh);
-
     static void MakeMeshTriangularFaces(const std::vector<std::vector<unsigned int>> &faces_triangulation, Gedim::IMeshDAO &mesh);
 
     /// \brief Import triangular 2D mesh (non standard simple format)

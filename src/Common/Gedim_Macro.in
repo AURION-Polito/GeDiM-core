@@ -6,11 +6,6 @@
 /// - 1 true
 #cmakedefine01 ENABLE_TRIANGLE
 
-/// Enable Tetgen
-/// - 0 false
-/// - 1 true
-#cmakedefine01 ENABLE_TETGEN
-
 /// Enable MKL
 /// - 0 false
 /// - 1 true

@@ -10,8 +10,6 @@
 // This file can be used citing references in CITATION.cff file.
 
 #include "MeshUtilities.hpp"
-
-#include "TetgenInterface.hpp"
 #include "TriangleInterface.hpp"
 
 #include <numbers>
@@ -2307,36 +2305,6 @@ void MeshUtilities::CreateQuadrilateralMeshFromTriangularMesh(const GeometryUtil
     CreateTriangularMesh(polygonVertices, maxTriangleArea, triangular_mesh);
 
     CreateQuadrilateralMeshFromTriangularMesh(geometryUtilities, triangular_mesh, mesh);
-}
-// ***************************************************************************
-void MeshUtilities::CreateTetrahedralMesh(const Eigen::MatrixXd &polyhedronVertices,
-                                          const Eigen::MatrixXi &polyhedronEdges,
-                                          const std::vector<Eigen::MatrixXi> &polyhedronFaces,
-                                          const double &maxTetrahedronVolume,
-                                          Gedim::IMeshDAO &mesh,
-                                          const string &options)
-{
-    TetgenInterface tetgenInterface;
-
-    tetgenInterface.CreateMesh(polyhedronVertices, polyhedronEdges, polyhedronFaces, maxTetrahedronVolume, mesh, options);
-}
-// ***************************************************************************
-void MeshUtilities::CreateTetrahedralMesh(const Eigen::MatrixXd &points,
-                                          const std::vector<std::vector<unsigned int>> &facets,
-                                          const double &maxTetrahedronVolume,
-                                          Gedim::IMeshDAO &mesh,
-                                          const std::string &options)
-{
-    TetgenInterface tetgenInterface;
-
-    tetgenInterface.CreateMesh(points, facets, maxTetrahedronVolume, mesh, options);
-}
-// ***************************************************************************
-void MeshUtilities::CreateDelaunayMesh3D(const Eigen::MatrixXd &points, const std::vector<unsigned int> &points_marker, Gedim::IMeshDAO &mesh)
-{
-    TetgenInterface tetgenInterface;
-
-    tetgenInterface.CreateDelaunay(points, points_marker, mesh);
 }
 // ***************************************************************************
 } // namespace Gedim
