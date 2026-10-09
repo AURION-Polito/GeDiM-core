@@ -32,7 +32,6 @@ Message(STATUS "Gedim Library will be installed in: " ${CMAKE_INSTALL_PREFIX})
 
 set(PYBIND OFF CACHE BOOL "Adapt code for PYBIND support")
 set(USE_MPI OFF CACHE BOOL "Enable MPI support")
-set(ENABLE_METIS OFF CACHE BOOL "Enable Metis extension")
 set(ENABLE_MKL OFF CACHE BOOL "Enable MKL extension")
 set(ENABLE_SUITESPARSE OFF CACHE BOOL "Enable SuiteSparse extension")
 set(ENABLE_PETSC OFF CACHE BOOL "Enable PETSc extension")
@@ -76,11 +75,6 @@ if(${ENABLE_MKL})
     list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES MKL::MKL)
 endif()
 
-## METIS
-if(${ENABLE_METIS})
-    find_package(metis CONFIG REQUIRED)
-    list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES METIS::metis)
-endif()
 
 ## SuiteSparse
 if(${ENABLE_SUITESPARSE})
