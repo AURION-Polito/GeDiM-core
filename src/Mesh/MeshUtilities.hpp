@@ -786,7 +786,9 @@ struct MeshUtilities
                                    IMeshDAO &mesh);
 
     /// \brief Import 3D mesh from OVM file
-    void ImportOpenVolumeMesh(const std::string &ovmFilePath, Gedim::IMeshDAO &mesh, std::vector<std::vector<bool>> &meshCell3DsFacesOrientation);
+    static void ImportOpenVolumeMesh(const std::string &ovmFilePath,
+                                     Gedim::IMeshDAO &mesh,
+                                     std::vector<std::vector<bool>> &meshCell3DsFacesOrientation);
 
     /// \brief Export 3D mesh to OVM file
     static void ExportMeshToOpenVolume(const Gedim::IMeshDAO &mesh,
