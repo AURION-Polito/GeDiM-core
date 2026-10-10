@@ -32,7 +32,6 @@ Message(STATUS "Gedim Library will be installed in: " ${CMAKE_INSTALL_PREFIX})
 
 set(PYBIND OFF CACHE BOOL "Adapt code for PYBIND support")
 set(USE_MPI OFF CACHE BOOL "Enable MPI support")
-set(ENABLE_MKL OFF CACHE BOOL "Enable MKL extension")
 set(VERBOSE 3 CACHE STRING "Select verbosity level (0, 1, 2 3 or 4)")
 set_property(CACHE VERBOSE PROPERTY STRINGS 0 1 2 3 4)
 if(NOT ${VERBOSE} MATCHES 0 AND NOT ${VERBOSE} MATCHES 1 AND NOT ${VERBOSE} MATCHES 2 AND NOT ${VERBOSE} MATCHES 3 AND NOT ${VERBOSE} MATCHES 4)
@@ -65,14 +64,6 @@ if(${USE_MPI})
     find_package(MPI REQUIRED)
     list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES PUBLIC MPI::MPI_CXX)
 endif()
-
-## MKL
-if(${ENABLE_MKL})
-    set(MKL_INTERFACE lp64) # Eigen requires lp64 interface
-    find_package(MKL CONFIG REQUIRED)
-    list(APPEND GEDIM_LIBRARY_LINKED_LIBRARIES MKL::MKL)
-endif()
-
 
 # Insert Sources
 ###############################################################################################

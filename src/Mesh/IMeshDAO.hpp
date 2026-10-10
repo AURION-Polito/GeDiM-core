@@ -13,7 +13,6 @@
 #define __IMeshWrapper_H
 
 #include "Eigen/Eigen"
-#include "Gedim_Macro.hpp"
 #include "IOUtilities.hpp"
 #include "MeshMatrices.hpp"
 

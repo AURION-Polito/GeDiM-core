@@ -12,7 +12,6 @@
 #ifndef __MeshMatricesWrapper_H
 #define __MeshMatricesWrapper_H
 
-#include "Gedim_Macro.hpp"
 #include "IMeshDAO.hpp"
 
 #endif
