@@ -33,11 +33,11 @@ Eigen::MatrixXd GeometryUtilities::generate_uniform_random_points_in_sphere(cons
 
     // Generate random samples
     const Eigen::VectorXd u = Eigen::VectorXd::Random(num_points);                            // For radial distribution
-    const Eigen::VectorXd theta = acos(1 - 2.0 * Eigen::ArrayXd::Random(num_points));         // Polar angle
+    const Eigen::VectorXd theta = acos((1 - 2.0 * Eigen::ArrayXd::Random(num_points)).cwiseMax(-1.0).cwiseMin(1.0));         // Polar angle
     const Eigen::VectorXd phi = 2.0 * std::numbers::pi * Eigen::VectorXd::Random(num_points); // Azimuthal angle
 
     // Convert to Cartesian coordinates
-    const auto r = radius * pow(u.array(), (1.0 / 3.0)); // Uniform radius in volume
+    const auto r = radius * u.array().sign() * u.array().abs().pow(1.0 / 3.0); // Uniform radius in volume
     Eigen::MatrixXd points(3, num_points);
     points.row(0) = r * sin(theta.array()) * cos(phi.array());
     points.row(1) = r.array() * sin(theta.array()) * sin(phi.array());
