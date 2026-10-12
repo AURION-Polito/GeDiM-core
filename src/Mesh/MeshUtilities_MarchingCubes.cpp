@@ -21,8 +21,7 @@ Gedim::MeshUtilities::MarchingCubesData Gedim::MeshUtilities::MarchingCubes(
 {
     Gedim::MeshUtilities::MarchingCubesData result;
 
-    auto marking_function = [&geometry_utilities,
-                            &surface_implicit_equation](const Eigen::MatrixXd &points) {
+    auto marking_function = [&geometry_utilities, &surface_implicit_equation](const Eigen::MatrixXd &points) {
         Eigen::VectorXi marks(points.cols());
         const auto surface_values = surface_implicit_equation(points);
 
@@ -30,16 +29,14 @@ Gedim::MeshUtilities::MarchingCubesData Gedim::MeshUtilities::MarchingCubes(
         {
             const auto surface_value = surface_values[p];
 
-            if (geometry_utilities.IsValuePositive(surface_value,
-                                                   geometry_utilities.Tolerance1D()))
+            if (geometry_utilities.IsValuePositive(surface_value, geometry_utilities.Tolerance1D()))
             {
                 marks[p] = +1.0;
             }
-            else if (geometry_utilities.IsValueZero(surface_value,
-                                                    geometry_utilities.Tolerance1D()))
-              marks[p] = +0.0;
+            else if (geometry_utilities.IsValueZero(surface_value, geometry_utilities.Tolerance1D()))
+                marks[p] = +0.0;
             else
-              marks[p] = -1.0;
+                marks[p] = -1.0;
         }
 
         return marks;
@@ -47,16 +44,14 @@ Gedim::MeshUtilities::MarchingCubesData Gedim::MeshUtilities::MarchingCubes(
 
     std::vector<Eigen::MatrixXd> cell0Ds_coordinates;
     {
-      const auto cell0Ds_coordinates_mat = mesh.Cell0DsCoordinates();
+        const auto cell0Ds_coordinates_mat = mesh.Cell0DsCoordinates();
 
-      cell0Ds_coordinates.resize(cell0Ds_coordinates_mat.cols());
-      for (unsigned int c = 0; c < cell0Ds_coordinates_mat.cols(); ++c)
-        cell0Ds_coordinates.at(c) = Eigen::Vector3d(cell0Ds_coordinates_mat.col(c));
+        cell0Ds_coordinates.resize(cell0Ds_coordinates_mat.cols());
+        for (unsigned int c = 0; c < cell0Ds_coordinates_mat.cols(); ++c)
+            cell0Ds_coordinates.at(c) = Eigen::Vector3d(cell0Ds_coordinates_mat.col(c));
     }
 
-    result.cell0Ds_marked = MarkCells(marking_function,
-                                      cell0Ds_coordinates,
-                                      0.0);
+    result.cell0Ds_marked = MarkCells(marking_function, cell0Ds_coordinates, 0.0);
 
     return result;
 }
