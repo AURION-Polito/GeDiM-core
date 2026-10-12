@@ -410,6 +410,13 @@ struct MeshUtilities
         Gedim::MeshUtilities::Intersect_mesh_polyhedron_result::Mesh_Intersections Mesh_intersections;
     };
 
+    struct MarchingCubesData
+    {
+        std::vector<int> cell0Ds_marked;
+        std::vector<int> cell1Ds_new_points;
+        Eigen::MatrixXd surface_points;
+    };
+
   public:
     MeshUtilities(){};
     ~MeshUtilities(){};
@@ -1086,9 +1093,9 @@ struct MeshUtilities
                                          const char &separator,
                                          const std::string &exportFolderPath);
 
-    static std::vector<unsigned int> MarkCells(const std::function<Eigen::VectorXi(const Eigen::MatrixXd &)> &marking_function,
-                                               const std::vector<Eigen::MatrixXd> &cells_points,
-                                               const unsigned int default_mark);
+    static std::vector<int> MarkCells(const std::function<Eigen::VectorXi(const Eigen::MatrixXd &)> &marking_function,
+                                      const std::vector<Eigen::MatrixXd> &cells_points,
+                                      const unsigned int default_mark);
 
     static Gedim::MeshUtilities::Intersect_mesh_polyhedron_result Intersect_mesh_polyhedron(
         const Gedim::GeometryUtilities &geometry_utilities,
@@ -1145,6 +1152,10 @@ struct MeshUtilities
     static void Mesh3DFromPolyhedra(const Gedim::GeometryUtilities &geometry_utilities,
                                     const std::vector<Gedim::GeometryUtilities::Polyhedron> &polyhedra,
                                     Gedim::IMeshDAO &mesh);
+
+    static MarchingCubesData MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
+                                           const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
+                                           const Gedim::IMeshDAO &mesh);
 };
 
 } // namespace Gedim
