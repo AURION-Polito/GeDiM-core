@@ -444,6 +444,7 @@ struct MeshUtilities
         Eigen::VectorXd cell0Ds_surface_value;
         std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> cell0Ds_surface_position;
         Gedim::MeshUtilities::IntersectMeshWithSurfaceResult surface_intersections;
+        std::vector<std::array<unsigned int, 3>> surface_triangles;
     };
 
   public:
