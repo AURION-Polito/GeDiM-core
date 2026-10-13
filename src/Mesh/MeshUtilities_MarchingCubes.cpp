@@ -13,47 +13,147 @@
 
 namespace Gedim
 {
-// ***************************************************************************
-Gedim::MeshUtilities::MarchingCubesData Gedim::MeshUtilities::MarchingCubes(
-    const Gedim::GeometryUtilities &geometry_utilities,
-    const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
-    const Gedim::IMeshDAO &mesh)
-{
-    Gedim::MeshUtilities::MarchingCubesData result;
+  // ***************************************************************************
+  Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::IntersectMeshWithSurface(const Gedim::GeometryUtilities &geometry_utilities,
+                                                                                                      const Eigen::VectorXd &cell0Ds_surface_value,
+                                                                                                      const std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> &cell0Ds_surface_position,
+                                                                                                      const Gedim::IMeshDAO &mesh)
+  {
+    Gedim::MeshUtilities::IntersectMeshWithSurfaceResult result;
 
-    auto marking_function = [&geometry_utilities, &surface_implicit_equation](const Eigen::MatrixXd &points) {
-        Eigen::VectorXi marks(points.cols());
-        const auto surface_values = surface_implicit_equation(points);
+    result.cell0Ds_surface_points.resize(mesh.Cell0DTotalNumber(),
+                                         Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None);
+    result.cell1Ds_surface_points.resize(mesh.Cell1DTotalNumber(),
+                                         Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None);
+    result.surface_intersection_points.reserve(mesh.Cell1DTotalNumber() +
+                                               mesh.Cell0DTotalNumber());
 
-        for (unsigned int p = 0; p < surface_values.size(); p++)
+    for (unsigned int e = 0; e < mesh.Cell1DTotalNumber(); ++e)
+    {
+      const auto origin_id = mesh.Cell1DOrigin(e);
+      const auto end_id = mesh.Cell1DEnd(e);
+
+      const auto origin_coordinate = mesh.Cell1DOriginCoordinates(e);
+      const auto end_coordinate = mesh.Cell1DEndCoordinates(e);
+
+      const auto origin_surface_position = cell0Ds_surface_position.at(origin_id);
+      const auto end_surface_position = cell0Ds_surface_position.at(end_id);
+
+      switch (origin_surface_position)
+      {
+        case Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::OnSurface:
         {
-            const auto surface_value = surface_values[p];
+          if (result.cell0Ds_surface_points.at(origin_id) ==
+              Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
+          {
+            result.cell0Ds_surface_points.at(origin_id) =
+                result.surface_intersection_points.size();
+            result.surface_intersection_points.push_back({
+                                                           origin_coordinate,
+                                                           Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex,
+                                                           origin_id
+                                                         });
+          }
+        }
+          break;
+        case Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::Positive:
+        case Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::Negative:
+          break;
+        default:
+          throw std::runtime_error("Position not managed");
+      }
 
-            if (geometry_utilities.IsValuePositive(surface_value, geometry_utilities.Tolerance1D()))
-            {
-                marks[p] = +1.0;
-            }
-            else if (geometry_utilities.IsValueZero(surface_value, geometry_utilities.Tolerance1D()))
-                marks[p] = +0.0;
-            else
-                marks[p] = -1.0;
+      switch (end_surface_position)
+      {
+        case Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::OnSurface:
+        {
+          if (result.cell0Ds_surface_points.at(end_id) ==
+              Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
+          {
+            result.cell0Ds_surface_points.at(end_id) =
+                result.surface_intersection_points.size();
+            result.surface_intersection_points.push_back({
+                                                           end_coordinate,
+                                                           Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex,
+                                                           end_id
+                                                         });
+          }
+        }
+          break;
+        case Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::Positive:
+        case Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::Negative:
+          break;
+        default:
+          throw std::runtime_error("Position not managed");
+      }
+
+      if (origin_surface_position != end_surface_position &&
+          origin_surface_position != Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::OnSurface &&
+          end_surface_position != Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::OnSurface)
+      {
+        const double origin_surface_value = cell0Ds_surface_value[origin_id];
+        const double end_surface_value = cell0Ds_surface_value[end_id];
+
+        const Eigen::Vector3d intersection = origin_coordinate +
+                                             origin_surface_value *
+                                             (end_coordinate - origin_coordinate) /
+                                             (end_surface_value - origin_surface_value);
+
+        result.cell1Ds_surface_points.at(e) =
+            result.surface_intersection_points.size();
+        result.surface_intersection_points.push_back({
+                                                       intersection,
+                                                       Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Edge,
+                                                       e
+                                                     });
+
+      }
+    }
+
+    return result;
+  }
+  // ***************************************************************************
+  Gedim::MeshUtilities::MarchingCubesResult Gedim::MeshUtilities::MarchingCubes(
+      const Gedim::GeometryUtilities &geometry_utilities,
+      const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
+      const Gedim::IMeshDAO &mesh)
+  {
+    Gedim::MeshUtilities::MarchingCubesResult result;
+
+    result.cell0Ds_surface_value = surface_implicit_equation(mesh.Cell0DsCoordinates());
+
+    {
+      auto marking_function = [&geometry_utilities](const Eigen::VectorXd &points_surface_value) {
+        std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> marks(points_surface_value.size());
+
+        for (unsigned int p = 0; p < points_surface_value.size(); p++)
+        {
+          const auto surface_value = points_surface_value[p];
+
+          if (geometry_utilities.IsValuePositive(surface_value, geometry_utilities.Tolerance1D()))
+          {
+            marks[p] = Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::Positive;
+          }
+          else if (geometry_utilities.IsValueZero(surface_value, geometry_utilities.Tolerance1D()))
+            marks[p] = Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::OnSurface;
+          else if (geometry_utilities.IsValueNegative(surface_value, geometry_utilities.Tolerance1D()))
+            marks[p] = Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions::Negative;
+          else
+            throw std::runtime_error("unknown cell0D position");
         }
 
         return marks;
-    };
+      };
 
-    std::vector<Eigen::MatrixXd> cell0Ds_coordinates;
-    {
-        const auto cell0Ds_coordinates_mat = mesh.Cell0DsCoordinates();
-
-        cell0Ds_coordinates.resize(cell0Ds_coordinates_mat.cols());
-        for (unsigned int c = 0; c < cell0Ds_coordinates_mat.cols(); ++c)
-            cell0Ds_coordinates.at(c) = Eigen::Vector3d(cell0Ds_coordinates_mat.col(c));
+      result.cell0Ds_surface_position = marking_function(result.cell0Ds_surface_value);
     }
 
-    result.cell0Ds_marked = MarkCells(marking_function, cell0Ds_coordinates, 0.0);
+    result.surface_intersections = IntersectMeshWithSurface(geometry_utilities,
+                                                            result.cell0Ds_surface_value,
+                                                            result.cell0Ds_surface_position,
+                                                            mesh);
 
     return result;
-}
-// ***************************************************************************
+  }
+  // ***************************************************************************
 } // namespace Gedim
