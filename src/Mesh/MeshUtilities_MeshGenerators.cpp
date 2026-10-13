@@ -1986,6 +1986,9 @@ void MeshUtilities::CreateParallelepipedMesh(const Eigen::Vector3d &parallelepip
         }
     }
 
+    mesh.Cell2DsInitializeVertices(4);
+    mesh.Cell2DsInitializeEdges(4);
+
     // create length x height cell2Ds
     unsigned int cell2DIndex = 0;
     for (unsigned int w = 0; w < numWidthPoints; w++)
@@ -2005,8 +2008,8 @@ void MeshUtilities::CreateParallelepipedMesh(const Eigen::Vector3d &parallelepip
                                                     cell1DHorizontalIndex + (numLengthPoints - 1),
                                                     cell1DVerticalIndex};
 
-                mesh.Cell2DAddVertices(cell2DIndex, cell2DVertices);
-                mesh.Cell2DAddEdges(cell2DIndex, cell2DEdges);
+                mesh.Cell2DInsertVertices(cell2DIndex, cell2DVertices);
+                mesh.Cell2DInsertEdges(cell2DIndex, cell2DEdges);
 
                 mesh.Cell2DSetState(cell2DIndex, true);
 
@@ -2041,8 +2044,8 @@ void MeshUtilities::CreateParallelepipedMesh(const Eigen::Vector3d &parallelepip
                                                     cell1DHorizontalIndex + (numLengthPoints - 1) * numHeightPoints,
                                                     cell1DVerticalIndex};
 
-                mesh.Cell2DAddVertices(cell2DIndex, cell2DVertices);
-                mesh.Cell2DAddEdges(cell2DIndex, cell2DEdges);
+                mesh.Cell2DInsertVertices(cell2DIndex, cell2DVertices);
+                mesh.Cell2DInsertEdges(cell2DIndex, cell2DEdges);
 
                 mesh.Cell2DSetState(cell2DIndex, true);
 
@@ -2081,8 +2084,8 @@ void MeshUtilities::CreateParallelepipedMesh(const Eigen::Vector3d &parallelepip
                                                     cell1DHorizontalIndex + numLengthPoints * (numHeightPoints - 1),
                                                     cell1DVerticalIndex};
 
-                mesh.Cell2DAddVertices(cell2DIndex, cell2DVertices);
-                mesh.Cell2DAddEdges(cell2DIndex, cell2DEdges);
+                mesh.Cell2DInsertVertices(cell2DIndex, cell2DVertices);
+                mesh.Cell2DInsertEdges(cell2DIndex, cell2DEdges);
 
                 mesh.Cell2DSetState(cell2DIndex, true);
 
@@ -2094,6 +2097,10 @@ void MeshUtilities::CreateParallelepipedMesh(const Eigen::Vector3d &parallelepip
             }
         }
     }
+
+    mesh.Cell3DsInitializeVertices(8);
+    mesh.Cell3DsInitializeEdges(12);
+    mesh.Cell3DsInitializeFaces(6);
 
     // create cell3Ds
     unsigned int cell3DIndex = 0;
@@ -2155,9 +2162,9 @@ void MeshUtilities::CreateParallelepipedMesh(const Eigen::Vector3d &parallelepip
                                                     cell2DOrthogonalIndex,
                                                     cell2DOrthogonalIndex + 1};
 
-                mesh.Cell3DAddVertices(cell3DIndex, cell3DVertices);
-                mesh.Cell3DAddEdges(cell3DIndex, cell3DEdges);
-                mesh.Cell3DAddFaces(cell3DIndex, cell3DFaces);
+                mesh.Cell3DInsertVertices(cell3DIndex, cell3DVertices);
+                mesh.Cell3DInsertEdges(cell3DIndex, cell3DEdges);
+                mesh.Cell3DInsertFaces(cell3DIndex, cell3DFaces);
 
                 mesh.Cell3DSetState(cell3DIndex, true);
 
