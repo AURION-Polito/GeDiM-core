@@ -425,7 +425,7 @@ namespace Gedim
     return g;
   }
   // ***************************************************************************
-  inline std::vector<Triangle> CreateTriangles(const Gedim::GeometryUtilities& geometry_utilities,
+  inline std::vector<Gedim::MeshUtilities::MarchingCubesResult::TriangleData> CreateTriangles(const Gedim::GeometryUtilities& geometry_utilities,
                                                const Eigen::VectorXd& cell0Ds_surface_value,
                                                const std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions>& cell0Ds_surface_position,
                                                const std::vector<Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData>& surface_intersection_points,
@@ -441,8 +441,10 @@ namespace Gedim
         cell1Ds_surface_points.size() != mesh.Cell1DTotalNumber())
       throw std::invalid_argument("Surface arrays do not match mesh dimensions");
 
-    std::vector<Triangle> output;
+    std::vector<Gedim::MeshUtilities::MarchingCubesResult::TriangleData> result;
     std::unordered_set<Triangle,TriangleHash> seen;
+    result.reserve(5 * mesh.Cell3DTotalNumber());
+
     for (unsigned int cell = 0; cell < mesh.Cell3DTotalNumber(); ++cell)
     {
       const Cube c = BuildCube(geometry_utilities,
@@ -532,11 +534,15 @@ namespace Gedim
                   key.end());
 
         if(seen.insert(key).second)
-          output.push_back(tri);
+          result.push_back({
+                             tri,
+                             cell
+                           });
       }
     }
+    result.shrink_to_fit();
 
-    return output;
+    return result;
   }
   // ***************************************************************************
   Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::IntersectMeshWithSurface(const Gedim::GeometryUtilities &geometry_utilities,

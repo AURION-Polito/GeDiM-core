@@ -441,10 +441,16 @@ struct MeshUtilities
             Negative = 2
         };
 
+        struct TriangleData
+        {
+            std::array<unsigned int, 3> indices;
+            unsigned int cell3D_id;
+        };
+
         Eigen::VectorXd cell0Ds_surface_value;
         std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> cell0Ds_surface_position;
         Gedim::MeshUtilities::IntersectMeshWithSurfaceResult surface_intersections;
-        std::vector<std::array<unsigned int, 3>> surface_triangles;
+        std::vector<Gedim::MeshUtilities::MarchingCubesResult::TriangleData> surface_triangles;
     };
 
   public:
