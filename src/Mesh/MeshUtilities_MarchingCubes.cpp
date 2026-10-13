@@ -97,7 +97,7 @@ namespace Gedim
         const Eigen::Vector3d intersection = origin_coordinate +
                                              origin_surface_value *
                                              (end_coordinate - origin_coordinate) /
-                                             (end_surface_value - origin_surface_value);
+                                             (origin_surface_value - end_surface_value);
 
         result.cell1Ds_surface_points.at(e) =
             result.surface_intersection_points.size();
