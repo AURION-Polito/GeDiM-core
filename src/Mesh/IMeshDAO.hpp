@@ -805,6 +805,7 @@ class IMeshDAO
     /// \param cell3DIndex the index of Cell3D from 0 to Cell3DTotalNumber()
     /// \note the cell3D is removed and no integrity check in the mesh are performed
     virtual void Cell3DRemove(const unsigned int &cell3DIndex) = 0;
+    virtual void Cell3DsInitializeVertices(const unsigned int &numberCell3DsVertices) = 0;
     /// \brief Initialize the Cell3Ds vertices number
     /// \param numberCell3DsVertices the number of vertices of each Cell3D
     virtual void Cell3DsInitializeVertices(const std::vector<unsigned int> &numberCell3DsVertices) = 0;
@@ -812,6 +813,7 @@ class IMeshDAO
     /// \param cell3DIndex the index of Cell3D from 0 to Cell3DTotalNumber()
     /// \param numberCell3DVertices the number of vertices of Cell3D
     virtual void Cell3DInitializeVertices(const unsigned int &cell3DIndex, const unsigned int &numberCell3DVertices) = 0;
+    virtual void Cell3DsInitializeEdges(const unsigned int &numberCell3DsEdges) = 0;
     /// \brief Initialize the Cell3Ds edges number
     /// \param numberCell3DsEdges the number of edges of each Cell3D
     virtual void Cell3DsInitializeEdges(const std::vector<unsigned int> &numberCell3DsEdges) = 0;
@@ -819,6 +821,7 @@ class IMeshDAO
     /// \param cell3DIndex the index of Cell3D from 0 to Cell3DTotalNumber()
     /// \param numberCell3DEdges the number of edges of Cell3D
     virtual void Cell3DInitializeEdges(const unsigned int &cell3DIndex, const unsigned int &numberCell3DEdges) = 0;
+    virtual void Cell3DsInitializeFaces(const unsigned int &numberCell3DsFaces) = 0;
     /// \brief Initialize the Cell3Ds faces number
     /// \param numberCell3DsFaces the number of faces of each Cell3D
     virtual void Cell3DsInitializeFaces(const std::vector<unsigned int> &numberCell3DsFaces) = 0;
@@ -1982,8 +1985,11 @@ class MeshMatricesDAO : public IMeshDAO
         Gedim::Output::Assert(cell3DIndex < Cell3DTotalNumber());
         _mesh.ActiveCell3D[cell3DIndex] = state;
     }
+    inline void Cell3DsInitializeVertices(const unsigned int &numberCell3DsVertices);
     inline void Cell3DsInitializeVertices(const std::vector<unsigned int> &numberCell3DsVertices);
+    inline void Cell3DsInitializeEdges(const unsigned int &numberCell3DsEdges);
     inline void Cell3DsInitializeEdges(const std::vector<unsigned int> &numberCell3DsEdges);
+    inline void Cell3DsInitializeFaces(const unsigned int &numberCell3DsFaces);
     inline void Cell3DsInitializeFaces(const std::vector<unsigned int> &numberCell3DsFaces);
     void Cell3DInitializeVertices(const unsigned int &cell3DIndex, const unsigned int &numberCell3DVertices);
     void Cell3DInitializeEdges(const unsigned int &cell3DIndex, const unsigned int &numberCell3DEdges);
