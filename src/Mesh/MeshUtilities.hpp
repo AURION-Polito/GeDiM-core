@@ -410,11 +410,47 @@ struct MeshUtilities
         Gedim::MeshUtilities::Intersect_mesh_polyhedron_result::Mesh_Intersections Mesh_intersections;
     };
 
-    struct MarchingCubesData
+    struct IntersectMeshWithSurfaceResult
     {
-        std::vector<int> cell0Ds_marked;
-        std::vector<int> cell1Ds_new_points;
-        Eigen::MatrixXd surface_points;
+        constexpr static unsigned int None = std::numeric_limits<unsigned int>::max();
+
+        struct SurfacePointData
+        {
+            enum struct Types
+            {
+                Vertex = 1,
+                Edge = 2
+            };
+
+            Eigen::VectorXd coordinate;
+            Types Type;
+            unsigned int mesh_id;
+        };
+
+      std::vector<unsigned int> cell0Ds_surface_points;
+      std::vector<unsigned int> cell1Ds_surface_points;
+      std::vector<Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData> surface_intersection_points;
+    };
+
+    struct MarchingCubesResult
+    {
+        enum struct SurfacePositions
+        {
+          OnSurface = 0,
+            Positive = 1,
+            Negative = 2
+        };
+
+        struct TriangleData
+        {
+            std::array<unsigned int, 3> indices;
+            unsigned int cell3D_id;
+        };
+
+        Eigen::VectorXd cell0Ds_surface_value;
+        std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> cell0Ds_surface_position;
+        Gedim::MeshUtilities::IntersectMeshWithSurfaceResult surface_intersections;
+        std::vector<Gedim::MeshUtilities::MarchingCubesResult::TriangleData> surface_triangles;
     };
 
   public:
@@ -1155,9 +1191,14 @@ struct MeshUtilities
                                     const std::vector<Gedim::GeometryUtilities::Polyhedron> &polyhedra,
                                     Gedim::IMeshDAO &mesh);
 
-    static MarchingCubesData MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
-                                           const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
-                                           const Gedim::IMeshDAO &mesh);
+    static Gedim::MeshUtilities::IntersectMeshWithSurfaceResult IntersectMeshWithSurface(const Gedim::GeometryUtilities &geometry_utilities,
+                                                                                         const Eigen::VectorXd& cell0Ds_surface_value,
+                                                                                         const std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> &cell0Ds_surface_position,
+                                                                                         const Gedim::IMeshDAO &mesh);
+
+    static Gedim::MeshUtilities::MarchingCubesResult MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
+                                                                   const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
+                                                                   const Gedim::IMeshDAO &mesh);
 };
 
 } // namespace Gedim
