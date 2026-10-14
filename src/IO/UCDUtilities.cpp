@@ -134,7 +134,7 @@ std::vector<UCDCell> UCDUtilities::CreatePolygonCells(const std::vector<std::vec
         else if (polygons_vertices[l].size() == 4)
             polygon_type = UCDCell::Types::Quadrilateral;
         else
-            throw std::runtime_error("Polygon type not supported");
+            throw std::runtime_error("Polygon type not supported for UCD format");
 
         cells.push_back(UCDCell(polygon_type,
                                 polygons_vertices[l],
@@ -159,7 +159,7 @@ std::vector<UCDCell> UCDUtilities::CreatePolyhedraCells(const std::vector<std::v
         else if (polyhedra_vertices[l].size() == 8)
             polyhedra_type = UCDCell::Types::Hexahedron;
         else
-            throw std::runtime_error("Polygon type not supported");
+            throw std::runtime_error("Polyhedron type not supported for UCD format");
 
         cells.push_back(UCDCell(polyhedra_type,
                                 polyhedra_vertices[l],
