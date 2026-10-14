@@ -943,10 +943,7 @@ void MeshMatricesDAO::Cell2DsInitializeEdges(const unsigned int &numberCell2DEdg
 void MeshMatricesDAO::Cell2DsInitializeEdges(const std::vector<unsigned int> &numberCell2DsEdges)
 {
     Output::Assert(numberCell2DsEdges.size() == Cell2DTotalNumber());
-    InitializeNumberVector(_mesh.NumberCell2DEdges,
-                           _mesh.Cell2DEdges,
-                           numberCell2DsEdges,
-                           std::numeric_limits<unsigned int>::max());
+    InitializeNumberVector(_mesh.NumberCell2DEdges, _mesh.Cell2DEdges, numberCell2DsEdges, std::numeric_limits<unsigned int>::max());
 }
 // ***************************************************************************
 void MeshMatricesDAO::Cell2DInitializeEdges(const unsigned int &cell2DIndex, const unsigned int &numberCell2DEdges)
@@ -1269,10 +1266,10 @@ void MeshMatricesDAO::Cell3DRemove(const unsigned int &cell3DIndex)
 void MeshMatricesDAO::Cell3DsInitializeVertices(const unsigned int &numberCell3DsVertices)
 {
     InitializeNuberVectorWithConstantElements(_mesh.NumberCell3DVertices,
-                           _mesh.Cell3DVertices,
-                              _mesh.NumberCell3D,
-                           numberCell3DsVertices,
-                           std::numeric_limits<unsigned int>::max());
+                                              _mesh.Cell3DVertices,
+                                              _mesh.NumberCell3D,
+                                              numberCell3DsVertices,
+                                              std::numeric_limits<unsigned int>::max());
 }
 // ***************************************************************************
 void MeshMatricesDAO::Cell3DsInitializeVertices(const std::vector<unsigned int> &numberCell3DsVertices)

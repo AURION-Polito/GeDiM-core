@@ -427,16 +427,16 @@ struct MeshUtilities
             unsigned int mesh_id;
         };
 
-      std::vector<unsigned int> cell0Ds_surface_points;
-      std::vector<unsigned int> cell1Ds_surface_points;
-      std::vector<Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData> surface_intersection_points;
+        std::vector<unsigned int> cell0Ds_surface_points;
+        std::vector<unsigned int> cell1Ds_surface_points;
+        std::vector<Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData> surface_intersection_points;
     };
 
     struct MarchingCubesResult
     {
         enum struct SurfacePositions
         {
-          OnSurface = 0,
+            OnSurface = 0,
             Positive = 1,
             Negative = 2
         };
@@ -1191,10 +1191,11 @@ struct MeshUtilities
                                     const std::vector<Gedim::GeometryUtilities::Polyhedron> &polyhedra,
                                     Gedim::IMeshDAO &mesh);
 
-    static Gedim::MeshUtilities::IntersectMeshWithSurfaceResult IntersectMeshWithSurface(const Gedim::GeometryUtilities &geometry_utilities,
-                                                                                         const Eigen::VectorXd& cell0Ds_surface_value,
-                                                                                         const std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> &cell0Ds_surface_position,
-                                                                                         const Gedim::IMeshDAO &mesh);
+    static Gedim::MeshUtilities::IntersectMeshWithSurfaceResult IntersectMeshWithSurface(
+        const Gedim::GeometryUtilities &geometry_utilities,
+        const Eigen::VectorXd &cell0Ds_surface_value,
+        const std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> &cell0Ds_surface_position,
+        const Gedim::IMeshDAO &mesh);
 
     static Gedim::MeshUtilities::MarchingCubesResult MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
                                                                    const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
