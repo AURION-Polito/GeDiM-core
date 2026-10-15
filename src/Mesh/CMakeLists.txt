@@ -28,6 +28,7 @@ list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities3D_CheckM
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/WavefrontOBJInterface.cpp)
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_Mesh3DFromPolyhedra.cpp)
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_MarchingCubes.cpp)
+list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_MarchingSquares.cpp)
 
 list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/SphereMeshUtilities.hpp)
 list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/PlatonicSolid.hpp)
