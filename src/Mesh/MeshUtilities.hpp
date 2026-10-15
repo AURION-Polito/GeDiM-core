@@ -1223,9 +1223,9 @@ namespace Gedim
           const std::vector<Gedim::MeshUtilities::PointSurfacePositions> &cell0Ds_surface_position,
           const Gedim::IMeshDAO &mesh);
 
-      static Gedim::MeshUtilities::MarchingCubesResult MarchingSquares(const Gedim::GeometryUtilities &geometry_utilities,
-                                                                       const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
-                                                                       const Gedim::IMeshDAO &mesh);
+      static Gedim::MeshUtilities::MarchingSquaresResult MarchingSquares(const Gedim::GeometryUtilities &geometry_utilities,
+                                                                         const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
+                                                                         const Gedim::IMeshDAO &mesh);
 
       static Gedim::MeshUtilities::MarchingCubesResult MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
                                                                      const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
