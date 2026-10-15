@@ -441,22 +441,22 @@ namespace Gedim
 
       struct MarchingSquaresResult
       {
-          struct SurfaceTrianglesData
+          struct SurfaceSegmentsData
           {
-              struct TriangleData
+              struct SegmentData
               {
-                  std::array<unsigned int, 3> indices;
+                  std::array<unsigned int, 2> indices;
                   unsigned int cell2D_id;
               };
 
-              std::vector<std::vector<unsigned int>> cell2Ds_surface_triangles;
-              std::vector<Gedim::MeshUtilities::MarchingSquaresResult::SurfaceTrianglesData::TriangleData> surface_triangles;
+              std::vector<std::vector<unsigned int>> cell2Ds_surface_segments;
+              std::vector<Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData::SegmentData> surface_segments;
           };
 
           Eigen::VectorXd cell0Ds_surface_value;
           std::vector<Gedim::MeshUtilities::PointSurfacePositions> cell0Ds_surface_position;
           Gedim::MeshUtilities::IntersectMeshWithSurfaceResult surface_intersections;
-          Gedim::MeshUtilities::MarchingSquaresResult::SurfaceTrianglesData surface_triangles;
+          Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData surface_segments;
       };
 
       struct MarchingCubesResult
