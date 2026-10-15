@@ -24,7 +24,9 @@ namespace Gedim
       const std::vector<unsigned int> &cell1Ds_surface_points,
       const Gedim::IMeshDAO &mesh)
   {
+    MeshUtilities::MarchingSquaresResult::SurfaceTrianglesData result;
 
+    return result;
   }
   // ***************************************************************************
   Gedim::MeshUtilities::MarchingSquaresResult Gedim::MeshUtilities::MarchingSquares(
