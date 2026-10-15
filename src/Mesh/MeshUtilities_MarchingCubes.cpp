@@ -408,13 +408,13 @@ namespace Gedim
   inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
       const Gedim::GeometryUtilities &geometry_utilities,
       const Eigen::VectorXd &cell0Ds_surface_value,
-      const std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> &cell0Ds_surface_position,
+      const std::vector<Gedim::MeshUtilities::PointSurfacePositions> &cell0Ds_surface_position,
       const std::vector<Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData> &surface_intersection_points,
       const std::vector<unsigned int> &cell0Ds_surface_points,
       const std::vector<unsigned int> &cell1Ds_surface_points,
       const Gedim::IMeshDAO &mesh)
   {
-    using Position = Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions;
+    using Position = Gedim::MeshUtilities::PointSurfacePositions;
 
     if (static_cast<unsigned int>(cell0Ds_surface_value.size()) != mesh.Cell0DTotalNumber() ||
         cell0Ds_surface_position.size() != mesh.Cell0DTotalNumber() ||
@@ -510,15 +510,14 @@ namespace Gedim
     return result;
   }
   // ***************************************************************************
-  Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::IntersectMeshWithSurface(
-      const Gedim::GeometryUtilities &geometry_utilities,
+  Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::IntersectMeshWithSurface(const Gedim::GeometryUtilities &geometry_utilities,
       const Eigen::VectorXd &cell0Ds_surface_value,
-      const std::vector<Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions> &cell0Ds_surface_position,
+      const std::vector<Gedim::MeshUtilities::PointSurfacePositions>& cell0Ds_surface_position,
       const Gedim::IMeshDAO &mesh)
   {
     Gedim::Utilities::Unused(geometry_utilities);
 
-    using SurfacePosition = Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions;
+    using SurfacePosition = Gedim::MeshUtilities::PointSurfacePositions;
 
     Gedim::MeshUtilities::IntersectMeshWithSurfaceResult result;
 
@@ -598,7 +597,7 @@ namespace Gedim
       const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
       const Gedim::IMeshDAO &mesh)
   {
-    using SurfacePosition = Gedim::MeshUtilities::MarchingCubesResult::SurfacePositions;
+    using SurfacePosition = Gedim::MeshUtilities::PointSurfacePositions;
 
     Gedim::MeshUtilities::MarchingCubesResult result;
 
