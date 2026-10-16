@@ -67,50 +67,28 @@ namespace Gedim
       const auto edge_origin_id = mesh.Cell1DOrigin(e);
       const auto edge_end_id = mesh.Cell1DEnd(e);
 
-      const auto edge_origin_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_origin_id).surface_position;
-      const auto edge_end_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_end_id).surface_position;
+      const auto edge_surface_point = surface_intersections.cell1Ds_surface_point.at(e);
 
-      if (surface_intersections.cell1Ds_surface_point.at(e).index ==
-          Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
+      switch (edge_surface_point.surface_position)
       {
-        Gedim::MeshUtilities::PointSurfacePositions edge_position =
-            Gedim::MeshUtilities::PointSurfacePositions::Negative;
-
-        switch (edge_origin_surface_position)
+        case Gedim::MeshUtilities::PointSurfacePositions::Positive:
+        case Gedim::MeshUtilities::PointSurfacePositions::Negative:
         {
-          case Gedim::MeshUtilities::PointSurfacePositions::Negative:
-            edge_position = Gedim::MeshUtilities::PointSurfacePositions::Negative;
-            break;
-          case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
-          {
-            switch (edge_end_surface_position)
-            {
-              case Gedim::MeshUtilities::PointSurfacePositions::Negative:
-                edge_position = Gedim::MeshUtilities::PointSurfacePositions::Negative;
-                break;
-              case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
-                edge_position = Gedim::MeshUtilities::PointSurfacePositions::OnSurface;
-                break;
-              case Gedim::MeshUtilities::PointSurfacePositions::Positive:
-                edge_position = Gedim::MeshUtilities::PointSurfacePositions::Positive;
-                break;
-              default:
-                throw std::runtime_error("Unknown position type");
-            }
-          }
-            break;
-          case Gedim::MeshUtilities::PointSurfacePositions::Positive:
-            edge_position = Gedim::MeshUtilities::PointSurfacePositions::Positive;
-            break;
-          default:
-            throw std::runtime_error("Unknown position type");
+          result.edges.push_back({
+                                   { edge_origin_id, edge_end_id },
+                                   edge_surface_point.surface_position,
+                                   e
+                                 });
         }
-
-        result.edges.push_back({
-                                 { edge_origin_id, edge_end_id },
-                                 edge_position,
-                                 e
-                               });
+          continue;
+        case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+        {
+          const auto edge_origin_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_origin_id).surface_position;
+          const auto edge_end_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_end_id).surface_position;
+        }
+          break;
+        default:
+          throw std::runtime_error("Unknown position type");
       }
     }
 
