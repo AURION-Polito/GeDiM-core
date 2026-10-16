@@ -472,7 +472,9 @@ struct MeshUtilities
           unsigned int original_surface_segment_index;
       };
 
+      std::vector<unsigned int> mesh_cell0D_to_vertex;
       std::vector<unsigned int> surface_point_to_vertex;
+      std::vector<std::vector<unsigned int>> mesh_cell1D_to_edges;
       std::vector<unsigned int> surface_segment_to_edge;
       std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData> vertices;
       std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData> edges;

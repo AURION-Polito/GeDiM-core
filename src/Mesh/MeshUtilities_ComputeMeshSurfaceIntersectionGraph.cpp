@@ -20,6 +20,7 @@ namespace Gedim
   {
     Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData result;
     
+    result.mesh_cell0D_to_vertex.resize(mesh.Cell0DTotalNumber());
     result.surface_point_to_vertex.resize(surface_intersections.surface_intersection_points.size());
     result.vertices.reserve(mesh.Cell0DTotalNumber() +
                             surface_intersections.surface_intersection_points.size());
@@ -33,6 +34,7 @@ namespace Gedim
         case Gedim::MeshUtilities::PointSurfacePositions::Positive:
         case Gedim::MeshUtilities::PointSurfacePositions::Negative:
         {
+          result.mesh_cell0D_to_vertex.at(v) = result.vertices.size();
           result.vertices.push_back({
                                       mesh.Cell0DCoordinates(v),
                                       surface_intersections.cell0Ds_surface_point.at(v).surface_position,
@@ -57,6 +59,7 @@ namespace Gedim
       {
         case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex:
         {
+          result.mesh_cell0D_to_vertex.at(surface_intersection.mesh_id) = result.vertices.size();
           result.surface_point_to_vertex.at(s) = result.vertices.size();
           result.vertices.push_back({
                                       surface_intersection.coordinate,
@@ -86,6 +89,7 @@ namespace Gedim
 
     result.vertices.shrink_to_fit();
 
+    result.mesh_cell1D_to_edges.resize(mesh.Cell1DTotalNumber());
     result.surface_segment_to_edge.resize(surface_segments.surface_segments.size());
     result.edges.reserve(2 * mesh.Cell1DTotalNumber() +
                          surface_segments.surface_segments.size());
@@ -102,6 +106,7 @@ namespace Gedim
         case Gedim::MeshUtilities::PointSurfacePositions::Positive:
         case Gedim::MeshUtilities::PointSurfacePositions::Negative:
         {
+          result.mesh_cell1D_to_edges.at(e) = { result.edges.size() };
           result.edges.push_back({
                                    { edge_origin_id, edge_end_id },
                                    edge_surface_point.surface_position,
@@ -118,6 +123,8 @@ namespace Gedim
           if (edge_origin_surface_position == Gedim::MeshUtilities::PointSurfacePositions::OnSurface &&
               edge_end_surface_position == Gedim::MeshUtilities::PointSurfacePositions::OnSurface)
             continue;
+
+
         }
           break;
         default:
