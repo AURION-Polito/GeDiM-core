@@ -20,45 +20,73 @@ namespace Gedim
   {
     Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData result;
     
+    result.surface_point_to_vertex.resize(surface_intersections.surface_intersection_points.size());
     result.vertices.reserve(mesh.Cell0DTotalNumber() +
                             surface_intersections.surface_intersection_points.size());
 
     for (unsigned int v = 0; v < mesh.Cell0DTotalNumber(); ++v)
     {
-      result.vertices.push_back({
-                                  mesh.Cell0DCoordinates(v),
-                                  surface_intersections.cell0Ds_surface_point.at(v).surface_position,
-                                  Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Vertex,
-                                  v,
-                                  surface_intersections.cell0Ds_surface_point.at(v).index
-                                });
+      const auto vertex_surface_point = surface_intersections.cell0Ds_surface_point.at(v);
+
+      switch (vertex_surface_point.surface_position)
+      {
+        case Gedim::MeshUtilities::PointSurfacePositions::Positive:
+        case Gedim::MeshUtilities::PointSurfacePositions::Negative:
+        {
+          result.vertices.push_back({
+                                      mesh.Cell0DCoordinates(v),
+                                      surface_intersections.cell0Ds_surface_point.at(v).surface_position,
+                                      Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Vertex,
+                                      v,
+                                      surface_intersections.cell0Ds_surface_point.at(v).index
+                                    });
+        }
+          break;
+        case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+          continue;
+        default:
+          throw std::runtime_error("Unknown position type");
+      }
     }
 
-    for (unsigned int v = 0; v < surface_intersections.surface_intersection_points.size(); ++v)
+    for (unsigned int s = 0; s < surface_intersections.surface_intersection_points.size(); ++s)
     {
-      const auto& surface_intersection = surface_intersections.surface_intersection_points.at(v);
+      const auto& surface_intersection = surface_intersections.surface_intersection_points.at(s);
 
       switch (surface_intersection.Type)
       {
         case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex:
+        {
+          result.surface_point_to_vertex.at(s) = result.vertices.size();
+          result.vertices.push_back({
+                                      surface_intersection.coordinate,
+                                      Gedim::MeshUtilities::PointSurfacePositions::OnSurface,
+                                      Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Vertex,
+                                      surface_intersection.mesh_id,
+                                      s
+                                    });
+        }
           continue;
         case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Edge:
+        {
+          result.surface_point_to_vertex.at(s) = result.vertices.size();
+          result.vertices.push_back({
+                                      surface_intersection.coordinate,
+                                      Gedim::MeshUtilities::PointSurfacePositions::OnSurface,
+                                      Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Edge,
+                                      surface_intersection.mesh_id,
+                                      s
+                                    });
+        }
           break;
         default:
           throw std::runtime_error("Unknown intersection type");
       }
-
-      result.vertices.push_back({
-                                  surface_intersection.coordinate,
-                                  Gedim::MeshUtilities::PointSurfacePositions::OnSurface,
-                                  Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Edge,
-                                  surface_intersection.mesh_id,
-                                  v
-                                });
     }
 
     result.vertices.shrink_to_fit();
 
+    result.surface_segment_to_edge.resize(surface_segments.surface_segments.size());
     result.edges.reserve(2 * mesh.Cell1DTotalNumber() +
                          surface_segments.surface_segments.size());
 
@@ -77,7 +105,8 @@ namespace Gedim
           result.edges.push_back({
                                    { edge_origin_id, edge_end_id },
                                    edge_surface_point.surface_position,
-                                   e
+                                   e,
+                                   Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
                                  });
         }
           continue;
@@ -85,12 +114,35 @@ namespace Gedim
         {
           const auto edge_origin_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_origin_id).surface_position;
           const auto edge_end_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_end_id).surface_position;
+
+          if (edge_origin_surface_position == Gedim::MeshUtilities::PointSurfacePositions::OnSurface &&
+              edge_end_surface_position == Gedim::MeshUtilities::PointSurfacePositions::OnSurface)
+            continue;
         }
           break;
         default:
           throw std::runtime_error("Unknown position type");
       }
     }
+
+    for (unsigned int s = 0; s < surface_segments.surface_segments.size(); ++s)
+    {
+      const auto& segment_data = surface_segments.surface_segments.at(s);
+
+      result.surface_segment_to_edge.at(s) = result.edges.size();
+
+      result.edges.push_back({
+                               {
+                                 result.surface_point_to_vertex.at(segment_data.indices.at(0)),
+                                 result.surface_point_to_vertex.at(segment_data.indices.at(1))
+                               },
+                               Gedim::MeshUtilities::PointSurfacePositions::OnSurface,
+                               Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
+                               s
+                             });
+    }
+
+    result.edges.shrink_to_fit();
 
     return result;
   }
