@@ -425,6 +425,7 @@ struct MeshUtilities
             Eigen::VectorXd coordinate;
             Types Type;
             unsigned int mesh_id;
+            double edge_curvilinear_coordate;
         };
 
         std::vector<unsigned int> cell0Ds_surface_points;
@@ -477,6 +478,11 @@ struct MeshUtilities
         std::vector<Gedim::MeshUtilities::PointSurfacePositions> cell0Ds_surface_position;
         Gedim::MeshUtilities::IntersectMeshWithSurfaceResult surface_intersections;
         Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData surface_triangles;
+    };
+
+    struct AddHangingNodesToMeshData
+    {
+
     };
 
   public:
@@ -827,7 +833,7 @@ struct MeshUtilities
                                                     const Gedim::GeometryUtilities &geometryUtilities,
                                                     Gedim::IMeshDAO &mesh);
 
-    static void AddHangingNodesToMesh(const std::map<unsigned int, std::vector<double>> &hanging_per_edges, Gedim::IMeshDAO &mesh);
+    static AddHangingNodesToMeshData AddHangingNodesToMesh(const std::map<unsigned int, std::vector<double>> &hanging_per_edges, Gedim::IMeshDAO &mesh);
 
     /// \brief Create a quadrilateral mesh starting from a triangular mesh: the mesh is created by dividing triangles
     /// intro 3 quadrilaterals obtained by connecting the centroid to edge midpoints

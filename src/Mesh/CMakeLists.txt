@@ -30,6 +30,7 @@ list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_Mesh3DFr
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_MarchingCubes.cpp)
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_MarchingSquares.cpp)
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_IntersectMeshWithSurface.cpp)
+list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/MeshUtilities_AddHangingNodesToMesh.cpp)
 
 list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/SphereMeshUtilities.hpp)
 list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/PlatonicSolid.hpp)

@@ -49,7 +49,7 @@ Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::Inter
             {
                 result.cell0Ds_surface_points.at(origin_id) = result.surface_intersection_points.size();
                 result.surface_intersection_points.push_back(
-                    {origin_coordinate, Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex, origin_id});
+                    {origin_coordinate, Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex, origin_id, 0.0});
             }
         }
         break;
@@ -67,7 +67,7 @@ Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::Inter
             {
                 result.cell0Ds_surface_points.at(end_id) = result.surface_intersection_points.size();
                 result.surface_intersection_points.push_back(
-                    {end_coordinate, Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex, end_id});
+                    {end_coordinate, Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex, end_id, 0.0});
             }
         }
         break;
@@ -84,12 +84,13 @@ Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::Inter
             const double origin_surface_value = cell0Ds_surface_value[origin_id];
             const double end_surface_value = cell0Ds_surface_value[end_id];
 
-            const Eigen::Vector3d intersection = origin_coordinate + origin_surface_value * (end_coordinate - origin_coordinate) /
-                                                                         (origin_surface_value - end_surface_value);
+            const double curvilinear_coordinate = origin_surface_value / (origin_surface_value - end_surface_value);
+
+            const Eigen::Vector3d intersection = origin_coordinate + curvilinear_coordinate * (end_coordinate - origin_coordinate);
 
             result.cell1Ds_surface_points.at(e) = result.surface_intersection_points.size();
             result.surface_intersection_points.push_back(
-                {intersection, Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Edge, e});
+                {intersection, Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Edge, e, curvilinear_coordinate});
         }
     }
 
