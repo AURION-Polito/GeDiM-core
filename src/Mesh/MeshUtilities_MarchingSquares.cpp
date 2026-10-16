@@ -178,20 +178,14 @@ struct SegmentHash
     }
 };
 // ***************************************************************************
-inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(
-    const Gedim::GeometryUtilities &geometry_utilities,
-    const Eigen::VectorXd &cell0Ds_surface_value,
-    const std::vector<Gedim::MeshUtilities::PointSurfacePositions> &cell0Ds_surface_position,
-    const std::vector<Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData> &surface_intersection_points,
-    const std::vector<unsigned int> &cell0Ds_surface_points,
-    const std::vector<unsigned int> &cell1Ds_surface_points,
-    const Gedim::IMeshDAO &mesh)
+inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(const Gedim::GeometryUtilities &geometry_utilities,
+                                                                                const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
+                                                                                const Gedim::IMeshDAO &mesh)
 {
     using Position = Gedim::MeshUtilities::PointSurfacePositions;
 
-    if (static_cast<unsigned int>(cell0Ds_surface_value.size()) != mesh.Cell0DTotalNumber() ||
-        cell0Ds_surface_position.size() != mesh.Cell0DTotalNumber() ||
-        cell0Ds_surface_points.size() != mesh.Cell0DTotalNumber() || cell1Ds_surface_points.size() != mesh.Cell1DTotalNumber())
+    if (surface_intersections.cell0Ds_surface_point.size() != mesh.Cell0DTotalNumber() ||
+        surface_intersections.cell1Ds_surface_point.size() != mesh.Cell1DTotalNumber())
         throw std::invalid_argument("Surface arrays do not match mesh dimensions");
 
     MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData result;
@@ -215,9 +209,11 @@ inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(
         {
             const unsigned int v = s.vertices[i];
 
-            values[i] = cell0Ds_surface_value[v];
+            const auto &cell0D_surface_point = surface_intersections.cell0Ds_surface_point.at(v);
 
-            if (cell0Ds_surface_position[v] == Position::Negative)
+            values[i] = cell0D_surface_point.surface_value;
+
+            if (cell0D_surface_point.surface_position == Position::Negative)
                 mask |= 1u << i;
         }
 
@@ -259,17 +255,19 @@ inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(
                 const unsigned int a = s.vertices[SquareEdgeEnds[e][0]];
                 const unsigned int b = s.vertices[SquareEdgeEnds[e][1]];
 
-                const bool az = cell0Ds_surface_position[a] == Position::OnSurface;
+                const auto &cell0D_surface_point_a = surface_intersections.cell0Ds_surface_point.at(a);
+                const auto &cell0D_surface_point_b = surface_intersections.cell0Ds_surface_point.at(b);
 
-                const bool bz = cell0Ds_surface_position[b] == Position::OnSurface;
+                const bool az = cell0D_surface_point_a.surface_position == Position::OnSurface;
 
-                // Same convention as Marching Cubes.
-                const unsigned int id = (az && bz) ? cell0Ds_surface_points[std::min(a, b)]
-                                        : az       ? cell0Ds_surface_points[a]
-                                        : bz       ? cell0Ds_surface_points[b]
-                                                   : cell1Ds_surface_points[s.edges[e]];
+                const bool bz = cell0D_surface_point_b.surface_position == Position::OnSurface;
 
-                if (id == None || id >= surface_intersection_points.size())
+                const unsigned int id = (az && bz) ? surface_intersections.cell0Ds_surface_point.at(std::min(a, b)).index
+                                        : az ? cell0D_surface_point_a.index
+                                        : bz ? cell0D_surface_point_b.index
+                                             : surface_intersections.cell1Ds_surface_point.at(s.edges[e]).index;
+
+                if (id == None || id >= surface_intersections.surface_intersection_points.size())
                     throw std::runtime_error("Required precomputed surface point is missing");
 
                 segment[k] = id;
@@ -279,9 +277,9 @@ inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(
             if (segment[0] == segment[1])
                 continue;
 
-            const auto &p0 = surface_intersection_points[segment[0]].coordinate;
+            const auto &p0 = surface_intersections.surface_intersection_points.at(segment[0]).coordinate;
 
-            const auto &p1 = surface_intersection_points[segment[1]].coordinate;
+            const auto &p1 = surface_intersections.surface_intersection_points.at(segment[1]).coordinate;
 
             if (p0.size() < 3 || p1.size() < 3)
                 throw std::runtime_error("Expected 3D intersection points");
@@ -334,48 +332,11 @@ Gedim::MeshUtilities::MarchingSquaresResult Gedim::MeshUtilities::MarchingSquare
     const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
     const Gedim::IMeshDAO &mesh)
 {
-    using SurfacePosition = Gedim::MeshUtilities::PointSurfacePositions;
-
     Gedim::MeshUtilities::MarchingSquaresResult result;
 
-    result.cell0Ds_surface_value = surface_implicit_equation(mesh.Cell0DsCoordinates());
+    result.surface_intersections = IntersectMeshWithSurface(geometry_utilities, surface_implicit_equation, mesh);
 
-    {
-        auto marking_function = [&geometry_utilities](const Eigen::VectorXd &points_surface_value) {
-            std::vector<SurfacePosition> marks(points_surface_value.size());
-
-            for (unsigned int p = 0; p < points_surface_value.size(); p++)
-            {
-                const auto surface_value = points_surface_value[p];
-
-                if (geometry_utilities.IsValuePositive(surface_value, geometry_utilities.Tolerance1D()))
-                {
-                    marks[p] = SurfacePosition::Positive;
-                }
-                else if (geometry_utilities.IsValueZero(surface_value, geometry_utilities.Tolerance1D()))
-                    marks[p] = SurfacePosition::OnSurface;
-                else if (geometry_utilities.IsValueNegative(surface_value, geometry_utilities.Tolerance1D()))
-                    marks[p] = SurfacePosition::Negative;
-                else
-                    throw std::runtime_error("unknown cell0D position");
-            }
-
-            return marks;
-        };
-
-        result.cell0Ds_surface_position = marking_function(result.cell0Ds_surface_value);
-    }
-
-    result.surface_intersections =
-        IntersectMeshWithSurface(geometry_utilities, result.cell0Ds_surface_value, result.cell0Ds_surface_position, mesh);
-
-    result.surface_segments = CreateSegments(geometry_utilities,
-                                             result.cell0Ds_surface_value,
-                                             result.cell0Ds_surface_position,
-                                             result.surface_intersections.surface_intersection_points,
-                                             result.surface_intersections.cell0Ds_surface_points,
-                                             result.surface_intersections.cell1Ds_surface_points,
-                                             mesh);
+    result.surface_segments = CreateSegments(geometry_utilities, result.surface_intersections, mesh);
 
     return result;
 }
