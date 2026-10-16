@@ -407,18 +407,13 @@ inline Eigen::Vector3d GradientAt(const Cube &cube, const std::array<double, 8> 
 // ***************************************************************************
 inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
     const Gedim::GeometryUtilities &geometry_utilities,
-    const Eigen::VectorXd &cell0Ds_surface_value,
-    const std::vector<Gedim::MeshUtilities::PointSurfacePositions> &cell0Ds_surface_position,
-    const std::vector<Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData> &surface_intersection_points,
-    const std::vector<unsigned int> &cell0Ds_surface_points,
-    const std::vector<unsigned int> &cell1Ds_surface_points,
+    const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
     const Gedim::IMeshDAO &mesh)
 {
     using Position = Gedim::MeshUtilities::PointSurfacePositions;
 
-    if (static_cast<unsigned int>(cell0Ds_surface_value.size()) != mesh.Cell0DTotalNumber() ||
-        cell0Ds_surface_position.size() != mesh.Cell0DTotalNumber() ||
-        cell0Ds_surface_points.size() != mesh.Cell0DTotalNumber() || cell1Ds_surface_points.size() != mesh.Cell1DTotalNumber())
+    if (surface_intersections.cell0Ds_surface_point.size() != mesh.Cell0DTotalNumber() ||
+        surface_intersections.cell1Ds_surface_point.size() != mesh.Cell1DTotalNumber())
         throw std::invalid_argument("Surface arrays do not match mesh dimensions");
 
     MeshUtilities::MarchingCubesResult::SurfaceTrianglesData result;
@@ -435,8 +430,11 @@ inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
         for (unsigned int i = 0; i < 8; ++i)
         {
             const unsigned int v = c.vertices[i];
-            values[i] = cell0Ds_surface_value[v];
-            if (cell0Ds_surface_position[v] == Position::Negative)
+
+            const auto& cell0D_surface_point = surface_intersections.cell0Ds_surface_point.at(v);
+
+            values[i] = cell0D_surface_point.surface_value;
+            if (cell0D_surface_point.surface_position == Position::Negative)
                 mask |= 1u << i;
         }
 
@@ -456,16 +454,20 @@ inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
                 int e = row[j + k];
                 unsigned int a = c.vertices[EdgeEnds[e][0]];
                 unsigned int b = c.vertices[EdgeEnds[e][1]];
-                const bool az = (cell0Ds_surface_position[a] == Position::OnSurface);
-                const bool bz = (cell0Ds_surface_position[b] == Position::OnSurface);
+
+                const auto& cell0D_surface_point_a = surface_intersections.cell0Ds_surface_point.at(a);
+                const auto& cell0D_surface_point_b = surface_intersections.cell0Ds_surface_point.at(b);
+
+                const bool az = (cell0D_surface_point_a.surface_position == Position::OnSurface);
+                const bool bz = (cell0D_surface_point_b.surface_position == Position::OnSurface);
 
                 // If both endpoints are OnSurface, use a deterministic endpoint.
                 // Such a case is not fully defined by the classic table.
-                unsigned int id = (az && bz) ? cell0Ds_surface_points[std::min(a, b)]
-                                  : az       ? cell0Ds_surface_points[a]
-                                  : bz       ? cell0Ds_surface_points[b]
-                                             : cell1Ds_surface_points[c.edges[e]];
-                if (id == None || id >= surface_intersection_points.size())
+                unsigned int id = (az && bz) ? surface_intersections.cell0Ds_surface_point.at(std::min(a, b)).index
+                                  : az       ? cell0D_surface_point_a.index
+                                  : bz       ? cell0D_surface_point_b.index
+                                             : surface_intersections.cell1Ds_surface_point.at(c.edges[e]).index;
+                if (id == None || id >= surface_intersections.surface_intersection_points.size())
                     throw std::runtime_error("Required precomputed surface point is missing");
 
                 tri[k] = id;
@@ -474,9 +476,9 @@ inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
             if (tri[0] == tri[1] || tri[1] == tri[2] || tri[0] == tri[2])
                 continue;
 
-            const auto &p0 = surface_intersection_points[tri[0]].coordinate;
-            const auto &p1 = surface_intersection_points[tri[1]].coordinate;
-            const auto &p2 = surface_intersection_points[tri[2]].coordinate;
+            const auto &p0 = surface_intersections.surface_intersection_points.at(tri[0]).coordinate;
+            const auto &p1 = surface_intersections.surface_intersection_points.at(tri[1]).coordinate;
+            const auto &p2 = surface_intersections.surface_intersection_points.at(tri[2]).coordinate;
             if (p0.size() < 3 || p1.size() < 3 || p2.size() < 3)
                 throw std::runtime_error("Expected 3D intersection points");
 
@@ -515,47 +517,15 @@ Gedim::MeshUtilities::MarchingCubesResult Gedim::MeshUtilities::MarchingCubes(
     const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
     const Gedim::IMeshDAO &mesh)
 {
-    using SurfacePosition = Gedim::MeshUtilities::PointSurfacePositions;
-
     Gedim::MeshUtilities::MarchingCubesResult result;
 
-    result.cell0Ds_surface_value = surface_implicit_equation(mesh.Cell0DsCoordinates());
-
-    {
-        auto marking_function = [&geometry_utilities](const Eigen::VectorXd &points_surface_value) {
-            std::vector<SurfacePosition> marks(points_surface_value.size());
-
-            for (unsigned int p = 0; p < points_surface_value.size(); p++)
-            {
-                const auto surface_value = points_surface_value[p];
-
-                if (geometry_utilities.IsValuePositive(surface_value, geometry_utilities.Tolerance1D()))
-                {
-                    marks[p] = SurfacePosition::Positive;
-                }
-                else if (geometry_utilities.IsValueZero(surface_value, geometry_utilities.Tolerance1D()))
-                    marks[p] = SurfacePosition::OnSurface;
-                else if (geometry_utilities.IsValueNegative(surface_value, geometry_utilities.Tolerance1D()))
-                    marks[p] = SurfacePosition::Negative;
-                else
-                    throw std::runtime_error("unknown cell0D position");
-            }
-
-            return marks;
-        };
-
-        result.cell0Ds_surface_position = marking_function(result.cell0Ds_surface_value);
-    }
-
     result.surface_intersections =
-        IntersectMeshWithSurface(geometry_utilities, result.cell0Ds_surface_value, result.cell0Ds_surface_position, mesh);
+        IntersectMeshWithSurface(geometry_utilities,
+                                 surface_implicit_equation,
+                                 mesh);
 
     result.surface_triangles = CreateTriangles(geometry_utilities,
-                                               result.cell0Ds_surface_value,
-                                               result.cell0Ds_surface_position,
-                                               result.surface_intersections.surface_intersection_points,
-                                               result.surface_intersections.cell0Ds_surface_points,
-                                               result.surface_intersections.cell1Ds_surface_points,
+                                               result.surface_intersections,
                                                mesh);
 
     return result;

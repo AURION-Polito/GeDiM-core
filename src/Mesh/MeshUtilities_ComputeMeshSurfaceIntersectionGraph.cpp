@@ -14,8 +14,7 @@
 namespace Gedim
 {
   // ***************************************************************************
-  Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData Gedim::MeshUtilities::ComputeMeshSurfaceIntersectionGraph(const std::vector<Gedim::MeshUtilities::PointSurfacePositions>& cell0Ds_surface_position,
-                                                                                                                   const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
+  Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData Gedim::MeshUtilities::ComputeMeshSurfaceIntersectionGraph(const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
                                                                                                                    const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData& surface_segments,
                                                                                                                    const Gedim::IMeshDAO &mesh)
   {
@@ -28,10 +27,10 @@ namespace Gedim
     {
       result.vertices.push_back({
                                   mesh.Cell0DCoordinates(v),
-                                  cell0Ds_surface_position.at(v),
+                                  surface_intersections.cell0Ds_surface_point.at(v).surface_position,
                                   Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Vertex,
                                   v,
-                                  surface_intersections.cell0Ds_surface_points.at(v)
+                                  surface_intersections.cell0Ds_surface_point.at(v).index
                                 });
     }
 
@@ -68,10 +67,10 @@ namespace Gedim
       const auto edge_origin_id = mesh.Cell1DOrigin(e);
       const auto edge_end_id = mesh.Cell1DEnd(e);
 
-      const auto edge_origin_surface_position = cell0Ds_surface_position.at(edge_origin_id);
-      const auto edge_end_surface_position = cell0Ds_surface_position.at(edge_end_id);
+      const auto edge_origin_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_origin_id).surface_position;
+      const auto edge_end_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_end_id).surface_position;
 
-      if (surface_intersections.cell1Ds_surface_points.at(e) ==
+      if (surface_intersections.cell1Ds_surface_point.at(e).index ==
           Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
       {
         Gedim::MeshUtilities::PointSurfacePositions edge_position =

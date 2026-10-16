@@ -14,15 +14,13 @@
 namespace Gedim
 {
   // ***************************************************************************
-  Gedim::MeshUtilities::ConformMesh2DToSurfaceResult Gedim::MeshUtilities::ConformMesh2DToSurface(const std::vector<Gedim::MeshUtilities::PointSurfacePositions>& cell0Ds_surface_position,
-                                                                                                  const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
+  Gedim::MeshUtilities::ConformMesh2DToSurfaceResult Gedim::MeshUtilities::ConformMesh2DToSurface(const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
                                                                                                   const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData& surface_segments,
                                                                                                   const Gedim::IMeshDAO &mesh)
   {
     Gedim::MeshUtilities::ConformMesh2DToSurfaceResult result;
     
-    result.surface_intersection_graph = ComputeMeshSurfaceIntersectionGraph(cell0Ds_surface_position,
-                                                                            surface_intersections,
+    result.surface_intersection_graph = ComputeMeshSurfaceIntersectionGraph(surface_intersections,
                                                                             surface_segments,
                                                                             mesh);
 
