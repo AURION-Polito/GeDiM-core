@@ -405,10 +405,9 @@ inline Eigen::Vector3d GradientAt(const Cube &cube, const std::array<double, 8> 
     return g;
 }
 // ***************************************************************************
-inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
-    const Gedim::GeometryUtilities &geometry_utilities,
-    const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
-    const Gedim::IMeshDAO &mesh)
+inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(const Gedim::GeometryUtilities &geometry_utilities,
+                                                                                const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
+                                                                                const Gedim::IMeshDAO &mesh)
 {
     using Position = Gedim::MeshUtilities::PointSurfacePositions;
 
@@ -431,7 +430,7 @@ inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
         {
             const unsigned int v = c.vertices[i];
 
-            const auto& cell0D_surface_point = surface_intersections.cell0Ds_surface_point.at(v);
+            const auto &cell0D_surface_point = surface_intersections.cell0Ds_surface_point.at(v);
 
             values[i] = cell0D_surface_point.surface_value;
             if (cell0D_surface_point.surface_position == Position::Negative)
@@ -455,8 +454,8 @@ inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
                 unsigned int a = c.vertices[EdgeEnds[e][0]];
                 unsigned int b = c.vertices[EdgeEnds[e][1]];
 
-                const auto& cell0D_surface_point_a = surface_intersections.cell0Ds_surface_point.at(a);
-                const auto& cell0D_surface_point_b = surface_intersections.cell0Ds_surface_point.at(b);
+                const auto &cell0D_surface_point_a = surface_intersections.cell0Ds_surface_point.at(a);
+                const auto &cell0D_surface_point_b = surface_intersections.cell0Ds_surface_point.at(b);
 
                 const bool az = (cell0D_surface_point_a.surface_position == Position::OnSurface);
                 const bool bz = (cell0D_surface_point_b.surface_position == Position::OnSurface);
@@ -519,14 +518,9 @@ Gedim::MeshUtilities::MarchingCubesResult Gedim::MeshUtilities::MarchingCubes(
 {
     Gedim::MeshUtilities::MarchingCubesResult result;
 
-    result.surface_intersections =
-        IntersectMeshWithSurface(geometry_utilities,
-                                 surface_implicit_equation,
-                                 mesh);
+    result.surface_intersections = IntersectMeshWithSurface(geometry_utilities, surface_implicit_equation, mesh);
 
-    result.surface_triangles = CreateTriangles(geometry_utilities,
-                                               result.surface_intersections,
-                                               mesh);
+    result.surface_triangles = CreateTriangles(geometry_utilities, result.surface_intersections, mesh);
 
     return result;
 }

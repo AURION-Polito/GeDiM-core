@@ -449,36 +449,36 @@ struct MeshUtilities
 
     struct MeshSurfaceIntersectionGraphData final
     {
-      struct VertexData
-      {
-          enum struct MeshTypes
-          {
-              Vertex = 1,
-              Edge = 2
-          };
+        struct VertexData
+        {
+            enum struct MeshTypes
+            {
+                Vertex = 1,
+                Edge = 2
+            };
 
-          Eigen::Vector3d coordinate;
-          Gedim::MeshUtilities::PointSurfacePositions surface_type;
-          Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes mesh_cell_type;
-          unsigned int original_mesh_cell_index;
-          unsigned int original_surface_point_index;
-      };
+            Eigen::Vector3d coordinate;
+            Gedim::MeshUtilities::PointSurfacePositions surface_type;
+            Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes mesh_cell_type;
+            unsigned int original_mesh_cell_index;
+            unsigned int original_surface_point_index;
+        };
 
-      struct EdgeData
-      {
-          std::array<unsigned int, 2> extremes;
-          Gedim::MeshUtilities::PointSurfacePositions surface_type;
-          unsigned int original_mesh_cell1D_index;
-          unsigned int original_surface_segment_index;
-      };
+        struct EdgeData
+        {
+            std::array<unsigned int, 2> extremes;
+            Gedim::MeshUtilities::PointSurfacePositions surface_type;
+            unsigned int original_mesh_cell1D_index;
+            unsigned int original_surface_segment_index;
+        };
 
-      std::vector<unsigned int> mesh_cell0D_to_vertex;
-      std::vector<unsigned int> surface_point_to_vertex;
-      std::vector<std::vector<unsigned int>> mesh_cell1D_to_edges;
-      std::vector<unsigned int> surface_segment_to_edge;
-      std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData> vertices;
-      std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData> edges;
-      std::map<std::array<unsigned int, 2>, unsigned int> edges_map;
+        std::vector<unsigned int> mesh_cell0D_to_vertex;
+        std::vector<unsigned int> surface_point_to_vertex;
+        std::vector<std::vector<unsigned int>> mesh_cell1D_to_edges;
+        std::vector<unsigned int> surface_segment_to_edge;
+        std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData> vertices;
+        std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData> edges;
+        std::map<std::array<unsigned int, 2>, unsigned int> edges_map;
     };
 
     struct MarchingSquaresResult final
@@ -520,7 +520,7 @@ struct MeshUtilities
 
     struct ConformMesh2DToSurfaceResult
     {
-       MeshSurfaceIntersectionGraphData surface_intersection_graph;
+        MeshSurfaceIntersectionGraphData surface_intersection_graph;
     };
 
   public:
@@ -1266,17 +1266,19 @@ struct MeshUtilities
         const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
         const Gedim::IMeshDAO &mesh);
 
-    static Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData ComputeMeshSurfaceIntersectionGraph(const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
-                                                                                                      const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData& surface_segments,
-                                                                                                      const Gedim::IMeshDAO &mesh);
+    static Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData ComputeMeshSurfaceIntersectionGraph(
+        const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
+        const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData &surface_segments,
+        const Gedim::IMeshDAO &mesh);
 
     static Gedim::MeshUtilities::MarchingSquaresResult MarchingSquares(const Gedim::GeometryUtilities &geometry_utilities,
                                                                        const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
                                                                        const Gedim::IMeshDAO &mesh);
 
-    static Gedim::MeshUtilities::ConformMesh2DToSurfaceResult ConformMesh2DToSurface(const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
-                                                                                     const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData& surface_segments,
-                                                                                     const Gedim::IMeshDAO &mesh);
+    static Gedim::MeshUtilities::ConformMesh2DToSurfaceResult ConformMesh2DToSurface(
+        const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
+        const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData &surface_segments,
+        const Gedim::IMeshDAO &mesh);
 
     static Gedim::MeshUtilities::MarchingCubesResult MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
                                                                    const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,

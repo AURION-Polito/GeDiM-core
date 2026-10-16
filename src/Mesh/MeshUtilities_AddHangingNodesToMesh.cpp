@@ -20,7 +20,7 @@ void MeshUtilities::AddHangingNodesToMesh(const std::map<unsigned int, std::vect
     std::map<unsigned int, std::vector<unsigned int>> edge_children;
     std::map<unsigned int, std::vector<unsigned int>> edge_new_vertices;
 
-    for (const auto& edge_pair : hanging_per_edges)
+    for (const auto &edge_pair : hanging_per_edges)
     {
         const unsigned int edge_id = edge_pair.first;
         const Eigen::Vector3d origin = mesh.Cell1DOriginCoordinates(edge_id);

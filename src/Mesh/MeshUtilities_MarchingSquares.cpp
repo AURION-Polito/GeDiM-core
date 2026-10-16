@@ -178,10 +178,9 @@ struct SegmentHash
     }
 };
 // ***************************************************************************
-inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(
-    const Gedim::GeometryUtilities &geometry_utilities,
-    const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
-    const Gedim::IMeshDAO &mesh)
+inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(const Gedim::GeometryUtilities &geometry_utilities,
+                                                                                const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
+                                                                                const Gedim::IMeshDAO &mesh)
 {
     using Position = Gedim::MeshUtilities::PointSurfacePositions;
 
@@ -210,7 +209,7 @@ inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(
         {
             const unsigned int v = s.vertices[i];
 
-            const auto& cell0D_surface_point = surface_intersections.cell0Ds_surface_point.at(v);
+            const auto &cell0D_surface_point = surface_intersections.cell0Ds_surface_point.at(v);
 
             values[i] = cell0D_surface_point.surface_value;
 
@@ -256,17 +255,17 @@ inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(
                 const unsigned int a = s.vertices[SquareEdgeEnds[e][0]];
                 const unsigned int b = s.vertices[SquareEdgeEnds[e][1]];
 
-                const auto& cell0D_surface_point_a = surface_intersections.cell0Ds_surface_point.at(a);
-                const auto& cell0D_surface_point_b = surface_intersections.cell0Ds_surface_point.at(b);
+                const auto &cell0D_surface_point_a = surface_intersections.cell0Ds_surface_point.at(a);
+                const auto &cell0D_surface_point_b = surface_intersections.cell0Ds_surface_point.at(b);
 
                 const bool az = cell0D_surface_point_a.surface_position == Position::OnSurface;
 
                 const bool bz = cell0D_surface_point_b.surface_position == Position::OnSurface;
 
                 const unsigned int id = (az && bz) ? surface_intersections.cell0Ds_surface_point.at(std::min(a, b)).index
-                                        : az       ? cell0D_surface_point_a.index
-                                        : bz       ? cell0D_surface_point_b.index
-                                                   : surface_intersections.cell1Ds_surface_point.at(s.edges[e]).index;
+                                        : az ? cell0D_surface_point_a.index
+                                        : bz ? cell0D_surface_point_b.index
+                                             : surface_intersections.cell1Ds_surface_point.at(s.edges[e]).index;
 
                 if (id == None || id >= surface_intersections.surface_intersection_points.size())
                     throw std::runtime_error("Required precomputed surface point is missing");
@@ -335,14 +334,9 @@ Gedim::MeshUtilities::MarchingSquaresResult Gedim::MeshUtilities::MarchingSquare
 {
     Gedim::MeshUtilities::MarchingSquaresResult result;
 
-    result.surface_intersections =
-        IntersectMeshWithSurface(geometry_utilities,
-                                 surface_implicit_equation,
-                                 mesh);
+    result.surface_intersections = IntersectMeshWithSurface(geometry_utilities, surface_implicit_equation, mesh);
 
-    result.surface_segments = CreateSegments(geometry_utilities,
-                                             result.surface_intersections,
-                                             mesh);
+    result.surface_segments = CreateSegments(geometry_utilities, result.surface_intersections, mesh);
 
     return result;
 }

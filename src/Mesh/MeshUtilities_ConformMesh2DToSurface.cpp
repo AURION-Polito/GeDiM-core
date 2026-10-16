@@ -13,18 +13,17 @@
 
 namespace Gedim
 {
-  // ***************************************************************************
-  Gedim::MeshUtilities::ConformMesh2DToSurfaceResult Gedim::MeshUtilities::ConformMesh2DToSurface(const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
-                                                                                                  const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData& surface_segments,
-                                                                                                  const Gedim::IMeshDAO &mesh)
-  {
+// ***************************************************************************
+Gedim::MeshUtilities::ConformMesh2DToSurfaceResult Gedim::MeshUtilities::ConformMesh2DToSurface(
+    const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
+    const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData &surface_segments,
+    const Gedim::IMeshDAO &mesh)
+{
     Gedim::MeshUtilities::ConformMesh2DToSurfaceResult result;
-    
-    result.surface_intersection_graph = ComputeMeshSurfaceIntersectionGraph(surface_intersections,
-                                                                            surface_segments,
-                                                                            mesh);
+
+    result.surface_intersection_graph = ComputeMeshSurfaceIntersectionGraph(surface_intersections, surface_segments, mesh);
 
     return result;
-  }
-  // ***************************************************************************
+}
+// ***************************************************************************
 } // namespace Gedim
