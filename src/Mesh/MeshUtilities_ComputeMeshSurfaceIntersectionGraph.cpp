@@ -127,7 +127,30 @@ namespace Gedim
               edge_end_surface_position == Gedim::MeshUtilities::PointSurfacePositions::OnSurface)
             continue;
 
+          result.mesh_cell1D_to_edges.at(e) =
+          {
+                                              static_cast<unsigned int>(result.edges.size()),
+                                              static_cast<unsigned int>(result.edges.size()) + 1
+          };
 
+          result.edges.push_back({
+                                   {
+                                     result.mesh_cell0D_to_vertex.at(edge_origin_id),
+                                     result.surface_point_to_vertex.at(edge_surface_point.index)
+                                   },
+                                   edge_origin_surface_position,
+                                   e,
+                                   edge_surface_point.index
+                                 });
+          result.edges.push_back({
+                                   {
+                                     result.surface_point_to_vertex.at(edge_surface_point.index),
+                                     result.mesh_cell0D_to_vertex.at(edge_end_id)
+                                   },
+                                   edge_end_surface_position,
+                                   e,
+                                   edge_surface_point.index
+                                 });
         }
           break;
         default:
