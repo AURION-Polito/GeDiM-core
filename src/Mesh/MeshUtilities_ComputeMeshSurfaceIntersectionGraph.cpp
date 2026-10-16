@@ -16,6 +16,7 @@ namespace Gedim
   // ***************************************************************************
   Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData Gedim::MeshUtilities::ComputeMeshSurfaceIntersectionGraph(const std::vector<Gedim::MeshUtilities::PointSurfacePositions>& cell0Ds_surface_position,
                                                                                                                    const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult& surface_intersections,
+                                                                                                                   const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData& surface_segments,
                                                                                                                    const Gedim::IMeshDAO &mesh)
   {
     Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData result;
