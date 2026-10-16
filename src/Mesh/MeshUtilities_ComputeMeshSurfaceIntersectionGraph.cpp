@@ -106,9 +106,12 @@ namespace Gedim
         case Gedim::MeshUtilities::PointSurfacePositions::Positive:
         case Gedim::MeshUtilities::PointSurfacePositions::Negative:
         {
-          result.mesh_cell1D_to_edges.at(e) = { result.edges.size() };
+          result.mesh_cell1D_to_edges.at(e) = { static_cast<unsigned int>(result.edges.size()) };
           result.edges.push_back({
-                                   { edge_origin_id, edge_end_id },
+                                   {
+                                     result.mesh_cell0D_to_vertex.at(edge_origin_id),
+                                     result.mesh_cell0D_to_vertex.at(edge_end_id)
+                                   },
                                    edge_surface_point.surface_position,
                                    e,
                                    Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
