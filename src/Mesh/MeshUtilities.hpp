@@ -423,7 +423,7 @@ struct MeshUtilities
             };
 
             Eigen::VectorXd coordinate;
-            Types Type;
+            Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types Type;
             unsigned int mesh_id;
             double edge_curvilinear_coordate;
         };
@@ -444,14 +444,23 @@ struct MeshUtilities
     {
       struct VertexData
       {
+          enum struct MeshTypes
+          {
+              Vertex = 1,
+              Edge = 2
+          };
+
           Eigen::Vector3d coordinate;
-          PointSurfacePositions type;
+          Gedim::MeshUtilities::PointSurfacePositions surface_type;
+          Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes mesh_type;
+          unsigned int original_mesh_index;
+          unsigned int original_surface_index;
       };
 
       struct EdgeData
       {
           std::array<unsigned int, 2> extremes;
-          PointSurfacePositions type;
+          Gedim::MeshUtilities::PointSurfacePositions type;
       };
 
       std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData> vertices;
