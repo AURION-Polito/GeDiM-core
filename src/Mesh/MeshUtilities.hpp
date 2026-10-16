@@ -480,11 +480,6 @@ struct MeshUtilities
         Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData surface_triangles;
     };
 
-    struct AddHangingNodesToMeshData
-    {
-
-    };
-
   public:
     MeshUtilities() {};
     ~MeshUtilities() {};
@@ -833,7 +828,7 @@ struct MeshUtilities
                                                     const Gedim::GeometryUtilities &geometryUtilities,
                                                     Gedim::IMeshDAO &mesh);
 
-    static AddHangingNodesToMeshData AddHangingNodesToMesh(const std::map<unsigned int, std::vector<double>> &hanging_per_edges, Gedim::IMeshDAO &mesh);
+    static void AddHangingNodesToMesh(const std::map<unsigned int, std::vector<double>> &hanging_per_edges, Gedim::IMeshDAO &mesh);
 
     /// \brief Create a quadrilateral mesh starting from a triangular mesh: the mesh is created by dividing triangles
     /// intro 3 quadrilaterals obtained by connecting the centroid to edge midpoints

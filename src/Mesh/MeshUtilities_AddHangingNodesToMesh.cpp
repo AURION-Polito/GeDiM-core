@@ -15,9 +15,8 @@
 namespace Gedim
 {
 // ***************************************************************************
-MeshUtilities::AddHangingNodesToMeshData MeshUtilities::AddHangingNodesToMesh(const std::map<unsigned int, std::vector<double>> &hanging_per_edges, Gedim::IMeshDAO &mesh)
+void MeshUtilities::AddHangingNodesToMesh(const std::map<unsigned int, std::vector<double>> &hanging_per_edges, Gedim::IMeshDAO &mesh)
 {
-	MeshUtilities::AddHangingNodesToMeshData result;
     std::map<unsigned int, std::vector<unsigned int>> edge_children;
     std::map<unsigned int, std::vector<unsigned int>> edge_new_vertices;
 
@@ -167,8 +166,6 @@ MeshUtilities::AddHangingNodesToMeshData MeshUtilities::AddHangingNodesToMesh(co
             mesh.Cell3DAddVertices(c, vertices);
         }
     }
-    
-    return result;
 }
 
 // ***************************************************************************
