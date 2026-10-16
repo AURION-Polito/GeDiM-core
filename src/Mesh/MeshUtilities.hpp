@@ -514,6 +514,7 @@ struct MeshUtilities
         };
 
         Gedim::MeshUtilities::IntersectMeshWithSurfaceResult surface_intersections;
+        Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData surface_segments;
         Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData surface_triangles;
     };
 
