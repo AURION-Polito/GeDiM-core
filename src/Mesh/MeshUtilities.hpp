@@ -452,15 +452,16 @@ struct MeshUtilities
 
           Eigen::Vector3d coordinate;
           Gedim::MeshUtilities::PointSurfacePositions surface_type;
-          Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes mesh_type;
-          unsigned int original_mesh_index;
+          Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes mesh_cell_type;
+          unsigned int original_mesh_cell_index;
           unsigned int original_surface_index;
       };
 
       struct EdgeData
       {
           std::array<unsigned int, 2> extremes;
-          Gedim::MeshUtilities::PointSurfacePositions type;
+          Gedim::MeshUtilities::PointSurfacePositions surface_type;
+          unsigned int original_mesh_cell1D_index;
       };
 
       std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData> vertices;

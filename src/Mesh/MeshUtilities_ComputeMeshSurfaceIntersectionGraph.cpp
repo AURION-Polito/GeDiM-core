@@ -60,6 +60,61 @@ namespace Gedim
 
     result.vertices.shrink_to_fit();
 
+    result.edges.reserve(2 * mesh.Cell1DTotalNumber() +
+                         surface_segments.surface_segments.size());
+
+    for (unsigned int e = 0; e < mesh.Cell1DTotalNumber(); ++e)
+    {
+      const auto edge_origin_id = mesh.Cell1DOrigin(e);
+      const auto edge_end_id = mesh.Cell1DEnd(e);
+
+      const auto edge_origin_surface_position = cell0Ds_surface_position.at(edge_origin_id);
+      const auto edge_end_surface_position = cell0Ds_surface_position.at(edge_end_id);
+
+      if (surface_intersections.cell1Ds_surface_points.at(e) ==
+          Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
+      {
+        Gedim::MeshUtilities::PointSurfacePositions edge_position =
+            Gedim::MeshUtilities::PointSurfacePositions::Negative;
+
+        switch (edge_origin_surface_position)
+        {
+          case Gedim::MeshUtilities::PointSurfacePositions::Negative:
+            edge_position = Gedim::MeshUtilities::PointSurfacePositions::Negative;
+            break;
+          case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+          {
+            switch (edge_end_surface_position)
+            {
+              case Gedim::MeshUtilities::PointSurfacePositions::Negative:
+                edge_position = Gedim::MeshUtilities::PointSurfacePositions::Negative;
+                break;
+              case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+                edge_position = Gedim::MeshUtilities::PointSurfacePositions::OnSurface;
+                break;
+              case Gedim::MeshUtilities::PointSurfacePositions::Positive:
+                edge_position = Gedim::MeshUtilities::PointSurfacePositions::Positive;
+                break;
+              default:
+                throw std::runtime_error("Unknown position type");
+            }
+          }
+            break;
+          case Gedim::MeshUtilities::PointSurfacePositions::Positive:
+            edge_position = Gedim::MeshUtilities::PointSurfacePositions::Positive;
+            break;
+          default:
+            throw std::runtime_error("Unknown position type");
+        }
+
+        result.edges.push_back({
+                                 { edge_origin_id, edge_end_id },
+                                 edge_position,
+                                 e
+                               });
+      }
+    }
+
     return result;
   }
   // ***************************************************************************
