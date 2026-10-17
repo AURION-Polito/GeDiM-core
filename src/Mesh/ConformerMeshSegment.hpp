@@ -16,7 +16,6 @@
 #include "GeometryUtilities.hpp"
 #include "IMeshDAO.hpp"
 #include "IntersectorMesh2DSegment.hpp"
-#include "MeshMatrices.hpp"
 #include "MeshUtilities.hpp"
 #include "UnionMeshSegment.hpp"
 
@@ -40,7 +39,7 @@ class ConformerMeshSegment final
             std::set<unsigned int> Cell2DIds = {};
             std::set<unsigned int> Edge2DIds = {};
             std::set<unsigned int> Vertex2DIds = {};
-            Types Type;
+            Gedim::ConformerMeshSegment::ConformMesh::ConformMeshPoint::Types Type;
         };
 
         struct ConformMeshSegment final
@@ -99,7 +98,7 @@ class ConformerMeshSegment final
                              const Eigen::Vector3d &segmentEnd,
                              const Gedim::IMeshDAO &mesh2D,
                              const double &curvilinearCoordinate,
-                             ConformMesh &result);
+                             Gedim::ConformerMeshSegment::ConformMesh &result);
 
     /// \brief Update the conformed 1D mesh with updated mesh 2D data
     /// \param mesh2D the updated mesh data
