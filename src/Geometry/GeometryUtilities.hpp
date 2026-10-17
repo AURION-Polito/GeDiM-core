@@ -791,7 +791,7 @@ class GeometryUtilities final
     };
 
   public:
-    GeometryUtilities(const GeometryUtilitiesConfig &configuration);
+    GeometryUtilities(const Gedim::GeometryUtilitiesConfig &configuration);
     ~GeometryUtilities();
 
     /// \return tolerance used for segment length

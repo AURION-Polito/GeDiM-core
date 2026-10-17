@@ -35,22 +35,24 @@ class OpenVolumeMeshInterface final
         Eigen::MatrixXd Cell0Ds;
         Eigen::MatrixXi Cell1Ds;
         std::vector<Eigen::MatrixXi> Cell2Ds;
-        std::vector<Cell3D> Cell3Ds;
+        std::vector<Gedim::OpenVolumeMeshInterface::OVMMesh::Cell3D> Cell3Ds;
     };
 
     OpenVolumeMeshInterface();
     ~OpenVolumeMeshInterface();
 
-    OVMMesh StringsToOVMMesh(const std::vector<std::string> &fileLines) const;
-    std::vector<std::string> OVMMeshToStrings(const OVMMesh &mesh) const;
-    OVMMesh MeshDAOToOVMMesh(const IMeshDAO &originalMesh, const std::vector<std::vector<bool>> &cell3DsFacesOrientation) const;
-    void OVMMeshToMeshDAO(const OVMMesh &originalMesh,
-                          IMeshDAO &convertedMesh,
+    Gedim::OpenVolumeMeshInterface::OVMMesh StringsToOVMMesh(const std::vector<std::string> &fileLines) const;
+    std::vector<std::string> OVMMeshToStrings(const Gedim::OpenVolumeMeshInterface::OVMMesh &mesh) const;
+    OVMMesh MeshDAOToOVMMesh(const Gedim::IMeshDAO &originalMesh, const std::vector<std::vector<bool>> &cell3DsFacesOrientation) const;
+    void OVMMeshToMeshDAO(const Gedim::OpenVolumeMeshInterface::OVMMesh &originalMesh,
+                          Gedim::IMeshDAO &convertedMesh,
                           std::vector<std::vector<bool>> &convertedMeshCell3DsFacesOrientation) const;
 
-    void ImportMeshFromFile(const std::string &ovmFilePath, IMeshDAO &mesh, std::vector<std::vector<bool>> &meshCell3DsFacesOrientation) const;
+    void ImportMeshFromFile(const std::string &ovmFilePath,
+                            Gedim::IMeshDAO &mesh,
+                            std::vector<std::vector<bool>> &meshCell3DsFacesOrientation) const;
 
-    void ExportMeshToFile(const IMeshDAO &mesh,
+    void ExportMeshToFile(const Gedim::IMeshDAO &mesh,
                           const std::vector<std::vector<bool>> &meshCell3DsFacesOrientation,
                           const std::string &ovmFilePath) const;
 };

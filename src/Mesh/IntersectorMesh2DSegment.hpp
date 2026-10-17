@@ -37,8 +37,8 @@ class IntersectorMesh2DSegment final
             std::set<unsigned int> Cell1DIds = {};
         };
 
-        std::map<double, IntersectionMeshPoint> Points;
-        std::vector<IntersectionMeshSegment> Segments;
+        std::map<double, Gedim::IntersectorMesh2DSegment::IntersectionMesh::IntersectionMeshPoint> Points;
+        std::vector<Gedim::IntersectorMesh2DSegment::IntersectionMesh::IntersectionMeshSegment> Segments;
     };
 
     /// \brief convert IntersectionMesh to Curvilinear Coordinates vector
@@ -50,13 +50,12 @@ class IntersectorMesh2DSegment final
     const Gedim::IMeshDAO &_mesh;
     const Gedim::GeometryUtilities &_geometryUtilities;
 
-    IntersectionMesh::IntersectionMeshPoint &InsertNewIntersection(const double &curvilinearCoordinate,
-                                                                   IntersectionMesh &result,
-                                                                   bool &found);
+    Gedim::IntersectorMesh2DSegment::IntersectionMesh::IntersectionMeshPoint &
+    InsertNewIntersection(const double &curvilinearCoordinate, Gedim::IntersectorMesh2DSegment::IntersectionMesh &result, bool &found);
 
     void CheckOriginAndEndSegmentPosition(const Eigen::Vector3d &segmentOrigin,
                                           const Eigen::Vector3d &segmentEnd,
-                                          IntersectionMesh &result,
+                                          Gedim::IntersectorMesh2DSegment::IntersectionMesh &result,
                                           const bool concave = false);
 
     void CreateIntersectionPoints(const Eigen::Vector3d &segmentOrigin,
@@ -64,12 +63,14 @@ class IntersectorMesh2DSegment final
                                   const Eigen::Vector3d &segmentTangent,
                                   const Eigen::Vector3d &segmentBarycenter,
                                   const double &segmentLength,
-                                  IntersectionMesh &result);
-    void CreateIntersectionSegments(IntersectionMesh &result);
+                                  Gedim::IntersectorMesh2DSegment::IntersectionMesh &result);
+    void CreateIntersectionSegments(Gedim::IntersectorMesh2DSegment::IntersectionMesh &result);
 
-    void CheckOriginAndEndPointExistence(IntersectionMesh &result);
+    void CheckOriginAndEndPointExistence(Gedim::IntersectorMesh2DSegment::IntersectionMesh &result);
 
-    void SmoothIntersections(const Eigen::Vector3d &segmentOrigin, const Eigen::Vector3d &segmentEnd, IntersectionMesh &result);
+    void SmoothIntersections(const Eigen::Vector3d &segmentOrigin,
+                             const Eigen::Vector3d &segmentEnd,
+                             Gedim::IntersectorMesh2DSegment::IntersectionMesh &result);
 
   public:
     IntersectorMesh2DSegment(const Gedim::IMeshDAO &mesh, const Gedim::GeometryUtilities &geometryUtilities);
@@ -80,7 +81,7 @@ class IntersectorMesh2DSegment final
                                 const Eigen::Vector3d &segmentTangent,
                                 const Eigen::Vector3d &segmentBarycenter,
                                 const double &segmentLength,
-                                IntersectionMesh &result,
+                                Gedim::IntersectorMesh2DSegment::IntersectionMesh &result,
                                 const bool concave = false);
 };
 } // namespace Gedim
