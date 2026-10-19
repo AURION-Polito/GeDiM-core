@@ -16,9 +16,6 @@
 #include "Eigen/Eigen"
 #include "GeometryUtilities.hpp"
 #include "IMeshDAO.hpp"
-#include "IntersectorMesh2DSegment.hpp"
-#include "MeshMatrices.hpp"
-#include "UnionMeshSegment.hpp"
 
 namespace Gedim
 {
@@ -33,20 +30,21 @@ class ConformerMeshPolygon final
             OnlyOnEdges = 1  // mesh 2D is already conform on edges, check only vertices
         };
 
-        Types Type = Types::Generalized;
+        Gedim::ConformerMeshPolygon::ConformerMeshPolygonConfiguration::Types Type =
+            Gedim::ConformerMeshPolygon::ConformerMeshPolygonConfiguration::Types::Generalized;
     };
 
   private:
     const Gedim::GeometryUtilities &_geometryUtilities;
-    ConformerMeshPolygonConfiguration configuration;
+    Gedim::ConformerMeshPolygon::ConformerMeshPolygonConfiguration configuration;
 
-    ConformerMeshSegment::ConformMesh::ConformMeshPoint &InsertNewIntersection(const double &curvilinearCoordinate,
-                                                                               ConformerMeshSegment::ConformMesh &result,
-                                                                               bool &found);
+    Gedim::ConformerMeshSegment::ConformMesh::ConformMeshPoint &InsertNewIntersection(const double &curvilinearCoordinate,
+                                                                                      Gedim::ConformerMeshSegment::ConformMesh &result,
+                                                                                      bool &found);
 
     void CheckSegmentOriginAndEndIntersections(const Eigen::Vector3d &segmentOrigin,
                                                const Eigen::Vector3d &segmentEnd,
-                                               ConformerMeshSegment::ConformMesh &mesh1D,
+                                               Gedim::ConformerMeshSegment::ConformMesh &mesh1D,
                                                const Gedim::IMeshDAO &mesh2DReader);
 
     std::vector<unsigned int> Cell2DOrderNewEdges(const Gedim::IMeshDAO &mesh2DReader,
@@ -72,7 +70,7 @@ class ConformerMeshPolygon final
                             std::map<unsigned int, unsigned int> &edgesMap);
 
     void Cell2DMesh2DToSplitInput(const std::list<unsigned int> cell1DMesh1DIds,
-                                  const ConformerMeshSegment::ConformMesh &mesh1D,
+                                  const Gedim::ConformerMeshSegment::ConformMesh &mesh1D,
                                   const Gedim::IMeshDAO &mesh2D,
                                   const unsigned int &cell2DMesh2DId,
                                   const std::map<unsigned int, unsigned int> &cell2DMesh2DVerticesMap,
@@ -82,7 +80,7 @@ class ConformerMeshPolygon final
     void SplitCell2DMesh2D(const Eigen::Vector3d &segmentOrigin,
                            const Eigen::Vector3d &segmentTangent,
                            const std::list<unsigned int> cell1DMesh1DIds,
-                           ConformerMeshSegment::ConformMesh &mesh1D,
+                           Gedim::ConformerMeshSegment::ConformMesh &mesh1D,
                            Gedim::IMeshDAO &mesh2D,
                            const unsigned int &cell2DMesh2DId,
                            std::map<unsigned int, unsigned int> &cell2DMesh2DVerticesMap,
@@ -91,26 +89,26 @@ class ConformerMeshPolygon final
 
     void UpdateCell2DMesh2DWithSegmentOnEdges(const Eigen::Vector3d &segmentOrigin,
                                               const Eigen::Vector3d &segmentTangent,
-                                              ConformerMeshSegment::ConformMesh &mesh1D,
+                                              Gedim::ConformerMeshSegment::ConformMesh &mesh1D,
                                               Gedim::IMeshDAO &mesh2D,
                                               const std::vector<unsigned int> &cell1DMesh1DIds,
                                               const unsigned int &cell2DMesh2DId);
 
     void InsertCell2DMesh2DMiddleEdgesPolygonUpdate(const Eigen::Vector3d &segmentOrigin,
                                                     const Eigen::Vector3d &segmentTangent,
-                                                    ConformerMeshSegment::ConformMesh &mesh1D,
+                                                    Gedim::ConformerMeshSegment::ConformMesh &mesh1D,
                                                     Gedim::IMeshDAO &mesh2D,
                                                     const std::list<unsigned int> &cell1DMesh1DIds,
                                                     const unsigned int &cell2DMesh2DId);
 
     void InsertCell2DMesh2DMiddleEdgesPolygonCreation(const Eigen::Vector3d &segmentOrigin,
                                                       const Eigen::Vector3d &segmentTangent,
-                                                      ConformerMeshSegment::ConformMesh &mesh1D,
+                                                      Gedim::ConformerMeshSegment::ConformMesh &mesh1D,
                                                       Gedim::IMeshDAO &mesh2D,
                                                       const std::list<unsigned int> cell1DMesh1DIds,
                                                       const unsigned int &cell2DMesh2DId);
 
-    void UpdateCell2DNeighbours(ConformerMeshSegment::ConformMesh &mesh1D, Gedim::IMeshDAO &mesh2D, const unsigned int &cell2DMesh2DId);
+    void UpdateCell2DNeighbours(Gedim::ConformerMeshSegment::ConformMesh &mesh1D, Gedim::IMeshDAO &mesh2D, const unsigned int &cell2DMesh2DId);
 
     /// \brief Get the leaf cells id of the mesh2D tree structure
     /// \param fatherCellId the father cellid
@@ -125,13 +123,13 @@ class ConformerMeshPolygon final
     void CreateConformMeshGeneralized(const Eigen::Vector3d &segmentOrigin,
                                       const Eigen::Vector3d &segmentEnd,
                                       const Eigen::Vector3d &segmentTangent,
-                                      ConformerMeshSegment::ConformMesh &mesh1D,
+                                      Gedim::ConformerMeshSegment::ConformMesh &mesh1D,
                                       Gedim::IMeshDAO &mesh2D);
 
     void CreateConformMeshOnlyOnEdges(const Eigen::Vector3d &segmentOrigin,
                                       const Eigen::Vector3d &segmentEnd,
                                       const Eigen::Vector3d &segmentTangent,
-                                      ConformerMeshSegment::ConformMesh &mesh1D,
+                                      Gedim::ConformerMeshSegment::ConformMesh &mesh1D,
                                       Gedim::IMeshDAO &mesh2D);
 
   public:
@@ -145,7 +143,7 @@ class ConformerMeshPolygon final
     void CreateConformMesh(const Eigen::Vector3d &segmentOrigin,
                            const Eigen::Vector3d &segmentEnd,
                            const Eigen::Vector3d &segmentTangent,
-                           ConformerMeshSegment::ConformMesh &mesh1D,
+                           Gedim::ConformerMeshSegment::ConformMesh &mesh1D,
                            Gedim::IMeshDAO &mesh2D);
 };
 } // namespace Gedim

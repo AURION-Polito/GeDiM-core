@@ -31,7 +31,8 @@ class UnionMeshSegment final
                 Both = 3
             };
 
-            Gedim::UnionMeshSegment::UnionMesh::UnionMeshPoint::Types Type = Types::Unknown;
+            Gedim::UnionMeshSegment::UnionMesh::UnionMeshPoint::Types Type =
+                Gedim::UnionMeshSegment::UnionMesh::UnionMeshPoint::Types::Unknown;
             std::vector<unsigned int> MeshIndices = {}; ///< vector of size 2 containing in each i the indices in mesh_i
         };
 
@@ -45,7 +46,8 @@ class UnionMeshSegment final
                 Both = 3
             };
 
-            Gedim::UnionMeshSegment::UnionMesh::UnionMeshSegment::Types Type = Types::Unknown;
+            Gedim::UnionMeshSegment::UnionMesh::UnionMeshSegment::Types Type =
+                Gedim::UnionMeshSegment::UnionMesh::UnionMeshSegment::Types::Unknown;
             std::vector<double> Points = {};
             std::vector<unsigned int> MeshIndices = {}; ///< vector of size 2 containing in each i the indices in mesh_i
         };
@@ -62,7 +64,9 @@ class UnionMeshSegment final
   private:
     const Gedim::GeometryUtilities &_geometryUtilities;
 
-    UnionMesh::UnionMeshPoint &InsertNewIntersection(const double &curvilinearCoordinate, UnionMesh &result, bool &found);
+    Gedim::UnionMeshSegment::UnionMesh::UnionMeshPoint &InsertNewIntersection(const double &curvilinearCoordinate,
+                                                                              Gedim::UnionMeshSegment::UnionMesh &result,
+                                                                              bool &found);
 
     void CreateUnionPoints(const std::vector<double> &curvilinearCoordinatesMeshOne,
                            const std::vector<double> &curvilinearCoordinatesMeshTwo,

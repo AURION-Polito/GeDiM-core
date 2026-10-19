@@ -520,12 +520,12 @@ struct MeshUtilities
 
     struct ConformMesh2DToSurfaceResult
     {
-        MeshSurfaceIntersectionGraphData surface_intersection_graph;
+        Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData surface_intersection_graph;
     };
 
   public:
-    MeshUtilities() {};
-    ~MeshUtilities() {};
+    MeshUtilities(){};
+    ~MeshUtilities(){};
 
     /// \brief Extract Active Cells from mesh
     /// \note the resulting mesh has no inactive elements

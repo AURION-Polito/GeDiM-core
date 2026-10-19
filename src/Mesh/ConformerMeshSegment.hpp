@@ -16,7 +16,6 @@
 #include "GeometryUtilities.hpp"
 #include "IMeshDAO.hpp"
 #include "IntersectorMesh2DSegment.hpp"
-#include "MeshMatrices.hpp"
 #include "MeshUtilities.hpp"
 #include "UnionMeshSegment.hpp"
 
@@ -40,7 +39,7 @@ class ConformerMeshSegment final
             std::set<unsigned int> Cell2DIds = {};
             std::set<unsigned int> Edge2DIds = {};
             std::set<unsigned int> Vertex2DIds = {};
-            Types Type;
+            Gedim::ConformerMeshSegment::ConformMesh::ConformMeshPoint::Types Type;
         };
 
         struct ConformMeshSegment final
@@ -50,29 +49,32 @@ class ConformerMeshSegment final
             std::set<unsigned int> Edge2DIds = {};
         };
 
-        std::map<double, ConformMeshPoint> Points;
-        std::vector<ConformMeshSegment> Segments;
+        std::map<double, Gedim::ConformerMeshSegment::ConformMesh::ConformMeshPoint> Points;
+        std::vector<Gedim::ConformerMeshSegment::ConformMesh::ConformMeshSegment> Segments;
     };
 
     /// \brief convert IntersectionMesh to Curvilinear Coordinates vector
-    static void ToCurvilinearCoordinates(const ConformMesh &conformMesh, std::vector<double> &curvilinearCoordinates);
+    static void ToCurvilinearCoordinates(const Gedim::ConformerMeshSegment::ConformMesh &conformMesh,
+                                         std::vector<double> &curvilinearCoordinates);
 
-    static std::string ToString(const ConformMesh &conformMesh);
+    static std::string ToString(const Gedim::ConformerMeshSegment::ConformMesh &conformMesh);
 
-    static void CreateConformSegments(ConformMesh &result);
+    static void CreateConformSegments(Gedim::ConformerMeshSegment::ConformMesh &result);
 
-    static void Serialize(std::ostream &os, const ConformMesh &mesh);
+    static void Serialize(std::ostream &os, const Gedim::ConformerMeshSegment::ConformMesh &mesh);
 
-    static void Deserialize(std::istream &is, ConformMesh &mesh);
+    static void Deserialize(std::istream &is, Gedim::ConformerMeshSegment::ConformMesh &mesh);
 
   private:
     const Gedim::GeometryUtilities &_geometryUtilities;
 
-    ConformMesh::ConformMeshPoint &InsertNewIntersection(const double &curvilinearCoordinate, ConformMesh &result, bool &found) const;
+    Gedim::ConformerMeshSegment::ConformMesh::ConformMeshPoint &InsertNewIntersection(const double &curvilinearCoordinate,
+                                                                                      Gedim::ConformerMeshSegment::ConformMesh &result,
+                                                                                      bool &found) const;
     void CreateConformPoints(const Gedim::IntersectorMesh2DSegment::IntersectionMesh &meshIntersection,
                              const Gedim::UnionMeshSegment::UnionMesh &meshUnion,
                              const unsigned int &meshIntersectionPosition,
-                             ConformMesh &result);
+                             Gedim::ConformerMeshSegment::ConformMesh &result);
 
   public:
     ConformerMeshSegment(const Gedim::GeometryUtilities &geometryUtilities);
@@ -86,7 +88,7 @@ class ConformerMeshSegment final
     void CreateConformMesh(const Gedim::IntersectorMesh2DSegment::IntersectionMesh &meshIntersection,
                            const Gedim::UnionMeshSegment::UnionMesh &meshUnion,
                            const unsigned int &meshIntersectionPosition,
-                           ConformMesh &result);
+                           Gedim::ConformerMeshSegment::ConformMesh &result);
 
     /// \brief Insert an external point on conform mesh
     /// \param mesh2D the bidimensional mesh where to add the new point
@@ -96,17 +98,18 @@ class ConformerMeshSegment final
                              const Eigen::Vector3d &segmentEnd,
                              const Gedim::IMeshDAO &mesh2D,
                              const double &curvilinearCoordinate,
-                             ConformMesh &result);
+                             Gedim::ConformerMeshSegment::ConformMesh &result);
 
     /// \brief Update the conformed 1D mesh with updated mesh 2D data
     /// \param mesh2D the updated mesh data
     /// \param conformedMesh the resulting conformed mesh
-    void UpdateWithUpdatedMesh2D(const Gedim::IMeshDAO &mesh2D, ConformMesh &conformedMesh) const;
+    void UpdateWithUpdatedMesh2D(const Gedim::IMeshDAO &mesh2D, Gedim::ConformerMeshSegment::ConformMesh &conformedMesh) const;
 
     /// \brief Update the conformed 1D mesh with active mesh 2D data
     /// \param activeMesh2DData the active mesh data
     /// \param conformedMesh the resulting conformed mesh
-    void UpdateWithActiveMesh2D(const Gedim::MeshUtilities::ExtractActiveMeshData &activeMesh2DData, ConformMesh &conformedMesh) const;
+    void UpdateWithActiveMesh2D(const Gedim::MeshUtilities::ExtractActiveMeshData &activeMesh2DData,
+                                Gedim::ConformerMeshSegment::ConformMesh &conformedMesh) const;
 
     /// \brief Add Missing Mesh2D Cell0Ds generated from the intersections with other interfaces
     /// \param mesh2D the mesh data
@@ -117,7 +120,7 @@ class ConformerMeshSegment final
                                                 const Eigen::Vector3d &segmentTangent,
                                                 const double &segmentSquaredLength,
                                                 const Gedim::IMeshDAO &mesh2D,
-                                                ConformMesh &conformedMesh) const;
+                                                Gedim::ConformerMeshSegment::ConformMesh &conformedMesh) const;
 };
 } // namespace Gedim
 

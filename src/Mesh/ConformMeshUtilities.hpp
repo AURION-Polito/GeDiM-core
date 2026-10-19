@@ -30,10 +30,10 @@ class ConformMeshUtilities final
     };
 
   private:
-    const GeometryUtilities &geometryUtilities;
+    const Gedim::GeometryUtilities &geometryUtilities;
 
   public:
-    ConformMeshUtilities(const GeometryUtilities &geometryUtilities, MeshUtilities &meshUtilities);
+    ConformMeshUtilities(const Gedim::GeometryUtilities &geometryUtilities, Gedim::MeshUtilities &meshUtilities);
     ~ConformMeshUtilities();
 
     void ComputeConformedMeshWithSegments(const std::vector<std::list<double>> &segmentsAdditionalPoints,
@@ -42,16 +42,16 @@ class ConformMeshUtilities final
                                           const std::vector<Eigen::Vector3d> &segmentsBarycenter,
                                           const std::vector<double> &segmentsLength,
                                           const std::vector<double> &segmentsSquaredLength,
-                                          IMeshDAO &domainMesh,
-                                          std::vector<IntersectorMesh2DSegment::IntersectionMesh> &segmentsIntersectionMesh,
+                                          Gedim::IMeshDAO &domainMesh,
+                                          std::vector<Gedim::IntersectorMesh2DSegment::IntersectionMesh> &segmentsIntersectionMesh,
                                           std::vector<std::vector<double>> &segmentsCurvilinearCoordinatesMesh,
-                                          std::vector<UnionMeshSegment::UnionMesh> &segmentsUnionMesh,
-                                          std::vector<ConformerMeshSegment::ConformMesh> &segmentsConformMesh,
-                                          const ConformerMeshPolygon::ConformerMeshPolygonConfiguration::Types &conformDomainMeshType,
-                                          const ComputeDomainConformedMeshOptions &options) const;
+                                          std::vector<Gedim::UnionMeshSegment::UnionMesh> &segmentsUnionMesh,
+                                          std::vector<Gedim::ConformerMeshSegment::ConformMesh> &segmentsConformMesh,
+                                          const Gedim::ConformerMeshPolygon::ConformerMeshPolygonConfiguration::Types &conformDomainMeshType,
+                                          const Gedim::ConformMeshUtilities::ComputeDomainConformedMeshOptions &options) const;
 
     void AddConformedMeshProperties(const std::vector<ConformerMeshSegment::ConformMesh> &segmentsConformMesh,
-                                    IMeshDAO &conformedMesh) const;
+                                    Gedim::IMeshDAO &conformedMesh) const;
 };
 } // namespace Gedim
 

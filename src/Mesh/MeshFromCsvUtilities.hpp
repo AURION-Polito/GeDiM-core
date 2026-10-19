@@ -236,47 +236,53 @@ class MeshFromCsvUtilities final
     /// \param csvFileReader the file reader
     /// \param separator the file separator
     /// \param mesh the mesh to be Imported
-    std::vector<Cell0D> ImportCell0Ds(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::Cell0D> ImportCell0Ds(IFileReader &csvFileReader, const char &separator) const;
     /// \brief Import Cell1Ds; format: Id, Marker, Active, Origin, End
     /// \param csvFileReader the file reader
     /// \param separator the file separator
-    std::vector<Cell1D> ImportCell1Ds(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::Cell1D> ImportCell1Ds(IFileReader &csvFileReader, const char &separator) const;
     /// \brief Import Cell2Ds; format: Id, Marker, Active, NumVertices, Vertices, NumEdges, Edges
     /// \param csvFileReader the file reader
     /// \param separator the file separator
-    std::vector<Cell2D> ImportCell2Ds(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::Cell2D> ImportCell2Ds(IFileReader &csvFileReader, const char &separator) const;
     /// \brief Import Cell3Ds; format: Id, Marker, Active, NumVertices, Vertices, NumEdges, Edges, NumFaces, Faces
     /// \param csvFileReader the file reader
     /// \param separator the file separator
-    std::vector<Cell3D> ImportCell3Ds(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::Cell3D> ImportCell3Ds(IFileReader &csvFileReader, const char &separator) const;
 
     /// \brief Import Cell0DNeighbours; format: Id, Num1DNeighbours, 1DNeighbours, Num2DNeighbours, 2DNeighbours,
     /// Num3DNeighbours, 3DNeighbours \param csvFileReader the file reader \param separator the file separator
-    std::vector<Cell0DNeighbours> ImportCell0DNeighbours(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::Cell0DNeighbours> ImportCell0DNeighbours(IFileReader &csvFileReader,
+                                                                                      const char &separator) const;
     /// \brief Import Cell1DNeighbours; format: Id, Num2DNeighbours, 2DNeighbours, Num3DNeighbours, 3DNeighbours
     /// \param csvFileReader the file reader
     /// \param separator the file separator
-    std::vector<Cell1DNeighbours> ImportCell1DNeighbours(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::Cell1DNeighbours> ImportCell1DNeighbours(IFileReader &csvFileReader,
+                                                                                      const char &separator) const;
 
     /// \brief Import Cell2DNeighbours; format: Id, Num3DNeighbours, 3DNeighbours
     /// \param csvFileReader the file reader
     /// \param separator the file separator
-    std::vector<Cell2DNeighbours> ImportCell2DNeighbours(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::Cell2DNeighbours> ImportCell2DNeighbours(IFileReader &csvFileReader,
+                                                                                      const char &separator) const;
 
     /// \brief Import Cell2DSubDivision; format: Id, NumSubDivision, SubDivisions
     /// \param csvFileReader the file reader
     /// \param separator the file separator
-    std::vector<Cell2DSubDivision> ImportCell2DSubDivision(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::Cell2DSubDivision> ImportCell2DSubDivision(IFileReader &csvFileReader,
+                                                                                        const char &separator) const;
 
     /// \brief Import CellProperties; format: Id, FilePath
     /// \param csvFileReader the file reader
     /// \param separator the file separator
-    std::vector<CellDoubleProperty> ImportCellDoubleProperties(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::CellDoubleProperty> ImportCellDoubleProperties(IFileReader &csvFileReader,
+                                                                                            const char &separator) const;
 
     /// \brief Import CellUpdatedCells; format: Id, NumUpdatedCells, UpdatedCells
     /// \param csvFileReader the file reader
     /// \param separator the file separator
-    std::vector<CellUpdatedCells> ImportCellUpdatedCells(IFileReader &csvFileReader, const char &separator) const;
+    std::vector<Gedim::MeshFromCsvUtilities::CellUpdatedCells> ImportCellUpdatedCells(IFileReader &csvFileReader,
+                                                                                      const char &separator) const;
 
     /// \brief Export Cell0Ds; format: Id, Marker, Active, X, Y, Z
     /// \param filePath the path of the file
