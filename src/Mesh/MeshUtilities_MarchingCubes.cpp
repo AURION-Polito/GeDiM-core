@@ -571,6 +571,9 @@ namespace Gedim
     Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData result;
 
     result.surface_segments.reserve(3 * surface_triangles.surface_triangles.size());
+    result.cell2Ds_surface_segments.resize(mesh.Cell2DTotalNumber());
+    for (unsigned int c_2D = 0; c_2D < mesh.Cell2DTotalNumber(); ++c_2D)
+      result.cell2Ds_surface_segments.at(c_2D).reserve(2);
 
     std::map<std::array<unsigned int, 2>, unsigned int> edges_map;
 
@@ -644,6 +647,8 @@ namespace Gedim
             continue;
 
           edges_map.insert(std::make_pair(extremes, edges_map.size()));
+          if (face_id != None)
+            result.cell2Ds_surface_segments.at(face_id).push_back(result.surface_segments.size());
           result.surface_segments.push_back({
                                               std::array<unsigned int, 2>({ edge_origin, edge_end }),
                                               face_id == None ? None : cell3D_faces.at(face_id)
@@ -651,6 +656,9 @@ namespace Gedim
         }
       }
     }
+
+    for (unsigned int c_2D = 0; c_2D < mesh.Cell2DTotalNumber(); ++c_2D)
+      result.cell2Ds_surface_segments.at(c_2D).shrink_to_fit();
 
     result.surface_segments.shrink_to_fit();
 
