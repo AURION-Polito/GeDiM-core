@@ -142,7 +142,7 @@ std::vector<MEDIT_Cell> MEDIT_Utilities::CreatePolygonCells(const std::vector<st
         else if (polygons_vertices[l].size() == 4 * order)
             polygon_type = MEDIT_Cell::Types::Quadrilateral;
         else
-            throw std::runtime_error("Polygon type not supported");
+            throw std::runtime_error("MEDIT: Polygon type not supported");
 
         cells.push_back(
             MEDIT_Cell(polygon_type,
@@ -169,7 +169,7 @@ std::vector<MEDIT_Cell> MEDIT_Utilities::CreatePolyhedraCells(const std::vector<
         else if (polyhedra_vertices[l].size() == 8 + 12 * (order - 1))
             polyhedra_type = MEDIT_Cell::Types::Hexahedron;
         else
-            throw std::runtime_error("Polyhedron type not supported");
+            throw std::runtime_error("MEDIT: Polyhedron type not supported");
 
         cells.push_back(
             MEDIT_Cell(polyhedra_type,
