@@ -303,7 +303,7 @@ namespace Gedim
     for (unsigned int f = 0; f < mesh.Cell2DTotalNumber(); ++f)
     {
       const auto cell2D_vertices = mesh.Cell2DVertices(f);
-      const auto cell2D_edges = mesh.Cell2DVertices(f);
+      const auto cell2D_edges = mesh.Cell2DEdges(f);
 
       std::vector<unsigned int> face_vertices;
       std::vector<unsigned int> face_edges;
