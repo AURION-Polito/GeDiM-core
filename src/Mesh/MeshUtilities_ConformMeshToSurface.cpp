@@ -22,11 +22,10 @@ namespace Gedim
   {
     Gedim::MeshUtilities::ConformMeshToSurfaceResult result;
 
-    result.surface_intersection_graph = ComputeMeshSurfaceIntersectionGraph(surface_intersections, surface_segments, mesh);
-    result.cell2Ds_conformed = ConformMeshCell2DsToSurface(result.surface_intersection_graph,
-                                                           surface_triangles,
-                                                           mesh);
-
+    result.surface_intersection_graph = ComputeMeshSurfaceIntersectionGraph(surface_intersections,
+                                                                            surface_segments,
+                                                                            surface_triangles,
+                                                                            mesh);
     return result;
   }
   // ***************************************************************************
