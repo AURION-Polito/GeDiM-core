@@ -481,6 +481,18 @@ struct MeshUtilities
         std::map<std::array<unsigned int, 2>, unsigned int> edges_map;
     };
 
+    struct ConformMeshCell2DsToSurfaceData final
+    {
+        struct NewCell2D
+        {
+            std::vector<unsigned int> intersection_graph_vertices;
+            std::vector<unsigned int> intersection_graph_edges;
+            Gedim::MeshUtilities::PointSurfacePositions surface_type;
+            unsigned int original_mesh_cell2D_index;
+            unsigned int original_surface_triangle_index;
+        };
+    };
+
     struct MarchingSquaresResult final
     {
         struct SurfaceSegmentsData
@@ -518,9 +530,10 @@ struct MeshUtilities
         Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData surface_triangles;
     };
 
-    struct ConformMesh2DToSurfaceResult
+    struct ConformMeshToSurfaceResult
     {
         Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData surface_intersection_graph;
+        ConformMeshCell2DsToSurfaceData cell2Ds_conformed;
     };
 
   public:
@@ -1275,9 +1288,14 @@ struct MeshUtilities
                                                                        const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
                                                                        const Gedim::IMeshDAO &mesh);
 
-    static Gedim::MeshUtilities::ConformMesh2DToSurfaceResult ConformMesh2DToSurface(
+    static Gedim::MeshUtilities::ConformMeshCell2DsToSurfaceData ConformMeshCell2DsToSurface(const Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData &surface_intersection_graph,
+                                                                                             const Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData &surface_triangles,
+                                                                                             const Gedim::IMeshDAO &mesh);
+
+    static Gedim::MeshUtilities::ConformMeshToSurfaceResult ConformMeshToSurface(
         const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
         const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData &surface_segments,
+        const Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData &surface_triangles,
         const Gedim::IMeshDAO &mesh);
 
     static Gedim::MeshUtilities::MarchingCubesResult MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
