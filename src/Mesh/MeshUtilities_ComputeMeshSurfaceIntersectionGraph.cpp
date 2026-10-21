@@ -310,7 +310,7 @@ namespace Gedim
         new_face_list.push_back(visited);
         visited = vertices_prev.at(graph.vertices.at(visited.at(0)));
       }
-      while (vertices_prev.at(graph.vertices.at(visited.at(0))).at(0) !=
+      while (visited.at(0) !=
              static_cast<int>(vertex.first));
       new_face_list.push_back(visited);
 
