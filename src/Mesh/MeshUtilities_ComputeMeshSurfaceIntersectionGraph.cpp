@@ -475,6 +475,9 @@ namespace Gedim
           face_edges.push_back(edge_index);
       }
 
+      for (const auto& s : surface_segments.cell2Ds_surface_segments.at(f))
+        face_edges.push_back(result.surface_segment_to_edge.at(s));
+
       face_vertices.shrink_to_fit();
       face_edges.shrink_to_fit();
 
