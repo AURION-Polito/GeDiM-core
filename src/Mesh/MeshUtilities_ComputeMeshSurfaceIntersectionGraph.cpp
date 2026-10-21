@@ -82,7 +82,14 @@ namespace Gedim
           std::map<unsigned int, unsigned int> signed_vertices;
           std::map<unsigned int, unsigned int> vertices;
           std::vector<unsigned int> edges;
-          std::vector<std::list<unsigned int>> vertices_adjacency;
+
+          struct adj_element final
+          {
+              unsigned int vertex;
+              unsigned int edge;
+          };
+
+          std::vector<std::list<adj_element>> vertices_adjacency;
       };
 
       bool is_only_negative;
@@ -154,8 +161,14 @@ namespace Gedim
           const unsigned int origin_v = result.positive_graph.vertices.at(origin);
           const unsigned int end_v = result.positive_graph.vertices.at(end);
 
-          result.positive_graph.vertices_adjacency.at(origin_v).push_back(end);
-          result.positive_graph.vertices_adjacency.at(end_v).push_back(origin);
+          result.positive_graph.vertices_adjacency.at(origin_v).push_back({
+                                                                            end,
+                                                                            e
+                                                                          });
+          result.positive_graph.vertices_adjacency.at(end_v).push_back({
+                                                                         origin,
+                                                                         e
+                                                                       });
         }
           break;
         case Gedim::MeshUtilities::PointSurfacePositions::Negative:
@@ -164,8 +177,14 @@ namespace Gedim
           const unsigned int origin_v = result.negative_graph.vertices.at(origin);
           const unsigned int end_v = result.negative_graph.vertices.at(end);
 
-          result.negative_graph.vertices_adjacency.at(origin_v).push_back(end);
-          result.negative_graph.vertices_adjacency.at(end_v).push_back(origin);
+          result.negative_graph.vertices_adjacency.at(origin_v).push_back({
+                                                                            end,
+                                                                            e
+                                                                          });
+          result.negative_graph.vertices_adjacency.at(end_v).push_back({
+                                                                         origin,
+                                                                         e
+                                                                       });
         }
           break;
         case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
@@ -174,15 +193,27 @@ namespace Gedim
           const unsigned int pos_origin_v = result.positive_graph.vertices.at(origin);
           const unsigned int pos_end_v = result.positive_graph.vertices.at(end);
 
-          result.positive_graph.vertices_adjacency.at(pos_origin_v).push_back(end);
-          result.positive_graph.vertices_adjacency.at(pos_end_v).push_back(origin);
+          result.positive_graph.vertices_adjacency.at(pos_origin_v).push_back({
+                                                                                end,
+                                                                                e
+                                                                              });
+          result.positive_graph.vertices_adjacency.at(pos_end_v).push_back({
+                                                                             origin,
+                                                                             e
+                                                                           });
 
           result.negative_graph.edges.push_back(e);
           const unsigned int neg_origin_v = result.negative_graph.vertices.at(origin);
           const unsigned int neg_end_v = result.negative_graph.vertices.at(end);
 
-          result.negative_graph.vertices_adjacency.at(neg_origin_v).push_back(end);
-          result.negative_graph.vertices_adjacency.at(neg_end_v).push_back(origin);
+          result.negative_graph.vertices_adjacency.at(neg_origin_v).push_back({
+                                                                                end,
+                                                                                e
+                                                                              });
+          result.negative_graph.vertices_adjacency.at(neg_end_v).push_back({
+                                                                             origin,
+                                                                             e
+                                                                           });
         }
           break;
         default:
@@ -230,11 +261,11 @@ namespace Gedim
         vertices_visited.at(s_v_idx) = vertices_included_in_face.at(s_v.second);
       }
 
-      std::vector<int> vertices_prev(graph.vertices.size(),
-                                     -1);
+      std::vector<std::array<int, 2>> vertices_prev(graph.vertices.size(),
+                                                    { -1, -1 });
       std::stack<unsigned int> stack;
 
-      int prev_vert = -1;
+      std::array<int, 2> prev_vert = { -1, -1 };
       stack.push(vertex.first);
       while (!stack.empty())
       {
@@ -246,49 +277,53 @@ namespace Gedim
 
         for (const auto adjacent : graph.vertices_adjacency[visited_idx])
         {
-          if (adjacent == vertex.first &&
-              vertices_prev.at(visited_idx) != static_cast<int>(vertex.first))
+          if (adjacent.vertex == vertex.first &&
+              vertices_prev.at(visited_idx).at(0) != static_cast<int>(vertex.first))
           {
-            vertices_prev.at(vertex.second) = visited;
+            vertices_prev.at(vertex.second).at(0) = visited;
+            vertices_prev.at(vertex.second).at(1) = adjacent.edge;
             break;
           }
 
-          if (vertices_visited.at(graph.vertices.at(adjacent)))
+          if (vertices_visited.at(graph.vertices.at(adjacent.vertex)))
             continue;
 
-          stack.push(adjacent);
+          stack.push(adjacent.vertex);
         }
 
-        prev_vert = visited;
+        prev_vert = { static_cast<int>(visited), -1 };
 
-        if (vertices_prev.at(vertex.second) != -1)
+        if (vertices_prev.at(vertex.second).at(0) != -1)
           break;
       }
 
-      if (vertices_prev.at(vertex.second) == -1)
+      if (vertices_prev.at(vertex.second).at(0) == -1 ||
+          vertices_prev.at(vertex.second).at(1) == -1)
         throw std::runtime_error("New faces not found for vertex " + std::to_string(vertex.first));
 
-      std::list<unsigned int> new_face_vertices;
-      unsigned int visited = vertex.first;
+      std::list<std::array<int, 2>> new_face_list;
+      std::array<int, 2> visited = { static_cast<int>(vertex.first), 0 };
       do
       {
-        new_face_vertices.push_back(visited);
-        visited = vertices_prev.at(graph.vertices.at(visited));
+        new_face_list.push_back(visited);
+        visited = vertices_prev.at(graph.vertices.at(visited.at(0)));
       }
-      while (vertices_prev.at(graph.vertices.at(visited)) !=
+      while (vertices_prev.at(graph.vertices.at(visited.at(0))).at(0) !=
              static_cast<int>(vertex.first));
-      new_face_vertices.push_back(visited);
+      new_face_list.push_back(visited);
 
       result.push_back({});
       auto& new_face = result.back();
-      new_face.vertices.reserve(new_face_vertices.size());
-      for(auto iter = new_face_vertices.rbegin();
-          iter != new_face_vertices.rend();
+      new_face.vertices.reserve(new_face_list.size());
+      new_face.edges.reserve(new_face_list.size());
+      for(auto iter = new_face_list.rbegin();
+          iter != new_face_list.rend();
           iter++)
       {
-        new_face.vertices.push_back(*iter);
+        new_face.vertices.push_back(iter->at(0));
+        new_face.edges.push_back(iter->at(1));
 
-        const auto signed_vertex = graph.signed_vertices.find(*iter);
+        const auto signed_vertex = graph.signed_vertices.find(iter->at(0));
         if (signed_vertex != graph.signed_vertices.end())
           vertices_included_in_face.at(signed_vertex->second) = true;
       }
