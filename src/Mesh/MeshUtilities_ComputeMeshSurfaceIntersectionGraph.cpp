@@ -215,8 +215,12 @@ namespace Gedim
 
     std::vector<bool> vertices_included_in_face(graph.signed_vertices.size(),
                                                 false);
+
     for (const auto& vertex : graph.signed_vertices)
     {
+      if (vertices_included_in_face.at(vertex.second))
+        continue;
+
       std::vector<bool> vertices_visited(graph.vertices.size(),
                                          false);
 
