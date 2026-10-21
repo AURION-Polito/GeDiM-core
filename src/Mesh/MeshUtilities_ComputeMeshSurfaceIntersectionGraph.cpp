@@ -230,12 +230,14 @@ namespace Gedim
                                      -1);
       std::stack<unsigned int> stack;
 
+      int prev_vert = -1;
       stack.push(vertex.first);
       while (!stack.empty())
       {
         const auto visited = stack.top();
         const auto visited_idx = graph.vertices.at(visited);
         vertices_visited.at(visited_idx) = true;
+        vertices_prev.at(visited_idx) = prev_vert;
         stack.pop();
 
         for (const auto adjacent : graph.vertices_adjacency[visited_idx])
@@ -247,13 +249,13 @@ namespace Gedim
             break;
           }
 
-          const auto adjacent_idx = graph.vertices.at(adjacent);
-          if (vertices_visited.at(adjacent_idx))
+          if (vertices_visited.at(graph.vertices.at(adjacent)))
             continue;
 
-          vertices_prev.at(adjacent_idx) = visited;
           stack.push(adjacent);
         }
+
+        prev_vert = visited;
 
         if (vertices_prev.at(vertex.second) != -1)
           break;
@@ -271,6 +273,7 @@ namespace Gedim
       }
       while (vertices_prev.at(graph.vertices.at(visited)) !=
              static_cast<int>(vertex.first));
+      new_face_vertices.push_back(visited);
 
       result.push_back({});
       auto& new_face = result.back();
