@@ -79,10 +79,15 @@ namespace Gedim
   {
       struct graph final
       {
+          std::map<unsigned int, unsigned int> signed_vertices;
           std::map<unsigned int, unsigned int> vertices;
           std::vector<unsigned int> edges;
           std::vector<std::list<unsigned int>> vertices_adjacency;
       };
+
+      bool is_only_negative;
+      bool is_only_positive;
+      bool is_only_on_surface;
 
       graph negative_graph;
       graph positive_graph;
@@ -94,19 +99,35 @@ namespace Gedim
   {
     signed_graphs result;
 
+    result.is_only_negative = true;
+    result.is_only_positive = true;
+    result.is_only_on_surface = true;
+
     for (const auto& v : selected_vertices)
     {
       switch (graph_vertices.at(v).surface_type)
       {
         case Gedim::MeshUtilities::PointSurfacePositions::Positive:
+        {
           result.positive_graph.vertices.insert(std::make_pair(v, result.positive_graph.vertices.size()));
+          result.positive_graph.signed_vertices.insert(std::make_pair(v, result.positive_graph.signed_vertices.size()));
+          result.is_only_negative = false;
+          result.is_only_on_surface = false;
+        }
           break;
         case Gedim::MeshUtilities::PointSurfacePositions::Negative:
+        {
           result.negative_graph.vertices.insert(std::make_pair(v, result.negative_graph.vertices.size()));
+          result.negative_graph.signed_vertices.insert(std::make_pair(v, result.negative_graph.signed_vertices.size()));
+          result.is_only_positive = false;
+          result.is_only_on_surface = false;
+        }
           break;
         case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+        {
           result.positive_graph.vertices.insert(std::make_pair(v, result.positive_graph.vertices.size()));
           result.negative_graph.vertices.insert(std::make_pair(v, result.negative_graph.vertices.size()));
+        }
           continue;
         default:
           throw std::runtime_error("Unknown position type");
@@ -175,47 +196,91 @@ namespace Gedim
     return result;
   }
   // ***************************************************************************
-  struct new_face final
+  struct new_face_data final
   {
       std::vector<unsigned int> vertices;
       std::vector<unsigned int> edges;
   };
-  inline std::vector<new_face> create_faces_from_graph(const signed_graphs::graph& graph,
-                                                       const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData>& graph_vertices,
-                                                       const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges)
+  inline std::vector<new_face_data> create_faces_from_graph(const signed_graphs::graph& graph,
+                                                            const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData>& graph_vertices,
+                                                            const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges)
   {
-    std::vector<new_face> result;
+    if (graph_vertices.size() < 3 ||
+        graph_edges.size() < 3)
+      return {};
 
-    for (const auto& vertex : graph.vertices)
+    std::vector<new_face_data> result;
+
+    result.reserve(graph_vertices.size() - 3);
+
+    std::vector<bool> vertices_included_in_face(graph.signed_vertices.size(),
+                                                false);
+    for (const auto& vertex : graph.signed_vertices)
     {
-      std::vector<unsigned int> visited_vertices;
-      std::vector<bool> markedVertices(graph.vertices.size(),
-                                       false);
+      std::vector<bool> vertices_visited(graph.vertices.size(),
+                                         false);
+
+      for (const auto& s_v : graph.signed_vertices)
+      {
+        const auto s_v_idx = graph.vertices.at(s_v.first);
+        vertices_visited.at(s_v_idx) = vertices_included_in_face.at(s_v.second);
+      }
+
+      std::vector<int> vertices_prev(graph.vertices.size(),
+                                     -1);
       std::stack<unsigned int> stack;
 
-      visited_vertices.reserve(graph.vertices.size());
-      markedVertices.at(vertex.second) = true;
       stack.push(vertex.first);
-
       while (!stack.empty())
       {
         const auto& visited = stack.top();
-        const auto& visited_index = graph.vertices.at(visited);
-        visited_vertices.push_back(visited);
+        const auto& visited_idx = graph.vertices.at(visited);
+        vertices_visited.at(visited_idx) = true;
         stack.pop();
 
-        for (const auto adjacent : graph.vertices_adjacency[visited_index])
+        for (const auto adjacent : graph.vertices_adjacency[visited_idx])
         {
-          const auto adjacent_index = graph.vertices.at(adjacent);
-          if (!markedVertices.at(adjacent_index))
+          if (adjacent == vertex.first &&
+              vertices_prev.at(visited_idx) != static_cast<int>(vertex.first))
           {
-            markedVertices.at(adjacent_index) = true;
-            stack.push(adjacent);
+            vertices_prev.at(vertex.second) = visited;
+            break;
           }
+
+          const auto adjacent_idx = graph.vertices.at(adjacent);
+          if (vertices_visited.at(adjacent_idx))
+            continue;
+
+          vertices_prev.at(adjacent_idx) = visited;
+          stack.push(adjacent);
         }
+
+        if (vertices_prev.at(vertex.second) != -1)
+          break;
       }
 
-      visited_vertices.shrink_to_fit();
+      std::list<unsigned int> new_face_vertices;
+      unsigned int visited = vertex.first;
+      do
+      {
+        new_face_vertices.push_back(visited);
+        visited = vertices_prev.at(graph.vertices.at(visited));
+      }
+      while (vertices_prev.at(graph.vertices.at(visited)) !=
+             static_cast<int>(vertex.first));
+
+      new_face_data new_face;
+      new_face.vertices.reserve(new_face_vertices.size());
+      for(auto iter = new_face_vertices.rbegin();
+          iter != new_face_vertices.rend();
+          iter++)
+      {
+        new_face.vertices.push_back(*iter);
+
+        const auto signed_vertex = graph.signed_vertices.find(*iter);
+        if (signed_vertex != graph.signed_vertices.end())
+          vertices_included_in_face.at(signed_vertex->second) = true;
+      }
     }
 
     return result;
@@ -414,28 +479,22 @@ namespace Gedim
                                                    result.vertices,
                                                    result.edges);
 
-      if (face_graph.negative_graph.vertices.empty())
+      if (face_graph.is_only_negative ||
+          face_graph.is_only_positive ||
+          face_graph.is_only_on_surface)
       {
-        result.mesh_cell2D_to_faces.at(f) = result.faces.size();
-        result.faces.push_back(
-              {
-                face_vertices,
-                face_edges,
-                Gedim::MeshUtilities::PointSurfacePositions::Positive,
-                f,
-                Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
-              });
-        continue;
-      }
+        const auto face_sign = face_graph.is_only_on_surface ?
+                                 Gedim::MeshUtilities::PointSurfacePositions::OnSurface :
+                                 face_graph.is_only_negative ?
+                                   Gedim::MeshUtilities::PointSurfacePositions::Negative :
+                                   Gedim::MeshUtilities::PointSurfacePositions::Positive;
 
-      if (face_graph.positive_graph.vertices.empty())
-      {
         result.mesh_cell2D_to_faces.at(f) = result.faces.size();
         result.faces.push_back(
               {
                 face_vertices,
                 face_edges,
-                Gedim::MeshUtilities::PointSurfacePositions::Negative,
+                face_sign,
                 f,
                 Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
               });
