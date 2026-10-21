@@ -11,6 +11,11 @@
 /// - 1 true
 #cmakedefine01 PYBIND
 
+/// Adapt for PolyDiM-Extract
+/// - 0 false
+/// - 1 true
+#cmakedefine01 EXTRACT_CORE
+
 /// Use MPI
 /// - 0 false
 /// - 1 true
