@@ -233,8 +233,8 @@ namespace Gedim
       stack.push(vertex.first);
       while (!stack.empty())
       {
-        const auto& visited = stack.top();
-        const auto& visited_idx = graph.vertices.at(visited);
+        const auto visited = stack.top();
+        const auto visited_idx = graph.vertices.at(visited);
         vertices_visited.at(visited_idx) = true;
         stack.pop();
 
@@ -258,6 +258,9 @@ namespace Gedim
         if (vertices_prev.at(vertex.second) != -1)
           break;
       }
+
+      if (vertices_prev.at(vertex.second) == -1)
+        throw std::runtime_error("New faces not found for vertex " + std::to_string(vertex.first));
 
       std::list<unsigned int> new_face_vertices;
       unsigned int visited = vertex.first;
