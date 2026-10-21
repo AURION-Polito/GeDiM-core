@@ -263,16 +263,16 @@ namespace Gedim
 
       std::vector<std::array<int, 2>> vertices_prev(graph.vertices.size(),
                                                     { -1, -1 });
-      std::stack<unsigned int> stack;
+      std::stack<std::array<int, 2>> stack;
 
       std::array<int, 2> prev_vert = { -1, -1 };
-      stack.push(vertex.first);
+      stack.push({ static_cast<int>(vertex.first), -1 });
       while (!stack.empty())
       {
         const auto visited = stack.top();
-        const auto visited_idx = graph.vertices.at(visited);
+        const auto visited_idx = graph.vertices.at(visited.at(0));
         vertices_visited.at(visited_idx) = true;
-        vertices_prev.at(visited_idx) = prev_vert;
+        vertices_prev.at(visited_idx) = { prev_vert.at(0), visited.at(1) };
         stack.pop();
 
         for (const auto adjacent : graph.vertices_adjacency[visited_idx])
@@ -280,18 +280,20 @@ namespace Gedim
           if (adjacent.vertex == vertex.first &&
               vertices_prev.at(visited_idx).at(0) != static_cast<int>(vertex.first))
           {
-            vertices_prev.at(vertex.second).at(0) = visited;
-            vertices_prev.at(vertex.second).at(1) = adjacent.edge;
+            vertices_prev.at(vertex.second) = { visited.at(0), static_cast<int>(adjacent.edge) };
             break;
           }
 
           if (vertices_visited.at(graph.vertices.at(adjacent.vertex)))
             continue;
 
-          stack.push(adjacent.vertex);
+          stack.push({
+                       static_cast<int>(adjacent.vertex),
+                       static_cast<int>(adjacent.edge)
+                     });
         }
 
-        prev_vert = { static_cast<int>(visited), -1 };
+        prev_vert = visited;
 
         if (vertices_prev.at(vertex.second).at(0) != -1)
           break;
@@ -302,7 +304,7 @@ namespace Gedim
         throw std::runtime_error("New faces not found for vertex " + std::to_string(vertex.first));
 
       std::list<std::array<int, 2>> new_face_list;
-      std::array<int, 2> visited = { static_cast<int>(vertex.first), 0 };
+      std::array<int, 2> visited = vertices_prev.at(graph.vertices.at(vertex.first));
       do
       {
         new_face_list.push_back(visited);
