@@ -269,7 +269,8 @@ namespace Gedim
       while (vertices_prev.at(graph.vertices.at(visited)) !=
              static_cast<int>(vertex.first));
 
-      new_face_data new_face;
+      result.push_back({});
+      auto& new_face = result.back();
       new_face.vertices.reserve(new_face_vertices.size());
       for(auto iter = new_face_vertices.rbegin();
           iter != new_face_vertices.rend();
