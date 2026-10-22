@@ -556,7 +556,7 @@ namespace Gedim
       std::map<unsigned int, unsigned int> original_face_vertex_edge;
       for (unsigned int fv = 0; fv < cell2D_vertices.size(); ++fv)
       {
-        original_face_vertex_edge.insert(std::make_pair(cell2D_vertices.at(fv),
+        original_face_vertex_edge.insert(std::make_pair(result.mesh_cell0D_to_vertex.at(cell2D_vertices.at(fv)),
                                                         cell2D_edges.at(fv)));
       }
 
