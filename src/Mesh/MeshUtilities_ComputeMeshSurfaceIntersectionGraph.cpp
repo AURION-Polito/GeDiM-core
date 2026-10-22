@@ -244,9 +244,9 @@ namespace Gedim
       if (new_edge.original_mesh_cell1D_index != Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
       {
         if (new_edge.original_mesh_cell1D_index == original_vertex->second)
-          return Gedim::GeometryUtilities::PolygonOrientations::CounterClockwise;
-        else
           return Gedim::GeometryUtilities::PolygonOrientations::Clockwise;
+        else
+          return Gedim::GeometryUtilities::PolygonOrientations::CounterClockwise;
       }
     }
 
@@ -354,35 +354,41 @@ namespace Gedim
 
       result.push_back({});
       auto& new_face = result.back();
-      new_face.vertices.reserve(new_face_list.size());
-      new_face.edges.reserve(new_face_list.size());
+      new_face.vertices.resize(new_face_list.size());
+      new_face.edges.resize(new_face_list.size());
 
       if (new_face_direction == Gedim::GeometryUtilities::PolygonOrientations::Clockwise)
       {
+        unsigned int fv = 0;
         for(auto iter = new_face_list.rbegin();
             iter != new_face_list.rend();
             iter++)
         {
-          new_face.vertices.push_back(iter->at(0));
-          new_face.edges.push_back(iter->at(1));
+          new_face.vertices.at(fv) = iter->at(0);
+          new_face.edges.at(fv) = iter->at(1);
 
           const auto signed_vertex = graph.signed_vertices.find(iter->at(0));
           if (signed_vertex != graph.signed_vertices.end())
             vertices_included_in_face.at(signed_vertex->second) = true;
+
+          fv++;
         }
       }
       else
       {
+        unsigned int fv = 0;
         for(auto iter = new_face_list.begin();
             iter != new_face_list.end();
             iter++)
         {
-          new_face.vertices.push_back(iter->at(0));
-          new_face.edges.push_back(iter->at(1));
+          new_face.vertices.at(fv) = iter->at(0);
+          new_face.edges.at(fv == 0 ? (new_face_list.size() - 1) : (fv - 1)) = iter->at(1);
 
           const auto signed_vertex = graph.signed_vertices.find(iter->at(0));
           if (signed_vertex != graph.signed_vertices.end())
             vertices_included_in_face.at(signed_vertex->second) = true;
+
+          fv++;
         }
       }
     }
