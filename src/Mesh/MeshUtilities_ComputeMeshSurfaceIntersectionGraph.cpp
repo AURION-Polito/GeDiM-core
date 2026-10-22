@@ -232,13 +232,13 @@ namespace Gedim
       std::vector<unsigned int> vertices;
       std::vector<unsigned int> edges;
   };
-  inline Gedim::GeometryUtilities::PolygonOrientations check_new_face_orientation(const std::map<unsigned int, unsigned int>& original_face_vertex_edge,
+  inline Gedim::GeometryUtilities::PolygonOrientations check_new_face_orientation(const std::map<unsigned int, unsigned int>& original_face_vertex_to_mesh_cell1D,
                                                                                   const unsigned int new_graph_vertex,
                                                                                   const unsigned int new_graph_edge,
                                                                                   const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges)
   {
-    const auto& original_vertex = original_face_vertex_edge.find(new_graph_vertex);
-    if (original_vertex != original_face_vertex_edge.end())
+    const auto& original_vertex = original_face_vertex_to_mesh_cell1D.find(new_graph_vertex);
+    if (original_vertex != original_face_vertex_to_mesh_cell1D.end())
     {
       const auto& new_edge = graph_edges.at(new_graph_edge);
       if (new_edge.original_mesh_cell1D_index != Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
@@ -252,7 +252,7 @@ namespace Gedim
 
     return Gedim::GeometryUtilities::PolygonOrientations::Unknown;
   }
-  inline std::vector<new_face_data> create_faces_from_graph(const std::map<unsigned int, unsigned int>& original_face_vertex_edge,
+  inline std::vector<new_face_data> create_faces_from_graph(const std::map<unsigned int, unsigned int>& original_face_vertex_to_mesh_cell1D,
                                                             const signed_graphs::graph& graph,
                                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData>& graph_vertices,
                                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges)
@@ -332,7 +332,7 @@ namespace Gedim
       {
         new_face_list.push_back(visited);
         if (new_face_direction == Gedim::GeometryUtilities::PolygonOrientations::Unknown)
-          new_face_direction = check_new_face_orientation(original_face_vertex_edge,
+          new_face_direction = check_new_face_orientation(original_face_vertex_to_mesh_cell1D,
                                                           visited.at(0),
                                                           visited.at(1),
                                                           graph_edges);
@@ -344,7 +344,7 @@ namespace Gedim
              static_cast<int>(vertex.first));
       new_face_list.push_back(visited);
       if (new_face_direction == Gedim::GeometryUtilities::PolygonOrientations::Unknown)
-        new_face_direction = check_new_face_orientation(original_face_vertex_edge,
+        new_face_direction = check_new_face_orientation(original_face_vertex_to_mesh_cell1D,
                                                         visited.at(0),
                                                         visited.at(1),
                                                         graph_edges);
@@ -553,10 +553,10 @@ namespace Gedim
       const auto cell2D_vertices = mesh.Cell2DVertices(f);
       const auto cell2D_edges = mesh.Cell2DEdges(f);
 
-      std::map<unsigned int, unsigned int> original_face_vertex_edge;
+      std::map<unsigned int, unsigned int> original_face_vertex_to_mesh_cell1D;
       for (unsigned int fv = 0; fv < cell2D_vertices.size(); ++fv)
       {
-        original_face_vertex_edge.insert(std::make_pair(result.mesh_cell0D_to_vertex.at(cell2D_vertices.at(fv)),
+        original_face_vertex_to_mesh_cell1D.insert(std::make_pair(result.mesh_cell0D_to_vertex.at(cell2D_vertices.at(fv)),
                                                         cell2D_edges.at(fv)));
       }
 
@@ -615,11 +615,11 @@ namespace Gedim
         continue;
       }
 
-      const auto new_negative_faces = create_faces_from_graph(original_face_vertex_edge,
+      const auto new_negative_faces = create_faces_from_graph(original_face_vertex_to_mesh_cell1D,
                                                               face_graph.negative_graph,
                                                               result.vertices,
                                                               result.edges);
-      const auto new_positive_faces = create_faces_from_graph(original_face_vertex_edge,
+      const auto new_positive_faces = create_faces_from_graph(original_face_vertex_to_mesh_cell1D,
                                                               face_graph.positive_graph,
                                                               result.vertices,
                                                               result.edges);
