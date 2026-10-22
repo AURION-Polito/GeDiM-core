@@ -563,7 +563,7 @@ namespace Gedim
       for (unsigned int fv = 0; fv < cell2D_vertices.size(); ++fv)
       {
         original_face_vertex_to_mesh_cell1D.insert(std::make_pair(result.mesh_cell0D_to_vertex.at(cell2D_vertices.at(fv)),
-                                                        cell2D_edges.at(fv)));
+                                                                  cell2D_edges.at(fv)));
       }
 
       std::vector<unsigned int> face_vertices;
@@ -625,10 +625,36 @@ namespace Gedim
                                                               face_graph.negative_graph,
                                                               result.vertices,
                                                               result.edges);
+      for (const auto& new_face : new_negative_faces)
+      {
+        result.mesh_cell2D_to_faces.at(f) = result.faces.size();
+        result.faces.push_back(
+              {
+                new_face.vertices,
+                new_face.edges,
+                Gedim::MeshUtilities::PointSurfacePositions::Negative,
+                f,
+                Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
+              });
+      }
+
       const auto new_positive_faces = create_faces_from_graph(original_face_vertex_to_mesh_cell1D,
                                                               face_graph.positive_graph,
                                                               result.vertices,
                                                               result.edges);
+
+      for (const auto& new_face : new_positive_faces)
+      {
+        result.mesh_cell2D_to_faces.at(f) = result.faces.size();
+        result.faces.push_back(
+              {
+                new_face.vertices,
+                new_face.edges,
+                Gedim::MeshUtilities::PointSurfacePositions::Positive,
+                f,
+                Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
+              });
+      }
     }
 
     for (unsigned int t = 0; t < surface_triangles.surface_triangles.size(); ++t)
