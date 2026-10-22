@@ -648,7 +648,7 @@ namespace Gedim
 
           edges_map.insert(std::make_pair(extremes, edges_map.size()));
           if (face_id != None)
-            result.cell2Ds_surface_segments.at(face_id).push_back(result.surface_segments.size());
+            result.cell2Ds_surface_segments.at(cell3D_faces.at(face_id)).push_back(result.surface_segments.size());
           result.surface_segments.push_back({
                                               std::array<unsigned int, 2>({ edge_origin, edge_end }),
                                               face_id == None ? None : cell3D_faces.at(face_id)
