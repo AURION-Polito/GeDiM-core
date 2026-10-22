@@ -273,6 +273,8 @@ namespace Gedim
       if (vertices_included_in_face.at(vertex.second))
         continue;
 
+      const unsigned int vertex_idx = graph.vertices.at(vertex.first);
+
       std::vector<bool> vertices_visited(graph.vertices.size(),
                                          false);
 
@@ -301,7 +303,7 @@ namespace Gedim
           if (adjacent.vertex == vertex.first &&
               vertices_prev.at(visited_idx).at(0) != static_cast<int>(vertex.first))
           {
-            vertices_prev.at(vertex.second) = { visited.at(0), static_cast<int>(adjacent.edge) };
+            vertices_prev.at(vertex_idx) = { visited.at(0), static_cast<int>(adjacent.edge) };
             break;
           }
 
@@ -316,12 +318,12 @@ namespace Gedim
 
         prev_vert = visited;
 
-        if (vertices_prev.at(vertex.second).at(0) != -1)
+        if (vertices_prev.at(vertex_idx).at(0) != -1)
           break;
       }
 
-      if (vertices_prev.at(vertex.second).at(0) == -1 ||
-          vertices_prev.at(vertex.second).at(1) == -1)
+      if (vertices_prev.at(vertex_idx).at(0) == -1 ||
+          vertices_prev.at(vertex_idx).at(1) == -1)
         throw std::runtime_error("New faces not found for vertex " + std::to_string(vertex.first));
 
 
