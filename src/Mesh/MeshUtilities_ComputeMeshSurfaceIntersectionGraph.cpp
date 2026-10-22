@@ -232,7 +232,28 @@ namespace Gedim
       std::vector<unsigned int> vertices;
       std::vector<unsigned int> edges;
   };
-  inline std::vector<new_face_data> create_faces_from_graph(const signed_graphs::graph& graph,
+  inline Gedim::GeometryUtilities::PolygonOrientations check_new_face_orientation(const std::map<unsigned int, unsigned int>& original_face_vertex_edge,
+                                                                                  const unsigned int new_graph_vertex,
+                                                                                  const unsigned int new_graph_edge,
+                                                                                  const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges)
+  {
+    const auto& original_vertex = original_face_vertex_edge.find(new_graph_vertex);
+    if (original_vertex != original_face_vertex_edge.end())
+    {
+      const auto& new_edge = graph_edges.at(new_graph_edge);
+      if (new_edge.original_mesh_cell1D_index != Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
+      {
+        if (new_edge.original_mesh_cell1D_index == original_vertex->second)
+          return Gedim::GeometryUtilities::PolygonOrientations::CounterClockwise;
+        else
+          return Gedim::GeometryUtilities::PolygonOrientations::Clockwise;
+      }
+    }
+
+    return Gedim::GeometryUtilities::PolygonOrientations::Unknown;
+  }
+  inline std::vector<new_face_data> create_faces_from_graph(const std::map<unsigned int, unsigned int>& original_face_vertex_edge,
+                                                            const signed_graphs::graph& graph,
                                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData>& graph_vertices,
                                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges)
   {
@@ -303,31 +324,66 @@ namespace Gedim
           vertices_prev.at(vertex.second).at(1) == -1)
         throw std::runtime_error("New faces not found for vertex " + std::to_string(vertex.first));
 
+
+      Gedim::GeometryUtilities::PolygonOrientations new_face_direction = Gedim::GeometryUtilities::PolygonOrientations::Unknown;
       std::list<std::array<int, 2>> new_face_list;
       std::array<int, 2> visited = vertices_prev.at(graph.vertices.at(vertex.first));
       do
       {
         new_face_list.push_back(visited);
+        if (new_face_direction == Gedim::GeometryUtilities::PolygonOrientations::Unknown)
+          new_face_direction = check_new_face_orientation(original_face_vertex_edge,
+                                                          visited.at(0),
+                                                          visited.at(1),
+                                                          graph_edges);
+
+
         visited = vertices_prev.at(graph.vertices.at(visited.at(0)));
       }
       while (visited.at(0) !=
              static_cast<int>(vertex.first));
       new_face_list.push_back(visited);
+      if (new_face_direction == Gedim::GeometryUtilities::PolygonOrientations::Unknown)
+        new_face_direction = check_new_face_orientation(original_face_vertex_edge,
+                                                        visited.at(0),
+                                                        visited.at(1),
+                                                        graph_edges);
+
+      if (new_face_direction == Gedim::GeometryUtilities::PolygonOrientations::Unknown)
+        throw std::runtime_error("New faces direction not found for vertex " + std::to_string(vertex.first));
 
       result.push_back({});
       auto& new_face = result.back();
       new_face.vertices.reserve(new_face_list.size());
       new_face.edges.reserve(new_face_list.size());
-      for(auto iter = new_face_list.rbegin();
-          iter != new_face_list.rend();
-          iter++)
-      {
-        new_face.vertices.push_back(iter->at(0));
-        new_face.edges.push_back(iter->at(1));
 
-        const auto signed_vertex = graph.signed_vertices.find(iter->at(0));
-        if (signed_vertex != graph.signed_vertices.end())
-          vertices_included_in_face.at(signed_vertex->second) = true;
+      if (new_face_direction == Gedim::GeometryUtilities::PolygonOrientations::Clockwise)
+      {
+        for(auto iter = new_face_list.rbegin();
+            iter != new_face_list.rend();
+            iter++)
+        {
+          new_face.vertices.push_back(iter->at(0));
+          new_face.edges.push_back(iter->at(1));
+
+          const auto signed_vertex = graph.signed_vertices.find(iter->at(0));
+          if (signed_vertex != graph.signed_vertices.end())
+            vertices_included_in_face.at(signed_vertex->second) = true;
+        }
+      }
+      else
+      {
+        for(auto iter = new_face_list.begin();
+            iter != new_face_list.end();
+            iter++)
+        {
+          new_face.vertices.push_back(iter->at(0));
+          new_face.edges.push_back(iter->at(1));
+
+          const auto signed_vertex = graph.signed_vertices.find(iter->at(0));
+          if (signed_vertex != graph.signed_vertices.end())
+            vertices_included_in_face.at(signed_vertex->second) = true;
+        }
       }
     }
 
@@ -497,6 +553,13 @@ namespace Gedim
       const auto cell2D_vertices = mesh.Cell2DVertices(f);
       const auto cell2D_edges = mesh.Cell2DEdges(f);
 
+      std::map<unsigned int, unsigned int> original_face_vertex_edge;
+      for (unsigned int fv = 0; fv < cell2D_vertices.size(); ++fv)
+      {
+        original_face_vertex_edge.insert(std::make_pair(cell2D_vertices.at(fv),
+                                                        cell2D_edges.at(fv)));
+      }
+
       std::vector<unsigned int> face_vertices;
       std::vector<unsigned int> face_edges;
       face_vertices.reserve(cell2D_vertices.size() +
@@ -552,10 +615,12 @@ namespace Gedim
         continue;
       }
 
-      const auto new_negative_faces = create_faces_from_graph(face_graph.negative_graph,
+      const auto new_negative_faces = create_faces_from_graph(original_face_vertex_edge,
+                                                              face_graph.negative_graph,
                                                               result.vertices,
                                                               result.edges);
-      const auto new_positive_faces = create_faces_from_graph(face_graph.positive_graph,
+      const auto new_positive_faces = create_faces_from_graph(original_face_vertex_edge,
+                                                              face_graph.positive_graph,
                                                               result.vertices,
                                                               result.edges);
     }
