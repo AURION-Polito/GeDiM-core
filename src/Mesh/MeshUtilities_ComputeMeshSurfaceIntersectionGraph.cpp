@@ -912,6 +912,8 @@ namespace Gedim
             });
     }
 
+    result.faces.shrink_to_fit();
+
     result.mesh_cell3D_to_volumes.resize(mesh.Cell3DTotalNumber());
     result.volumes.reserve(5 * mesh.Cell3DTotalNumber());
 
@@ -1051,6 +1053,8 @@ namespace Gedim
               });
       }
     }
+
+    result.volumes.shrink_to_fit();
 
     return result;
   }
