@@ -366,7 +366,6 @@ namespace Gedim
   }
   inline std::vector<new_face_data> create_faces_from_graph(const std::map<unsigned int, unsigned int>& original_face_vertex_to_mesh_cell1D,
                                                             const signed_graphs::graph& graph,
-                                                            const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData>& graph_vertices,
                                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges)
   {
     if (graph.vertices.size() < 3 ||
@@ -525,8 +524,6 @@ namespace Gedim
       std::vector<unsigned int> faces;
   };
   inline std::vector<new_volume_data> create_volumes_from_graph(const signed_graphs::graph& graph,
-                                                                const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData>& graph_vertices,
-                                                                const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges,
                                                                 const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::FaceData>& graph_faces)
   {
     if (graph.vertices.size() < 4 ||
@@ -854,12 +851,10 @@ namespace Gedim
 
       const auto new_negative_faces = create_faces_from_graph(original_face_vertex_to_mesh_cell1D,
                                                               face_graph.negative_graph,
-                                                              result.vertices,
                                                               result.edges);
 
       const auto new_positive_faces = create_faces_from_graph(original_face_vertex_to_mesh_cell1D,
                                                               face_graph.positive_graph,
-                                                              result.vertices,
                                                               result.edges);
 
       result.mesh_cell2D_to_faces.at(f).reserve(new_negative_faces.size() +
@@ -1004,13 +999,9 @@ namespace Gedim
       }
 
       const auto new_negative_volumes = create_volumes_from_graph(volume_graph.negative_graph,
-                                                                  result.vertices,
-                                                                  result.edges,
                                                                   result.faces);
 
       const auto new_positive_volumes = create_volumes_from_graph(volume_graph.negative_graph,
-                                                                  result.vertices,
-                                                                  result.edges,
                                                                   result.faces);
 
       result.mesh_cell3D_to_volumes.at(p).reserve(new_negative_volumes.size() +
