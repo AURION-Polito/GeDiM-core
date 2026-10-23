@@ -481,6 +481,15 @@ struct MeshUtilities
             unsigned int original_surface_triangle_index;
         };
 
+        struct VolumeData
+        {
+            std::vector<unsigned int> intersection_graph_vertices;
+            std::vector<unsigned int> intersection_graph_edges;
+            std::vector<unsigned int> intersection_graph_faces;
+            Gedim::MeshUtilities::PointSurfacePositions surface_type;
+            unsigned int original_mesh_cell3D_index;
+        };
+
         std::vector<unsigned int> mesh_cell0D_to_vertex;
         std::vector<unsigned int> surface_point_to_vertex;
         std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData> vertices;
@@ -490,9 +499,12 @@ struct MeshUtilities
         std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData> edges;
         std::map<std::array<unsigned int, 2>, unsigned int> edges_map;
 
-        std::vector<unsigned int> mesh_cell2D_to_faces;
+        std::vector<std::vector<unsigned int>> mesh_cell2D_to_faces;
         std::vector<unsigned int> surface_triangle_to_face;
         std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::FaceData> faces;
+
+        std::vector<std::vector<unsigned int>> mesh_cell3D_to_volumes;
+        std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VolumeData> volumes;
     };
 
     struct ConformMeshCell2DsToSurfaceData final
