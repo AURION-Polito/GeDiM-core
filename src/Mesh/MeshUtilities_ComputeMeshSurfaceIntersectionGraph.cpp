@@ -369,13 +369,13 @@ namespace Gedim
                                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData>& graph_vertices,
                                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges)
   {
-    if (graph_vertices.size() < 3 ||
-        graph_edges.size() < 3)
+    if (graph.vertices.size() < 3 ||
+        graph.edges.size() < 3)
       return {};
 
     std::vector<new_face_data> result;
 
-    result.reserve(graph_vertices.size() - 3);
+    result.reserve(graph.vertices.size());
 
     std::vector<bool> vertices_included_in_face(graph.signed_vertices.size(),
                                                 false);
@@ -507,6 +507,8 @@ namespace Gedim
       }
     }
 
+    result.shrink_to_fit();
+
     return result;
   }
   // ***************************************************************************
@@ -521,14 +523,14 @@ namespace Gedim
                                                                 const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges,
                                                                 const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::FaceData>& graph_faces)
   {
-    if (graph_vertices.size() < 4 ||
-        graph_edges.size() < 6 ||
-        graph_faces.size() < 4)
+    if (graph.vertices.size() < 4 ||
+        graph.edges.size() < 6 ||
+        graph.faces.size() < 4)
       return {};
 
     std::vector<new_volume_data> result;
 
-    result.reserve(graph_vertices.size() - 4);
+    result.reserve(graph.vertices.size());
 
     std::vector<bool> faces_included_in_volume(graph.signed_faces.size(),
                                                false);
@@ -598,6 +600,8 @@ namespace Gedim
       for (const auto v_e : volume_edges)
         new_volume.edges.push_back(v_e);
     }
+
+    result.shrink_to_fit();
 
     return result;
   }
