@@ -510,7 +510,7 @@ namespace Gedim
     for (const auto& s_v : graph.signed_vertices)
     {
       if (!vertices_included_in_face.at(s_v.second))
-        throw std::runtime_error("New faces not found for vertex " + std::to_string(s_v.first);
+        throw std::runtime_error("New faces not found for vertex " + std::to_string(s_v.first));
     }
 
     result.shrink_to_fit();
@@ -615,7 +615,7 @@ namespace Gedim
     for (const auto& s_f : graph.signed_faces)
     {
       if (!faces_included_in_volume.at(s_f.second))
-        throw std::runtime_error("New volumes not found for face " + std::to_string(s_f.first);
+        throw std::runtime_error("New volumes not found for face " + std::to_string(s_f.first));
     }
 
     result.shrink_to_fit();
