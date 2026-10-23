@@ -250,7 +250,9 @@ namespace Gedim
         const auto& graph_face = graph_faces.at(f.first);
 
         for (const auto f_e : graph_face.intersection_graph_edges)
+        {
           edges_faces.at(selected_edges.at(f_e)).push_back(f.first);
+        }
 
         switch (graph_face.surface_type)
         {
@@ -909,6 +911,8 @@ namespace Gedim
               t
             });
     }
+
+    return result;
 
     result.mesh_cell3D_to_volumes.resize(mesh.Cell3DTotalNumber());
     result.volumes.reserve(5 * mesh.Cell3DTotalNumber());
