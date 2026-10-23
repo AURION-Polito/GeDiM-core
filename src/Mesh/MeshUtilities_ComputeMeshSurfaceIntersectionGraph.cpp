@@ -84,7 +84,7 @@ namespace Gedim
           std::map<unsigned int, unsigned int> vertices;
           std::vector<unsigned int> edges;
           std::map<unsigned int, unsigned int> signed_faces;
-          std::vector<unsigned int> faces;
+          std::map<unsigned int, unsigned int> faces;
 
           struct adj_vertex_element final
           {
@@ -244,8 +244,6 @@ namespace Gedim
       for (unsigned int e = 0; e < selected_edges.size(); ++e)
         edges_faces.at(e).reserve(selected_faces.size());
 
-      result.negative_graph.faces.reserve(selected_faces.size());
-      result.positive_graph.faces.reserve(selected_faces.size());
 
       for (const auto& f : selected_faces)
       {
@@ -258,20 +256,20 @@ namespace Gedim
         {
           case Gedim::MeshUtilities::PointSurfacePositions::Positive:
           {
-            result.positive_graph.faces.push_back(f.first);
+            result.positive_graph.faces.insert(std::make_pair(f.first, result.positive_graph.faces.size()));
             result.positive_graph.signed_faces.insert(std::make_pair(f.first, result.positive_graph.signed_faces.size()));
           }
             break;
           case Gedim::MeshUtilities::PointSurfacePositions::Negative:
           {
-            result.negative_graph.faces.push_back(f.first);
+            result.negative_graph.faces.insert(std::make_pair(f.first, result.negative_graph.faces.size()));
             result.negative_graph.signed_faces.insert(std::make_pair(f.first, result.positive_graph.signed_faces.size()));
           }
             break;
           case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
           {
-            result.positive_graph.faces.push_back(f.first);
-            result.negative_graph.faces.push_back(f.first);
+            result.positive_graph.faces.insert(std::make_pair(f.first, result.positive_graph.faces.size()));
+            result.negative_graph.faces.insert(std::make_pair(f.first, result.negative_graph.faces.size()));
           }
             break;
           default:
@@ -281,9 +279,6 @@ namespace Gedim
 
       for (unsigned int e = 0; e < selected_edges.size(); ++e)
         edges_faces.at(e).shrink_to_fit();
-
-      result.negative_graph.faces.shrink_to_fit();
-      result.positive_graph.faces.shrink_to_fit();
 
       result.negative_graph.faces_edges_adjacency.resize(result.negative_graph.faces.size());
       result.positive_graph.faces_edges_adjacency.resize(result.positive_graph.faces.size());
@@ -295,18 +290,18 @@ namespace Gedim
           const auto f_one = edges_faces.at(e.second).at(e_f);
           const auto f_two = edges_faces.at(e.second).at((e_f + 1) % edges_faces.at(e.second).size());
 
-          const auto f_one_idx = selected_faces.at(f_one);
-          const auto f_two_idx = selected_faces.at(f_two);
-
           const auto& graph_face_one = graph_faces.at(f_one);
           const auto& graph_face_two = graph_faces.at(f_two);
 
           if (graph_face_one.surface_type == Gedim::MeshUtilities::PointSurfacePositions::OnSurface ||
-              graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Positive)
+              graph_face_one.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Positive)
           {
             if (graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::OnSurface ||
                 graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Positive)
             {
+              const auto f_one_idx = result.positive_graph.faces.at(f_one);
+              const auto f_two_idx = result.positive_graph.faces.at(f_two);
+
               result.positive_graph.faces_edges_adjacency.at(f_one_idx).push_back({
                                                                                     f_two,
                                                                                     e.first
@@ -319,11 +314,14 @@ namespace Gedim
           }
 
           if (graph_face_one.surface_type == Gedim::MeshUtilities::PointSurfacePositions::OnSurface ||
-              graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Negative)
+              graph_face_one.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Negative)
           {
             if (graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::OnSurface ||
                 graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Negative)
             {
+              const auto f_one_idx = result.negative_graph.faces.at(f_one);
+              const auto f_two_idx = result.negative_graph.faces.at(f_two);
+
               result.negative_graph.faces_edges_adjacency.at(f_one_idx).push_back({
                                                                                     f_two,
                                                                                     e.first
