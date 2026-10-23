@@ -578,19 +578,17 @@ namespace Gedim
       std::set<unsigned int> volume_edges;
 
       volume_faces.reserve(faces_visited.size());
-      for (unsigned int v_f = 0; v_f < faces_visited.size(); ++v_f)
+      for (const auto& v_f : graph.faces)
       {
-        if (!faces_visited.at(v_f))
+        if (!faces_visited.at(v_f.second))
           continue;
 
-        const auto visited_face = graph.faces.at(v_f);
-
-        const auto signed_face = graph.signed_faces.find(visited_face);
+        const auto signed_face = graph.signed_faces.find(v_f.first);
         if (signed_face != graph.signed_faces.end())
           faces_included_in_volume.at(signed_face->second) = true;
 
-        volume_faces.push_back(visited_face);
-        const auto& graph_face = graph_faces.at(visited_face);
+        volume_faces.push_back(v_f.first);
+        const auto& graph_face = graph_faces.at(v_f.first);
 
         for (const auto f_v : graph_face.intersection_graph_vertices)
           volume_vertices.insert(f_v);
