@@ -912,15 +912,11 @@ namespace Gedim
             });
     }
 
-    return result;
-
     result.mesh_cell3D_to_volumes.resize(mesh.Cell3DTotalNumber());
     result.volumes.reserve(5 * mesh.Cell3DTotalNumber());
 
     for (unsigned int p = 0; p < mesh.Cell3DTotalNumber(); ++p)
     {
-      std::cout<< "Volume "<< p<< std::endl;
-
       const auto cell3D_vertices = mesh.Cell3DVertices(p);
       const auto cell3D_edges = mesh.Cell3DEdges(p);
       const auto cell3D_faces = mesh.Cell3DFaces(p);
@@ -958,7 +954,25 @@ namespace Gedim
       }
 
       for (const auto& t : volume_triangles)
+      {
+        const auto& triangle_data = surface_triangles.surface_triangles.at(t);
+
+        const std::vector<unsigned int> face_vertices = {
+          result.surface_point_to_vertex.at(triangle_data.indices.at(0)),
+          result.surface_point_to_vertex.at(triangle_data.indices.at(1)),
+          result.surface_point_to_vertex.at(triangle_data.indices.at(2))
+        };
+        const auto face_edges = find_face_edges(face_vertices,
+                                                result.edges_map);
+
+        for (const auto t_e : face_edges)
+        {
+          if (!volume_edges.contains(t_e))
+            volume_edges.insert(std::make_pair(t_e, volume_edges.size()));
+        }
+
         volume_faces.insert(std::make_pair(result.surface_triangle_to_face.at(t), volume_faces.size()));
+      }
 
       volume_vertices.shrink_to_fit();
 
