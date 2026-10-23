@@ -263,7 +263,7 @@ namespace Gedim
           case Gedim::MeshUtilities::PointSurfacePositions::Negative:
           {
             result.negative_graph.faces.insert(std::make_pair(f.first, result.negative_graph.faces.size()));
-            result.negative_graph.signed_faces.insert(std::make_pair(f.first, result.positive_graph.signed_faces.size()));
+            result.negative_graph.signed_faces.insert(std::make_pair(f.first, result.negative_graph.signed_faces.size()));
           }
             break;
           case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
@@ -507,6 +507,12 @@ namespace Gedim
       }
     }
 
+    for (const auto& s_v : graph.signed_vertices)
+    {
+      if (!vertices_included_in_face.at(s_v.second))
+        throw std::runtime_error("New faces not found for vertex " + std::to_string(s_v.first);
+    }
+
     result.shrink_to_fit();
 
     return result;
@@ -577,9 +583,14 @@ namespace Gedim
         if (!faces_visited.at(v_f))
           continue;
 
-        volume_faces.push_back(graph.faces.at(v_f));
+        const auto visited_face = graph.faces.at(v_f);
 
-        const auto& graph_face = graph_faces.at(graph.faces.at(v_f));
+        const auto signed_face = graph.signed_faces.find(visited_face);
+        if (signed_face != graph.signed_faces.end())
+          faces_included_in_volume.at(signed_face->second) = true;
+
+        volume_faces.push_back(visited_face);
+        const auto& graph_face = graph_faces.at(visited_face);
 
         for (const auto f_v : graph_face.intersection_graph_vertices)
           volume_vertices.insert(f_v);
@@ -599,6 +610,12 @@ namespace Gedim
 
       for (const auto v_e : volume_edges)
         new_volume.edges.push_back(v_e);
+    }
+
+    for (const auto& s_f : graph.signed_faces)
+    {
+      if (!faces_included_in_volume.at(s_f.second))
+        throw std::runtime_error("New volumes not found for face " + std::to_string(s_f.first);
     }
 
     result.shrink_to_fit();
