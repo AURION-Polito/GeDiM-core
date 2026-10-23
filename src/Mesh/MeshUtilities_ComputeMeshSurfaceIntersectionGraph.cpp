@@ -10,6 +10,7 @@
 // This file can be used citing references in CITATION.cff file.
 
 #include "MeshUtilities.hpp"
+#include <queue>
 #include <stack>
 
 namespace Gedim
@@ -82,15 +83,24 @@ namespace Gedim
           std::map<unsigned int, unsigned int> signed_vertices;
           std::map<unsigned int, unsigned int> vertices;
           std::vector<unsigned int> edges;
+          std::map<unsigned int, unsigned int> signed_faces;
           std::vector<unsigned int> faces;
 
-          struct adj_element final
+          struct adj_vertex_element final
           {
               unsigned int vertex;
               unsigned int edge;
           };
 
-          std::vector<std::list<adj_element>> vertices_edges_adjacency;
+          std::vector<std::list<adj_vertex_element>> vertices_edges_adjacency;
+
+          struct adj_face_element final
+          {
+              unsigned int face;
+              unsigned int edge;
+          };
+
+          std::vector<std::list<adj_face_element>> faces_edges_adjacency;
       };
 
       bool is_only_negative;
@@ -101,8 +111,8 @@ namespace Gedim
       graph positive_graph;
   };
   inline signed_graphs create_signed_graphs(const std::vector<unsigned int>& selected_vertices,
-                                            const std::vector<unsigned int>& selected_edges,
-                                            const std::vector<unsigned int>& selected_faces,
+                                            const std::map<unsigned int, unsigned int>& selected_edges,
+                                            const std::map<unsigned int, unsigned int>& selected_faces,
                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData>& graph_vertices,
                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges,
                                             const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::FaceData>& graph_faces)
@@ -152,7 +162,7 @@ namespace Gedim
 
     for (const auto& e : selected_edges)
     {
-      const auto& graph_edge = graph_edges.at(e);
+      const auto& graph_edge = graph_edges.at(e.first);
       const unsigned int origin = graph_edge.extremes.at(0);
       const unsigned int end = graph_edge.extremes.at(1);
 
@@ -160,62 +170,62 @@ namespace Gedim
       {
         case Gedim::MeshUtilities::PointSurfacePositions::Positive:
         {
-          result.positive_graph.edges.push_back(e);
+          result.positive_graph.edges.push_back(e.first);
           const unsigned int origin_v = result.positive_graph.vertices.at(origin);
           const unsigned int end_v = result.positive_graph.vertices.at(end);
 
           result.positive_graph.vertices_edges_adjacency.at(origin_v).push_back({
                                                                                   end,
-                                                                                  e
+                                                                                  e.first
                                                                                 });
           result.positive_graph.vertices_edges_adjacency.at(end_v).push_back({
                                                                                origin,
-                                                                               e
+                                                                               e.first
                                                                              });
         }
           break;
         case Gedim::MeshUtilities::PointSurfacePositions::Negative:
         {
-          result.negative_graph.edges.push_back(e);
+          result.negative_graph.edges.push_back(e.first);
           const unsigned int origin_v = result.negative_graph.vertices.at(origin);
           const unsigned int end_v = result.negative_graph.vertices.at(end);
 
           result.negative_graph.vertices_edges_adjacency.at(origin_v).push_back({
                                                                                   end,
-                                                                                  e
+                                                                                  e.first
                                                                                 });
           result.negative_graph.vertices_edges_adjacency.at(end_v).push_back({
                                                                                origin,
-                                                                               e
+                                                                               e.first
                                                                              });
         }
           break;
         case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
         {
-          result.positive_graph.edges.push_back(e);
+          result.positive_graph.edges.push_back(e.first);
           const unsigned int pos_origin_v = result.positive_graph.vertices.at(origin);
           const unsigned int pos_end_v = result.positive_graph.vertices.at(end);
 
           result.positive_graph.vertices_edges_adjacency.at(pos_origin_v).push_back({
                                                                                       end,
-                                                                                      e
+                                                                                      e.first
                                                                                     });
           result.positive_graph.vertices_edges_adjacency.at(pos_end_v).push_back({
                                                                                    origin,
-                                                                                   e
+                                                                                   e.first
                                                                                  });
 
-          result.negative_graph.edges.push_back(e);
+          result.negative_graph.edges.push_back(e.first);
           const unsigned int neg_origin_v = result.negative_graph.vertices.at(origin);
           const unsigned int neg_end_v = result.negative_graph.vertices.at(end);
 
           result.negative_graph.vertices_edges_adjacency.at(neg_origin_v).push_back({
                                                                                       end,
-                                                                                      e
+                                                                                      e.first
                                                                                     });
           result.negative_graph.vertices_edges_adjacency.at(neg_end_v).push_back({
                                                                                    origin,
-                                                                                   e
+                                                                                   e.first
                                                                                  });
         }
           break;
@@ -227,29 +237,38 @@ namespace Gedim
     result.negative_graph.edges.shrink_to_fit();
     result.positive_graph.edges.shrink_to_fit();
 
+    std::vector<std::vector<unsigned int>> edges_faces;
+    for (unsigned int e = 0; e < selected_edges.size(); ++e)
+      edges_faces.at(e).reserve(selected_faces.size());
+
     result.negative_graph.faces.reserve(selected_faces.size());
     result.positive_graph.faces.reserve(selected_faces.size());
 
     for (const auto& f : selected_faces)
     {
-      const auto& graph_face = graph_faces.at(f);
+      const auto& graph_face = graph_faces.at(f.first);
+
+      for (const auto f_e : graph_face.intersection_graph_edges)
+        edges_faces.at(selected_edges.at(f_e)).push_back(f.first);
 
       switch (graph_face.surface_type)
       {
         case Gedim::MeshUtilities::PointSurfacePositions::Positive:
         {
-          result.positive_graph.faces.push_back(f);
+          result.positive_graph.faces.push_back(f.first);
+          result.positive_graph.signed_faces.insert(std::make_pair(f.first, result.positive_graph.signed_faces.size()));
         }
           break;
         case Gedim::MeshUtilities::PointSurfacePositions::Negative:
         {
-          result.negative_graph.faces.push_back(f);
+          result.negative_graph.faces.push_back(f.first);
+          result.negative_graph.signed_faces.insert(std::make_pair(f.first, result.positive_graph.signed_faces.size()));
         }
           break;
         case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
         {
-          result.positive_graph.faces.push_back(f);
-          result.negative_graph.faces.push_back(f);
+          result.positive_graph.faces.push_back(f.first);
+          result.negative_graph.faces.push_back(f.first);
         }
           break;
         default:
@@ -257,8 +276,35 @@ namespace Gedim
       }
     }
 
+    for (unsigned int e = 0; e < selected_edges.size(); ++e)
+      edges_faces.at(e).shrink_to_fit();
+
     result.negative_graph.faces.shrink_to_fit();
     result.positive_graph.faces.shrink_to_fit();
+
+    result.negative_graph.faces_edges_adjacency.resize(result.negative_graph.faces.size());
+    result.positive_graph.faces_edges_adjacency.resize(result.positive_graph.faces.size());
+
+    for (const auto& e : selected_edges)
+    {
+      for (unsigned int e_f = 0; e_f < edges_faces.at(e.second).size(); ++e_f)
+      {
+        const auto f_one = edges_faces.at(e.second).at(e_f);
+        const auto f_two = edges_faces.at(e.second).at((e_f + 1) % edges_faces.at(e.second).size());
+
+        const auto f_one_idx = selected_faces.at(f_one);
+        const auto f_two_idx = selected_faces.at(f_two);
+
+        result.positive_graph.faces_edges_adjacency.at(f_one_idx).push_back({
+                                                                              f_two,
+                                                                              e.first
+                                                                            });
+        result.positive_graph.faces_edges_adjacency.at(f_two_idx).push_back({
+                                                                              f_one,
+                                                                              e.first
+                                                                            });
+      }
+    }
 
     return result;
   }
@@ -429,6 +475,98 @@ namespace Gedim
           fv++;
         }
       }
+    }
+
+    return result;
+  }
+  // ***************************************************************************
+  struct new_volume_data final
+  {
+      std::vector<unsigned int> vertices;
+      std::vector<unsigned int> edges;
+      std::vector<unsigned int> faces;
+  };
+  inline std::vector<new_volume_data> create_volumes_from_graph(const signed_graphs::graph& graph,
+                                                                const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData>& graph_vertices,
+                                                                const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData>& graph_edges,
+                                                                const std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::FaceData>& graph_faces)
+  {
+    if (graph_vertices.size() < 4 ||
+        graph_edges.size() < 6 ||
+        graph_faces.size() < 4)
+      return {};
+
+    std::vector<new_volume_data> result;
+
+    result.reserve(graph_vertices.size() - 4);
+
+    std::vector<bool> faces_included_in_volume(graph.signed_faces.size(),
+                                               false);
+
+    for (const auto& face : graph.signed_faces)
+    {
+      if (faces_included_in_volume.at(face.second))
+        continue;
+
+      std::vector<bool> faces_visited(graph.faces.size(),
+                                      false);
+
+      for (const auto& s_f : graph.signed_faces)
+      {
+        const auto s_f_idx = graph.faces.at(s_f.first);
+        faces_visited.at(s_f_idx) = faces_included_in_volume.at(s_f.second);
+      }
+
+      std::queue<unsigned int> queue;
+      queue.push(face.first);
+      while (!queue.empty())
+      {
+        const auto visited = queue.front();
+        const auto visited_idx = graph.faces.at(visited);
+        faces_visited.at(visited_idx) = true;
+        queue.pop();
+
+        for (const auto adjacent : graph.faces_edges_adjacency[visited_idx])
+        {
+          if (faces_visited.at(graph.faces.at(adjacent.face)))
+            continue;
+
+          queue.push(static_cast<int>(adjacent.face));
+        }
+      }
+
+      std::vector<unsigned int> volume_faces;
+      std::set<unsigned int> volume_vertices;
+      std::set<unsigned int> volume_edges;
+
+      volume_faces.reserve(faces_visited.size());
+      for (unsigned int v_f = 0; v_f < faces_visited.size(); ++v_f)
+      {
+        if (!faces_visited.at(v_f))
+          continue;
+
+        volume_faces.push_back(graph.faces.at(v_f));
+
+        const auto& graph_face = graph_faces.at(graph.faces.at(v_f));
+
+        for (const auto f_v : graph_face.intersection_graph_vertices)
+          volume_vertices.insert(f_v);
+        for (const auto f_e : graph_face.intersection_graph_edges)
+          volume_edges.insert(f_e);
+      }
+      volume_faces.shrink_to_fit();
+
+      result.push_back({});
+      auto& new_volume = result.back();
+      new_volume.faces = volume_faces;
+      new_volume.vertices.reserve(volume_vertices.size());
+      new_volume.edges.reserve(volume_edges.size());
+
+      for (const auto v_v : volume_vertices)
+        new_volume.vertices.push_back(v_v);
+
+      for (const auto v_e : volume_edges)
+        new_volume.edges.push_back(v_e);
     }
 
     return result;
@@ -607,11 +745,9 @@ namespace Gedim
       const auto& face_segments = surface_segments.cell2Ds_surface_segments.at(f);
 
       std::vector<unsigned int> face_vertices;
-      std::vector<unsigned int> face_edges;
+      std::map<unsigned int, unsigned int> face_edges;
       face_vertices.reserve(cell2D_vertices.size() +
                             cell2D_edges.size());
-      face_edges.reserve(2 * cell2D_edges.size() +
-                         face_segments.size());
 
       for (const auto& cell0D_index : cell2D_vertices)
         face_vertices.push_back(result.mesh_cell0D_to_vertex.at(cell0D_index));
@@ -625,14 +761,13 @@ namespace Gedim
           face_vertices.push_back(result.surface_point_to_vertex.at(surface_point_index.index));
 
         for (const auto& edge_index : result.mesh_cell1D_to_edges.at(cell1D_index))
-          face_edges.push_back(edge_index);
+          face_edges.insert(std::make_pair(edge_index, face_edges.size()));
       }
 
       for (const auto& s : face_segments)
-        face_edges.push_back(result.surface_segment_to_edge.at(s));
+        face_edges.insert(std::make_pair(result.surface_segment_to_edge.at(s), face_edges.size()));
 
       face_vertices.shrink_to_fit();
-      face_edges.shrink_to_fit();
 
       const auto face_graph = create_signed_graphs(face_vertices,
                                                    face_edges,
@@ -651,11 +786,16 @@ namespace Gedim
                                    Gedim::MeshUtilities::PointSurfacePositions::Negative :
                                    Gedim::MeshUtilities::PointSurfacePositions::Positive;
 
+        std::vector<unsigned int> face_edges_array;
+        face_edges_array.reserve(face_edges.size());
+        for (const auto& f_e : face_edges)
+          face_edges_array.push_back(f_e.first);
+
         result.mesh_cell2D_to_faces.at(f) = { static_cast<unsigned int>(result.faces.size()) };
         result.faces.push_back(
               {
                 face_vertices,
-                face_edges,
+                face_edges_array,
                 face_sign,
                 f,
                 Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
@@ -738,14 +878,10 @@ namespace Gedim
       const auto& volume_triangles = surface_triangles.cell3Ds_surface_triangles.at(p);
 
       std::vector<unsigned int> volume_vertices;
-      std::vector<unsigned int> volume_edges;
-      std::vector<unsigned int> volume_faces;
+      std::map<unsigned int, unsigned int> volume_edges;
+      std::map<unsigned int, unsigned int> volume_faces;
       volume_vertices.reserve(cell3D_vertices.size() +
-                              2 * cell3D_edges.size());
-      volume_edges.reserve(2 * cell3D_edges.size() +
-                           2 * cell3D_faces.size());
-      volume_faces.reserve(3 * cell3D_faces.size() +
-                           volume_triangles.size());
+                              cell3D_edges.size());
 
       for (const auto& cell0D_index : cell3D_vertices)
         volume_vertices.push_back(result.mesh_cell0D_to_vertex.at(cell0D_index));
@@ -759,24 +895,22 @@ namespace Gedim
           volume_vertices.push_back(result.surface_point_to_vertex.at(surface_point_index.index));
 
         for (const auto& edge_index : result.mesh_cell1D_to_edges.at(cell1D_index))
-          volume_edges.push_back(edge_index);
+          volume_edges.insert(std::make_pair(edge_index, volume_edges.size()));
       }
 
       for (const auto& cell2D_index : cell3D_faces)
       {
         for (const auto& s : surface_segments.cell2Ds_surface_segments.at(cell2D_index))
-          volume_edges.push_back(result.surface_segment_to_edge.at(s));
+          volume_edges.insert(std::make_pair(result.surface_segment_to_edge.at(s), volume_edges.size()));
 
         for (const auto& face_index : result.mesh_cell2D_to_faces.at(cell2D_index))
-          volume_faces.push_back(face_index);
+          volume_faces.insert(std::make_pair(face_index, volume_faces.size()));
       }
 
       for (const auto& t : volume_triangles)
-        volume_faces.push_back(result.surface_triangle_to_face.at(t));
+        volume_faces.insert(std::make_pair(result.surface_triangle_to_face.at(t), volume_faces.size()));
 
       volume_vertices.shrink_to_fit();
-      volume_edges.shrink_to_fit();
-      volume_faces.shrink_to_fit();
 
       const auto volume_graph = create_signed_graphs(volume_vertices,
                                                      volume_edges,
@@ -795,17 +929,66 @@ namespace Gedim
                                      Gedim::MeshUtilities::PointSurfacePositions::Negative :
                                      Gedim::MeshUtilities::PointSurfacePositions::Positive;
 
+        std::vector<unsigned int> volume_edges_array;
+        volume_edges_array.reserve(volume_edges.size());
+        for (const auto& v_e : volume_edges)
+          volume_edges_array.push_back(v_e.first);
+
+        std::vector<unsigned int> volume_faces_array;
+        volume_faces_array.reserve(volume_faces.size());
+        for (const auto& v_f : volume_faces)
+          volume_faces_array.push_back(v_f.first);
+
         result.mesh_cell3D_to_volumes.at(p) = { static_cast<unsigned int>(result.volumes.size()) };
         result.volumes.push_back(
               {
                 volume_vertices,
-                volume_edges,
-                volume_faces,
+                volume_edges_array,
+                volume_faces_array,
                 volume_sign,
                 p
               });
 
         continue;
+      }
+
+      const auto new_negative_volumes = create_volumes_from_graph(volume_graph.negative_graph,
+                                                                  result.vertices,
+                                                                  result.edges,
+                                                                  result.faces);
+
+      const auto new_positive_volumes = create_volumes_from_graph(volume_graph.negative_graph,
+                                                                  result.vertices,
+                                                                  result.edges,
+                                                                  result.faces);
+
+      result.mesh_cell3D_to_volumes.at(p).reserve(new_negative_volumes.size() +
+                                                  new_positive_volumes.size());
+
+      for (const auto& new_volume : new_negative_volumes)
+      {
+        result.mesh_cell3D_to_volumes.at(p).push_back(result.volumes.size());
+        result.volumes.push_back(
+              {
+                new_volume.vertices,
+                new_volume.edges,
+                new_volume.faces,
+                Gedim::MeshUtilities::PointSurfacePositions::Negative,
+                p
+              });
+      }
+
+      for (const auto& new_volume : new_positive_volumes)
+      {
+        result.mesh_cell3D_to_volumes.at(p).push_back(result.volumes.size());
+        result.volumes.push_back(
+              {
+                new_volume.vertices,
+                new_volume.edges,
+                new_volume.faces,
+                Gedim::MeshUtilities::PointSurfacePositions::Positive,
+                p
+              });
       }
     }
 
