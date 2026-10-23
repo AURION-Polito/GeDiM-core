@@ -1021,7 +1021,7 @@ namespace Gedim
       const auto new_negative_volumes = create_volumes_from_graph(volume_graph.negative_graph,
                                                                   result.faces);
 
-      const auto new_positive_volumes = create_volumes_from_graph(volume_graph.negative_graph,
+      const auto new_positive_volumes = create_volumes_from_graph(volume_graph.positive_graph,
                                                                   result.faces);
 
       result.mesh_cell3D_to_volumes.at(p).reserve(new_negative_volumes.size() +
