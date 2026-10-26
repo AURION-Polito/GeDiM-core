@@ -643,8 +643,8 @@ namespace Gedim
           result.mesh_cell0D_to_vertex.at(v) = result.vertices.size();
           result.vertices.push_back({mesh.Cell0DCoordinates(v),
                                      surface_intersections.cell0Ds_surface_point.at(v).surface_position,
-                                     Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Vertex,
                                      v,
+                                     Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
                                      surface_intersections.cell0Ds_surface_point.at(v).index});
         }
           break;
@@ -661,13 +661,14 @@ namespace Gedim
 
       switch (surface_intersection.Type)
       {
-        case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex: {
+        case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex:
+        {
           result.mesh_cell0D_to_vertex.at(surface_intersection.mesh_id) = result.vertices.size();
           result.surface_point_to_vertex.at(s) = result.vertices.size();
           result.vertices.push_back({surface_intersection.coordinate,
                                      Gedim::MeshUtilities::SurfacePositions::OnSurface,
-                                     Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Vertex,
                                      surface_intersection.mesh_id,
+                                     Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
                                      s});
         }
           continue;
@@ -675,7 +676,7 @@ namespace Gedim
           result.surface_point_to_vertex.at(s) = result.vertices.size();
           result.vertices.push_back({surface_intersection.coordinate,
                                      Gedim::MeshUtilities::SurfacePositions::OnSurface,
-                                     Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Edge,
+                                     Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
                                      surface_intersection.mesh_id,
                                      s});
         }
