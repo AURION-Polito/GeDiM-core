@@ -460,7 +460,7 @@ struct MeshUtilities
             Eigen::Vector3d coordinate;
             Gedim::MeshUtilities::SurfacePositions surface_type;
             Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes mesh_cell_type;
-            unsigned int original_mesh_cell_index;
+            unsigned int original_mesh_cell0D_index;
             unsigned int original_surface_point_index;
         };
 
