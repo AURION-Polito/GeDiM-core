@@ -18,14 +18,12 @@ namespace Gedim
       const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
       const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData &surface_segments,
       const Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData &surface_triangles,
-      const Gedim::IMeshDAO &mesh)
+      const Gedim::IMeshDAO &original_mesh,
+      const Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData& surface_intersection_graph,
+      Gedim::IMeshDAO &conformed_mesh)
   {
     Gedim::MeshUtilities::ConformMeshToSurfaceResult result;
 
-    result.surface_intersection_graph = ComputeMeshSurfaceIntersectionGraph(surface_intersections,
-                                                                            surface_segments,
-                                                                            surface_triangles,
-                                                                            mesh);
     return result;
   }
   // ***************************************************************************

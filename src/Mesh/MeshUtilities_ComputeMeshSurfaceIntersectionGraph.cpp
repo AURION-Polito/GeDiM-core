@@ -50,7 +50,7 @@ namespace Gedim
   }
   // ***************************************************************************
   inline unsigned int create_edge(const std::array<unsigned int, 2>& edge_extremes,
-                                  const Gedim::MeshUtilities::PointSurfacePositions& edge_surface_position,
+                                  const Gedim::MeshUtilities::SurfacePositions& edge_surface_position,
                                   const unsigned int mesh_cell1D_index,
                                   const unsigned int surface_segment_index,
                                   Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData& result)
@@ -127,7 +127,7 @@ namespace Gedim
     {
       switch (graph_vertices.at(v).surface_type)
       {
-        case Gedim::MeshUtilities::PointSurfacePositions::Positive:
+        case Gedim::MeshUtilities::SurfacePositions::Positive:
         {
           result.positive_graph.vertices.insert(std::make_pair(v, result.positive_graph.vertices.size()));
           result.positive_graph.signed_vertices.insert(std::make_pair(v, result.positive_graph.signed_vertices.size()));
@@ -135,7 +135,7 @@ namespace Gedim
           result.is_only_on_surface = false;
         }
           break;
-        case Gedim::MeshUtilities::PointSurfacePositions::Negative:
+        case Gedim::MeshUtilities::SurfacePositions::Negative:
         {
           result.negative_graph.vertices.insert(std::make_pair(v, result.negative_graph.vertices.size()));
           result.negative_graph.signed_vertices.insert(std::make_pair(v, result.negative_graph.signed_vertices.size()));
@@ -143,7 +143,7 @@ namespace Gedim
           result.is_only_on_surface = false;
         }
           break;
-        case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+        case Gedim::MeshUtilities::SurfacePositions::OnSurface:
         {
           result.positive_graph.vertices.insert(std::make_pair(v, result.positive_graph.vertices.size()));
           result.negative_graph.vertices.insert(std::make_pair(v, result.negative_graph.vertices.size()));
@@ -168,7 +168,7 @@ namespace Gedim
 
       switch (graph_edge.surface_type)
       {
-        case Gedim::MeshUtilities::PointSurfacePositions::Positive:
+        case Gedim::MeshUtilities::SurfacePositions::Positive:
         {
           result.positive_graph.edges.push_back(e.first);
           const unsigned int origin_v = result.positive_graph.vertices.at(origin);
@@ -184,7 +184,7 @@ namespace Gedim
                                                                              });
         }
           break;
-        case Gedim::MeshUtilities::PointSurfacePositions::Negative:
+        case Gedim::MeshUtilities::SurfacePositions::Negative:
         {
           result.negative_graph.edges.push_back(e.first);
           const unsigned int origin_v = result.negative_graph.vertices.at(origin);
@@ -200,7 +200,7 @@ namespace Gedim
                                                                              });
         }
           break;
-        case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+        case Gedim::MeshUtilities::SurfacePositions::OnSurface:
         {
           result.positive_graph.edges.push_back(e.first);
           const unsigned int pos_origin_v = result.positive_graph.vertices.at(origin);
@@ -256,19 +256,19 @@ namespace Gedim
 
         switch (graph_face.surface_type)
         {
-          case Gedim::MeshUtilities::PointSurfacePositions::Positive:
+          case Gedim::MeshUtilities::SurfacePositions::Positive:
           {
             result.positive_graph.faces.insert(std::make_pair(f.first, result.positive_graph.faces.size()));
             result.positive_graph.signed_faces.insert(std::make_pair(f.first, result.positive_graph.signed_faces.size()));
           }
             break;
-          case Gedim::MeshUtilities::PointSurfacePositions::Negative:
+          case Gedim::MeshUtilities::SurfacePositions::Negative:
           {
             result.negative_graph.faces.insert(std::make_pair(f.first, result.negative_graph.faces.size()));
             result.negative_graph.signed_faces.insert(std::make_pair(f.first, result.negative_graph.signed_faces.size()));
           }
             break;
-          case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+          case Gedim::MeshUtilities::SurfacePositions::OnSurface:
           {
             result.positive_graph.faces.insert(std::make_pair(f.first, result.positive_graph.faces.size()));
             result.negative_graph.faces.insert(std::make_pair(f.first, result.negative_graph.faces.size()));
@@ -295,11 +295,11 @@ namespace Gedim
           const auto& graph_face_one = graph_faces.at(f_one);
           const auto& graph_face_two = graph_faces.at(f_two);
 
-          if (graph_face_one.surface_type == Gedim::MeshUtilities::PointSurfacePositions::OnSurface ||
-              graph_face_one.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Positive)
+          if (graph_face_one.surface_type == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
+              graph_face_one.surface_type == Gedim::MeshUtilities::SurfacePositions::Positive)
           {
-            if (graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::OnSurface ||
-                graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Positive)
+            if (graph_face_two.surface_type == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
+                graph_face_two.surface_type == Gedim::MeshUtilities::SurfacePositions::Positive)
             {
               const auto f_one_idx = result.positive_graph.faces.at(f_one);
               const auto f_two_idx = result.positive_graph.faces.at(f_two);
@@ -315,11 +315,11 @@ namespace Gedim
             }
           }
 
-          if (graph_face_one.surface_type == Gedim::MeshUtilities::PointSurfacePositions::OnSurface ||
-              graph_face_one.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Negative)
+          if (graph_face_one.surface_type == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
+              graph_face_one.surface_type == Gedim::MeshUtilities::SurfacePositions::Negative)
           {
-            if (graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::OnSurface ||
-                graph_face_two.surface_type == Gedim::MeshUtilities::PointSurfacePositions::Negative)
+            if (graph_face_two.surface_type == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
+                graph_face_two.surface_type == Gedim::MeshUtilities::SurfacePositions::Negative)
             {
               const auto f_one_idx = result.negative_graph.faces.at(f_one);
               const auto f_two_idx = result.negative_graph.faces.at(f_two);
@@ -638,8 +638,8 @@ namespace Gedim
 
       switch (vertex_surface_point.surface_position)
       {
-        case Gedim::MeshUtilities::PointSurfacePositions::Positive:
-        case Gedim::MeshUtilities::PointSurfacePositions::Negative: {
+        case Gedim::MeshUtilities::SurfacePositions::Positive:
+        case Gedim::MeshUtilities::SurfacePositions::Negative: {
           result.mesh_cell0D_to_vertex.at(v) = result.vertices.size();
           result.vertices.push_back({mesh.Cell0DCoordinates(v),
                                      surface_intersections.cell0Ds_surface_point.at(v).surface_position,
@@ -648,7 +648,7 @@ namespace Gedim
                                      surface_intersections.cell0Ds_surface_point.at(v).index});
         }
           break;
-        case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+        case Gedim::MeshUtilities::SurfacePositions::OnSurface:
           continue;
         default:
           throw std::runtime_error("Unknown position type");
@@ -665,7 +665,7 @@ namespace Gedim
           result.mesh_cell0D_to_vertex.at(surface_intersection.mesh_id) = result.vertices.size();
           result.surface_point_to_vertex.at(s) = result.vertices.size();
           result.vertices.push_back({surface_intersection.coordinate,
-                                     Gedim::MeshUtilities::PointSurfacePositions::OnSurface,
+                                     Gedim::MeshUtilities::SurfacePositions::OnSurface,
                                      Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Vertex,
                                      surface_intersection.mesh_id,
                                      s});
@@ -674,7 +674,7 @@ namespace Gedim
         case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Edge: {
           result.surface_point_to_vertex.at(s) = result.vertices.size();
           result.vertices.push_back({surface_intersection.coordinate,
-                                     Gedim::MeshUtilities::PointSurfacePositions::OnSurface,
+                                     Gedim::MeshUtilities::SurfacePositions::OnSurface,
                                      Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes::Edge,
                                      surface_intersection.mesh_id,
                                      s});
@@ -700,8 +700,8 @@ namespace Gedim
 
       switch (edge_surface_point.surface_position)
       {
-        case Gedim::MeshUtilities::PointSurfacePositions::Positive:
-        case Gedim::MeshUtilities::PointSurfacePositions::Negative:
+        case Gedim::MeshUtilities::SurfacePositions::Positive:
+        case Gedim::MeshUtilities::SurfacePositions::Negative:
         {
           const auto new_edge_id = create_edge({
                                                  result.mesh_cell0D_to_vertex.at(edge_origin_id),
@@ -715,13 +715,13 @@ namespace Gedim
           result.mesh_cell1D_to_edges.at(e) = { new_edge_id };
         }
           continue;
-        case Gedim::MeshUtilities::PointSurfacePositions::OnSurface:
+        case Gedim::MeshUtilities::SurfacePositions::OnSurface:
         {
           const auto edge_origin_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_origin_id).surface_position;
           const auto edge_end_surface_position = surface_intersections.cell0Ds_surface_point.at(edge_end_id).surface_position;
 
-          if (edge_origin_surface_position == Gedim::MeshUtilities::PointSurfacePositions::OnSurface &&
-              edge_end_surface_position == Gedim::MeshUtilities::PointSurfacePositions::OnSurface)
+          if (edge_origin_surface_position == Gedim::MeshUtilities::SurfacePositions::OnSurface &&
+              edge_end_surface_position == Gedim::MeshUtilities::SurfacePositions::OnSurface)
             continue;
 
           const auto new_edge_id_one = create_edge({
@@ -763,7 +763,7 @@ namespace Gedim
                                              result.surface_point_to_vertex.at(segment_data.indices.at(0)),
                                              result.surface_point_to_vertex.at(segment_data.indices.at(1))
                                            },
-                                           Gedim::MeshUtilities::PointSurfacePositions::OnSurface,
+                                           Gedim::MeshUtilities::SurfacePositions::OnSurface,
                                            Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
                                            s,
                                            result);
@@ -829,10 +829,10 @@ namespace Gedim
           face_graph.is_only_on_surface)
       {
         const auto face_sign = face_graph.is_only_on_surface ?
-                                 Gedim::MeshUtilities::PointSurfacePositions::OnSurface :
+                                 Gedim::MeshUtilities::SurfacePositions::OnSurface :
                                  face_graph.is_only_negative ?
-                                   Gedim::MeshUtilities::PointSurfacePositions::Negative :
-                                   Gedim::MeshUtilities::PointSurfacePositions::Positive;
+                                   Gedim::MeshUtilities::SurfacePositions::Negative :
+                                   Gedim::MeshUtilities::SurfacePositions::Positive;
 
         std::vector<unsigned int> face_edges_array;
         face_edges_array.reserve(face_edges.size());
@@ -869,7 +869,7 @@ namespace Gedim
               {
                 new_face.vertices,
                 new_face.edges,
-                Gedim::MeshUtilities::PointSurfacePositions::Negative,
+                Gedim::MeshUtilities::SurfacePositions::Negative,
                 f,
                 Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
               });
@@ -882,7 +882,7 @@ namespace Gedim
               {
                 new_face.vertices,
                 new_face.edges,
-                Gedim::MeshUtilities::PointSurfacePositions::Positive,
+                Gedim::MeshUtilities::SurfacePositions::Positive,
                 f,
                 Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
               });
@@ -906,7 +906,7 @@ namespace Gedim
             {
               face_vertices,
               face_edges,
-              Gedim::MeshUtilities::PointSurfacePositions::OnSurface,
+              Gedim::MeshUtilities::SurfacePositions::OnSurface,
               Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
               t
             });
@@ -990,10 +990,10 @@ namespace Gedim
           volume_graph.is_only_on_surface)
       {
         const auto volume_sign = volume_graph.is_only_on_surface ?
-                                   Gedim::MeshUtilities::PointSurfacePositions::OnSurface :
+                                   Gedim::MeshUtilities::SurfacePositions::OnSurface :
                                    volume_graph.is_only_negative ?
-                                     Gedim::MeshUtilities::PointSurfacePositions::Negative :
-                                     Gedim::MeshUtilities::PointSurfacePositions::Positive;
+                                     Gedim::MeshUtilities::SurfacePositions::Negative :
+                                     Gedim::MeshUtilities::SurfacePositions::Positive;
 
         std::vector<unsigned int> volume_edges_array;
         volume_edges_array.reserve(volume_edges.size());
@@ -1035,7 +1035,7 @@ namespace Gedim
                 new_volume.vertices,
                 new_volume.edges,
                 new_volume.faces,
-                Gedim::MeshUtilities::PointSurfacePositions::Negative,
+                Gedim::MeshUtilities::SurfacePositions::Negative,
                 p
               });
       }
@@ -1048,7 +1048,7 @@ namespace Gedim
                 new_volume.vertices,
                 new_volume.edges,
                 new_volume.faces,
-                Gedim::MeshUtilities::PointSurfacePositions::Positive,
+                Gedim::MeshUtilities::SurfacePositions::Positive,
                 p
               });
       }

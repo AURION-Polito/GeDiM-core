@@ -22,7 +22,7 @@ Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::Inter
 {
     Gedim::Utilities::Unused(geometry_utilities);
 
-    using SurfacePosition = Gedim::MeshUtilities::PointSurfacePositions;
+    using SurfacePosition = Gedim::MeshUtilities::SurfacePositions;
 
     Gedim::MeshUtilities::IntersectMeshWithSurfaceResult result;
 
