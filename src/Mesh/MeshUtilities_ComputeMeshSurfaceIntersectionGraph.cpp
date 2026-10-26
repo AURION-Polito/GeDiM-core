@@ -795,8 +795,12 @@ namespace Gedim
 
       std::vector<unsigned int> face_vertices;
       std::map<unsigned int, unsigned int> face_edges;
+      std::vector<unsigned int> face_edges_array;
+
       face_vertices.reserve(cell2D_vertices.size() +
                             cell2D_edges.size());
+      face_edges_array.reserve(2 * cell2D_edges.size() +
+                               face_segments.size());
 
       for (const auto& cell0D_index : cell2D_vertices)
         face_vertices.push_back(result.mesh_cell0D_to_vertex.at(cell0D_index));
@@ -810,11 +814,17 @@ namespace Gedim
           face_vertices.push_back(result.surface_point_to_vertex.at(surface_point_index.index));
 
         for (const auto& edge_index : result.mesh_cell1D_to_edges.at(cell1D_index))
+        {
           face_edges.insert(std::make_pair(edge_index, face_edges.size()));
+          face_edges_array.push_back(edge_index);
+        }
       }
 
       for (const auto& s : face_segments)
+      {
         face_edges.insert(std::make_pair(result.surface_segment_to_edge.at(s), face_edges.size()));
+        face_edges_array.push_back(result.surface_segment_to_edge.at(s));
+      }
 
       face_vertices.shrink_to_fit();
 
@@ -834,11 +844,6 @@ namespace Gedim
                                  face_graph.is_only_negative ?
                                    Gedim::MeshUtilities::SurfacePositions::Negative :
                                    Gedim::MeshUtilities::SurfacePositions::Positive;
-
-        std::vector<unsigned int> face_edges_array;
-        face_edges_array.reserve(face_edges.size());
-        for (const auto& f_e : face_edges)
-          face_edges_array.push_back(f_e.first);
 
         result.mesh_cell2D_to_faces.at(f) = { static_cast<unsigned int>(result.faces.size()) };
         result.faces.push_back(
