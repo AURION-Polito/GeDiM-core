@@ -355,7 +355,7 @@ namespace Gedim
     if (original_vertex != original_face_vertex_to_mesh_cell1D.end())
     {
       const auto& new_edge = graph_edges.at(new_graph_edge);
-      if (new_edge.original_mesh_cell1D_index != Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
+      if (new_edge.original_mesh_cell1D_index != Gedim::MeshUtilities::None)
       {
         if (new_edge.original_mesh_cell1D_index == original_vertex->second)
           return Gedim::GeometryUtilities::PolygonOrientations::Clockwise;
@@ -644,7 +644,7 @@ namespace Gedim
           result.vertices.push_back({mesh.Cell0DCoordinates(v),
                                      surface_intersections.cell0Ds_surface_point.at(v).surface_position,
                                      v,
-                                     Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
+                                     Gedim::MeshUtilities::None,
                                      surface_intersections.cell0Ds_surface_point.at(v).index});
         }
           break;
@@ -668,7 +668,7 @@ namespace Gedim
           result.vertices.push_back({surface_intersection.coordinate,
                                      Gedim::MeshUtilities::SurfacePositions::OnSurface,
                                      surface_intersection.mesh_id,
-                                     Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
+                                     Gedim::MeshUtilities::None,
                                      s});
         }
           continue;
@@ -676,7 +676,7 @@ namespace Gedim
           result.surface_point_to_vertex.at(s) = result.vertices.size();
           result.vertices.push_back({surface_intersection.coordinate,
                                      Gedim::MeshUtilities::SurfacePositions::OnSurface,
-                                     Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
+                                     Gedim::MeshUtilities::None,
                                      surface_intersection.mesh_id,
                                      s});
         }
@@ -710,7 +710,7 @@ namespace Gedim
                                                },
                                                edge_surface_point.surface_position,
                                                e,
-                                               Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
+                                               Gedim::MeshUtilities::None,
                                                result);
 
           result.mesh_cell1D_to_edges.at(e) = { new_edge_id };
@@ -765,7 +765,7 @@ namespace Gedim
                                              result.surface_point_to_vertex.at(segment_data.indices.at(1))
                                            },
                                            Gedim::MeshUtilities::SurfacePositions::OnSurface,
-                                           Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
+                                           Gedim::MeshUtilities::None,
                                            s,
                                            result);
 
@@ -810,7 +810,7 @@ namespace Gedim
         const auto& surface_point_index = surface_intersections.cell1Ds_surface_point.at(cell1D_index);
 
         if (surface_point_index.index !=
-            Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
+            Gedim::MeshUtilities::None)
           face_vertices.push_back(result.surface_point_to_vertex.at(surface_point_index.index));
 
         for (const auto& edge_index : result.mesh_cell1D_to_edges.at(cell1D_index))
@@ -852,7 +852,7 @@ namespace Gedim
                 face_edges_array,
                 face_sign,
                 f,
-                Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
+                Gedim::MeshUtilities::None
               });
         continue;
       }
@@ -877,7 +877,7 @@ namespace Gedim
                 new_face.edges,
                 Gedim::MeshUtilities::SurfacePositions::Negative,
                 f,
-                Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
+                Gedim::MeshUtilities::None
               });
       }
 
@@ -890,7 +890,7 @@ namespace Gedim
                 new_face.edges,
                 Gedim::MeshUtilities::SurfacePositions::Positive,
                 f,
-                Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None
+                Gedim::MeshUtilities::None
               });
       }
     }
@@ -913,7 +913,7 @@ namespace Gedim
               face_vertices,
               face_edges,
               Gedim::MeshUtilities::SurfacePositions::OnSurface,
-              Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None,
+              Gedim::MeshUtilities::None,
               t
             });
     }
@@ -945,7 +945,7 @@ namespace Gedim
         const auto& surface_point_index = surface_intersections.cell1Ds_surface_point.at(cell1D_index);
 
         if (surface_point_index.index !=
-            Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None)
+            Gedim::MeshUtilities::None)
           volume_vertices.push_back(result.surface_point_to_vertex.at(surface_point_index.index));
 
         for (const auto& edge_index : result.mesh_cell1D_to_edges.at(cell1D_index))

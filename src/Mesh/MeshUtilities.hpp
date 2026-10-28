@@ -21,6 +21,8 @@ namespace Gedim
 /// \copyright See top level LICENSE file for details.
 struct MeshUtilities
 {
+    constexpr static unsigned int None = std::numeric_limits<unsigned int>::max();
+
     struct CheckMesh2DConfiguration final
     {
         bool Cell0D_CheckCoordinates2D = true;
@@ -419,8 +421,6 @@ struct MeshUtilities
 
     struct IntersectMeshWithSurfaceResult final
     {
-        constexpr static unsigned int None = std::numeric_limits<unsigned int>::max();
-
         struct MeshCellSurfacePointData
         {
             unsigned int index;
@@ -560,6 +560,19 @@ struct MeshUtilities
 
     struct ConformMeshToSurfaceResult
     {
+        std::vector<unsigned int> new_cell0Ds_to_original_cell0D;
+        std::vector<unsigned int> new_cell1Ds_to_original_cell1D;
+        std::vector<unsigned int> new_cell2Ds_to_original_cell2D;
+        std::vector<unsigned int> new_cell3Ds_to_original_cell3D;
+
+        std::vector<unsigned int> new_cell0Ds_to_surface_vertex;
+        std::vector<unsigned int> new_cell1Ds_to_surface_segment;
+        std::vector<unsigned int> new_cell2Ds_to_surface_triangle;
+
+        std::vector<unsigned int> original_cell0Ds_to_new_cell0D;
+        std::vector<std::vector<unsigned int>> original_cell1Ds_to_new_cell1Ds;
+        std::vector<std::vector<unsigned int>> original_cell2Ds_to_new_cell2Ds;
+        std::vector<std::vector<unsigned int>> original_cell3Ds_to_new_cell3Ds;
     };
 
   public:
