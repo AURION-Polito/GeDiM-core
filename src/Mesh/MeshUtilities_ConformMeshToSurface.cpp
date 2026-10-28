@@ -72,7 +72,7 @@ namespace Gedim
                                                    Gedim::MeshUtilities::None);
       result.new_cell1Ds_to_surface_segment.resize(numCell1Ds,
                                                    Gedim::MeshUtilities::None);
-      result.original_cell1Ds_to_new_cell1Ds.resize(original_mesh.Cell1DTotalNumber());
+      result.original_cell1Ds_to_new_cell1Ds = surface_intersection_graph.mesh_cell1D_to_edges;
 
       conformed_mesh.Cell1DsInitialize(numCell1Ds);
       for (unsigned int e = 0; e < surface_intersection_graph.edges.size(); e++)
@@ -81,11 +81,16 @@ namespace Gedim
 
         if (edge.original_mesh_cell1D_index != Gedim::MeshUtilities::None)
         {
+          result.new_cell1Ds_to_original_cell1D.at(e) = edge.original_mesh_cell1D_index;
+
           conformed_mesh.Cell1DSetMarker(e,
                                          original_mesh.Cell1DMarker(edge.original_mesh_cell1D_index));
         }
         else
           conformed_mesh.Cell1DSetMarker(e, 0);
+
+        if (edge.original_surface_segment_index != Gedim::MeshUtilities::None)
+          result.new_cell1Ds_to_surface_segment.at(e) = edge.original_surface_segment_index;
 
         conformed_mesh.Cell1DInsertExtremes(e, edge.extremes.at(0), edge.extremes.at(1));
         conformed_mesh.Cell1DSetState(e, true);
@@ -100,7 +105,7 @@ namespace Gedim
                                                    Gedim::MeshUtilities::None);
       result.new_cell2Ds_to_surface_triangle.resize(numCell2Ds,
                                                     Gedim::MeshUtilities::None);
-      result.original_cell2Ds_to_new_cell2Ds.resize(original_mesh.Cell2DTotalNumber());
+      result.original_cell2Ds_to_new_cell2Ds = surface_intersection_graph.mesh_cell2D_to_faces;
 
       conformed_mesh.Cell2DsInitialize(numCell2Ds);
       std::vector<unsigned int> cell2Ds_num_vertices(numCell2Ds);
@@ -120,11 +125,16 @@ namespace Gedim
 
         if (face.original_mesh_cell2D_index != Gedim::MeshUtilities::None)
         {
+          result.new_cell2Ds_to_original_cell2D.at(f) = face.original_mesh_cell2D_index;
+
           conformed_mesh.Cell2DSetMarker(f,
                                          original_mesh.Cell2DMarker(face.original_mesh_cell2D_index));
         }
         else
           conformed_mesh.Cell2DSetMarker(f, 0);
+
+        if (face.original_surface_triangle_index != Gedim::MeshUtilities::None)
+          result.new_cell2Ds_to_surface_triangle.at(f) = face.original_surface_triangle_index;
 
         conformed_mesh.Cell2DInsertVertices(f, face.intersection_graph_vertices);
         conformed_mesh.Cell2DInsertEdges(f, face.intersection_graph_edges);
@@ -138,7 +148,7 @@ namespace Gedim
 
       result.new_cell3Ds_to_original_cell3D.resize(numCell3Ds,
                                                    Gedim::MeshUtilities::None);
-      result.original_cell3Ds_to_new_cell3Ds.resize(original_mesh.Cell3DTotalNumber());
+      result.original_cell3Ds_to_new_cell3Ds = surface_intersection_graph.mesh_cell3D_to_volumes;
 
       conformed_mesh.Cell3DsInitialize(numCell3Ds);
       std::vector<unsigned int> cell3DsNumVertices(numCell3Ds);
@@ -164,12 +174,13 @@ namespace Gedim
 
         if (volume.original_mesh_cell3D_index != Gedim::MeshUtilities::None)
         {
+          result.new_cell3Ds_to_original_cell3D.at(c) = volume.original_mesh_cell3D_index;
+
           conformed_mesh.Cell3DSetMarker(c,
                                          original_mesh.Cell3DMarker(volume.original_mesh_cell3D_index));
         }
         else
           conformed_mesh.Cell3DSetMarker(c, 0);
-
 
         conformed_mesh.Cell3DInsertVertices(c, volume.intersection_graph_vertices);
         conformed_mesh.Cell3DInsertEdges(c, volume.intersection_graph_edges);
