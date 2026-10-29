@@ -125,7 +125,7 @@ namespace Gedim
 
     for (const auto& v : selected_vertices)
     {
-      switch (graph_vertices.at(v).surface_type)
+      switch (graph_vertices.at(v).surface_position)
       {
         case Gedim::MeshUtilities::SurfacePositions::Positive:
         {
@@ -166,7 +166,7 @@ namespace Gedim
       const unsigned int origin = graph_edge.extremes.at(0);
       const unsigned int end = graph_edge.extremes.at(1);
 
-      switch (graph_edge.surface_type)
+      switch (graph_edge.surface_position)
       {
         case Gedim::MeshUtilities::SurfacePositions::Positive:
         {
@@ -254,7 +254,7 @@ namespace Gedim
           edges_faces.at(selected_edges.at(f_e)).push_back(f.first);
         }
 
-        switch (graph_face.surface_type)
+        switch (graph_face.surface_position)
         {
           case Gedim::MeshUtilities::SurfacePositions::Positive:
           {
@@ -295,11 +295,11 @@ namespace Gedim
           const auto& graph_face_one = graph_faces.at(f_one);
           const auto& graph_face_two = graph_faces.at(f_two);
 
-          if (graph_face_one.surface_type == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
-              graph_face_one.surface_type == Gedim::MeshUtilities::SurfacePositions::Positive)
+          if (graph_face_one.surface_position == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
+              graph_face_one.surface_position == Gedim::MeshUtilities::SurfacePositions::Positive)
           {
-            if (graph_face_two.surface_type == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
-                graph_face_two.surface_type == Gedim::MeshUtilities::SurfacePositions::Positive)
+            if (graph_face_two.surface_position == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
+                graph_face_two.surface_position == Gedim::MeshUtilities::SurfacePositions::Positive)
             {
               const auto f_one_idx = result.positive_graph.faces.at(f_one);
               const auto f_two_idx = result.positive_graph.faces.at(f_two);
@@ -315,11 +315,11 @@ namespace Gedim
             }
           }
 
-          if (graph_face_one.surface_type == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
-              graph_face_one.surface_type == Gedim::MeshUtilities::SurfacePositions::Negative)
+          if (graph_face_one.surface_position == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
+              graph_face_one.surface_position == Gedim::MeshUtilities::SurfacePositions::Negative)
           {
-            if (graph_face_two.surface_type == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
-                graph_face_two.surface_type == Gedim::MeshUtilities::SurfacePositions::Negative)
+            if (graph_face_two.surface_position == Gedim::MeshUtilities::SurfacePositions::OnSurface ||
+                graph_face_two.surface_position == Gedim::MeshUtilities::SurfacePositions::Negative)
             {
               const auto f_one_idx = result.negative_graph.faces.at(f_one);
               const auto f_two_idx = result.negative_graph.faces.at(f_two);

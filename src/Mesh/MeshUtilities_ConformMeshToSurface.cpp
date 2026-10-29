@@ -39,6 +39,7 @@ namespace Gedim
                                                   Gedim::MeshUtilities::None);
       result.original_cell0Ds_to_new_cell0D.resize(original_mesh.Cell0DTotalNumber(),
                                                    Gedim::MeshUtilities::None);
+      result.new_cell0Ds_surface_position.resize(numCell0Ds);
 
       conformed_mesh.Cell0DsInitialize(numCell0Ds);
       for (unsigned int v = 0; v < numCell0Ds; v++)
@@ -59,6 +60,7 @@ namespace Gedim
         if (vertex.original_surface_point_index != Gedim::MeshUtilities::None)
           result.new_cell0Ds_to_surface_vertex.at(v) = vertex.original_surface_point_index;
 
+        result.new_cell0Ds_surface_position.at(v) = vertex.surface_position;
         conformed_mesh.Cell0DInsertCoordinates(v, vertex.coordinate);
         conformed_mesh.Cell0DSetState(v, true);
       }
@@ -73,6 +75,7 @@ namespace Gedim
       result.new_cell1Ds_to_surface_segment.resize(numCell1Ds,
                                                    Gedim::MeshUtilities::None);
       result.original_cell1Ds_to_new_cell1Ds = surface_intersection_graph.mesh_cell1D_to_edges;
+      result.new_cell1Ds_surface_position.resize(numCell1Ds);
 
       conformed_mesh.Cell1DsInitialize(numCell1Ds);
       for (unsigned int e = 0; e < surface_intersection_graph.edges.size(); e++)
@@ -92,6 +95,7 @@ namespace Gedim
         if (edge.original_surface_segment_index != Gedim::MeshUtilities::None)
           result.new_cell1Ds_to_surface_segment.at(e) = edge.original_surface_segment_index;
 
+        result.new_cell1Ds_surface_position.at(e) = edge.surface_position;
         conformed_mesh.Cell1DInsertExtremes(e, edge.extremes.at(0), edge.extremes.at(1));
         conformed_mesh.Cell1DSetState(e, true);
       }
@@ -106,6 +110,7 @@ namespace Gedim
       result.new_cell2Ds_to_surface_triangle.resize(numCell2Ds,
                                                     Gedim::MeshUtilities::None);
       result.original_cell2Ds_to_new_cell2Ds = surface_intersection_graph.mesh_cell2D_to_faces;
+      result.new_cell2Ds_surface_position.resize(numCell2Ds);
 
       conformed_mesh.Cell2DsInitialize(numCell2Ds);
       std::vector<unsigned int> cell2Ds_num_vertices(numCell2Ds);
@@ -136,6 +141,7 @@ namespace Gedim
         if (face.original_surface_triangle_index != Gedim::MeshUtilities::None)
           result.new_cell2Ds_to_surface_triangle.at(f) = face.original_surface_triangle_index;
 
+        result.new_cell2Ds_surface_position.at(f) = face.surface_position;
         conformed_mesh.Cell2DInsertVertices(f, face.intersection_graph_vertices);
         conformed_mesh.Cell2DInsertEdges(f, face.intersection_graph_edges);
         conformed_mesh.Cell2DSetState(f, true);
@@ -149,6 +155,7 @@ namespace Gedim
       result.new_cell3Ds_to_original_cell3D.resize(numCell3Ds,
                                                    Gedim::MeshUtilities::None);
       result.original_cell3Ds_to_new_cell3Ds = surface_intersection_graph.mesh_cell3D_to_volumes;
+      result.new_cell3Ds_surface_position.resize(numCell3Ds);
 
       conformed_mesh.Cell3DsInitialize(numCell3Ds);
       std::vector<unsigned int> cell3DsNumVertices(numCell3Ds);
@@ -182,6 +189,7 @@ namespace Gedim
         else
           conformed_mesh.Cell3DSetMarker(c, 0);
 
+        result.new_cell3Ds_surface_position.at(c) = volume.surface_position;
         conformed_mesh.Cell3DInsertVertices(c, volume.intersection_graph_vertices);
         conformed_mesh.Cell3DInsertEdges(c, volume.intersection_graph_edges);
         conformed_mesh.Cell3DInsertFaces(c, volume.intersection_graph_faces);

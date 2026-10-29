@@ -458,7 +458,7 @@ struct MeshUtilities
             };
 
             Eigen::Vector3d coordinate;
-            Gedim::MeshUtilities::SurfacePositions surface_type;
+            Gedim::MeshUtilities::SurfacePositions surface_position;
             unsigned int original_mesh_cell0D_index;
             unsigned int original_mesh_cell1D_index;
             unsigned int original_surface_point_index;
@@ -467,7 +467,7 @@ struct MeshUtilities
         struct EdgeData
         {
             std::array<unsigned int, 2> extremes;
-            Gedim::MeshUtilities::SurfacePositions surface_type;
+            Gedim::MeshUtilities::SurfacePositions surface_position;
             unsigned int original_mesh_cell1D_index;
             unsigned int original_surface_segment_index;
         };
@@ -476,7 +476,7 @@ struct MeshUtilities
         {
             std::vector<unsigned int> intersection_graph_vertices;
             std::vector<unsigned int> intersection_graph_edges;
-            Gedim::MeshUtilities::SurfacePositions surface_type;
+            Gedim::MeshUtilities::SurfacePositions surface_position;
             unsigned int original_mesh_cell2D_index;
             unsigned int original_surface_triangle_index;
         };
@@ -486,7 +486,7 @@ struct MeshUtilities
             std::vector<unsigned int> intersection_graph_vertices;
             std::vector<unsigned int> intersection_graph_edges;
             std::vector<unsigned int> intersection_graph_faces;
-            Gedim::MeshUtilities::SurfacePositions surface_type;
+            Gedim::MeshUtilities::SurfacePositions surface_position;
             unsigned int original_mesh_cell3D_index;
         };
 
@@ -564,6 +564,11 @@ struct MeshUtilities
         std::vector<unsigned int> new_cell1Ds_to_original_cell1D;
         std::vector<unsigned int> new_cell2Ds_to_original_cell2D;
         std::vector<unsigned int> new_cell3Ds_to_original_cell3D;
+
+        std::vector<Gedim::MeshUtilities::SurfacePositions> new_cell0Ds_surface_position;
+        std::vector<Gedim::MeshUtilities::SurfacePositions> new_cell1Ds_surface_position;
+        std::vector<Gedim::MeshUtilities::SurfacePositions> new_cell2Ds_surface_position;
+        std::vector<Gedim::MeshUtilities::SurfacePositions> new_cell3Ds_surface_position;
 
         std::vector<unsigned int> new_cell0Ds_to_surface_vertex;
         std::vector<unsigned int> new_cell1Ds_to_surface_segment;
