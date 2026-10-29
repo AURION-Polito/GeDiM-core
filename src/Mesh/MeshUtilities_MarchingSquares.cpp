@@ -182,7 +182,7 @@ inline MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(
                                                                                 const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
                                                                                 const Gedim::IMeshDAO &mesh)
 {
-    using Position = Gedim::MeshUtilities::PointSurfacePositions;
+    using Position = Gedim::MeshUtilities::SurfacePositions;
 
     if (surface_intersections.cell0Ds_surface_point.size() != mesh.Cell0DTotalNumber() ||
         surface_intersections.cell1Ds_surface_point.size() != mesh.Cell1DTotalNumber())

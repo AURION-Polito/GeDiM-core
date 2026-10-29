@@ -34,13 +34,14 @@ void GraphUtilities::DepthFirstSearch(const unsigned int &vertex,
     }
 }
 // ***************************************************************************
-std::vector<unsigned int> GraphUtilities::BreadthFirstSearch(const unsigned int &vertex,
-                                                             const std::vector<std::vector<unsigned int>> &graphAdjacency) const
+std::vector<unsigned int> GraphUtilities::BreadthFirstSearch(const unsigned int vertex,
+                                                             const std::vector<std::vector<unsigned int>> &graphAdjacency)
 {
     unsigned int visitedVertex = vertex;
-    std::list<unsigned int> visitedVertices;
+    std::vector<unsigned int> visitedVertices;
     std::vector<bool> markedVertices(graphAdjacency.size(), false);
     std::queue<unsigned int> queue;
+    visitedVertices.reserve(graphAdjacency.size());
 
     markedVertices[visitedVertex] = true;
     queue.push(visitedVertex);
@@ -61,7 +62,44 @@ std::vector<unsigned int> GraphUtilities::BreadthFirstSearch(const unsigned int 
         }
     }
 
-    return std::vector<unsigned int>(visitedVertices.begin(), visitedVertices.end());
+    visitedVertices.shrink_to_fit();
+
+    return visitedVertices;
+}
+// ***************************************************************************
+std::vector<unsigned int> GraphUtilities::DepthFirstSearch(
+    const unsigned int vertex,
+    const std::vector<std::vector<unsigned int>> &graphAdjacency)
+{
+    unsigned int visitedVertex = vertex;
+    std::vector<unsigned int> visitedVertices;
+    std::vector<bool> markedVertices(graphAdjacency.size(), false);
+    std::stack<unsigned int> stack;
+
+    visitedVertices.reserve(graphAdjacency.size());
+
+    markedVertices[visitedVertex] = true;
+    stack.push(visitedVertex);
+
+    while (!stack.empty())
+    {
+        visitedVertex = stack.top();
+        visitedVertices.push_back(visitedVertex);
+        stack.pop();
+
+        for (const unsigned int adjacent : graphAdjacency[visitedVertex])
+        {
+            if (!markedVertices[adjacent])
+            {
+                markedVertices[adjacent] = true;
+                stack.push(adjacent);
+            }
+        }
+    }
+
+    visitedVertices.shrink_to_fit();
+
+    return visitedVertices;
 }
 // ***************************************************************************
 std::vector<std::vector<unsigned int>> GraphUtilities::ComputeAdjacencyTranspose(const std::vector<std::vector<unsigned int>> &graphAdjacency) const

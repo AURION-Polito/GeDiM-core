@@ -21,6 +21,8 @@ namespace Gedim
 /// \copyright See top level LICENSE file for details.
 struct MeshUtilities
 {
+    constexpr static unsigned int None = std::numeric_limits<unsigned int>::max();
+
     struct CheckMesh2DConfiguration final
     {
         bool Cell0D_CheckCoordinates2D = true;
@@ -410,7 +412,7 @@ struct MeshUtilities
         Gedim::MeshUtilities::Intersect_mesh_polyhedron_result::Mesh_Intersections Mesh_intersections;
     };
 
-    enum struct PointSurfacePositions
+    enum struct SurfacePositions
     {
         OnSurface = 0,
         Positive = 1,
@@ -419,13 +421,11 @@ struct MeshUtilities
 
     struct IntersectMeshWithSurfaceResult final
     {
-        constexpr static unsigned int None = std::numeric_limits<unsigned int>::max();
-
         struct MeshCellSurfacePointData
         {
             unsigned int index;
             double surface_value;
-            Gedim::MeshUtilities::PointSurfacePositions surface_position;
+            Gedim::MeshUtilities::SurfacePositions surface_position;
         };
 
         struct SurfacePointData
@@ -458,27 +458,67 @@ struct MeshUtilities
             };
 
             Eigen::Vector3d coordinate;
-            Gedim::MeshUtilities::PointSurfacePositions surface_type;
-            Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData::MeshTypes mesh_cell_type;
-            unsigned int original_mesh_cell_index;
+            Gedim::MeshUtilities::SurfacePositions surface_position;
+            unsigned int original_mesh_cell0D_index;
+            unsigned int original_mesh_cell1D_index;
             unsigned int original_surface_point_index;
         };
 
         struct EdgeData
         {
             std::array<unsigned int, 2> extremes;
-            Gedim::MeshUtilities::PointSurfacePositions surface_type;
+            Gedim::MeshUtilities::SurfacePositions surface_position;
             unsigned int original_mesh_cell1D_index;
             unsigned int original_surface_segment_index;
         };
 
+        struct FaceData
+        {
+            std::vector<unsigned int> intersection_graph_vertices;
+            std::vector<unsigned int> intersection_graph_edges;
+            Gedim::MeshUtilities::SurfacePositions surface_position;
+            unsigned int original_mesh_cell2D_index;
+            unsigned int original_surface_triangle_index;
+        };
+
+        struct VolumeData
+        {
+            std::vector<unsigned int> intersection_graph_vertices;
+            std::vector<unsigned int> intersection_graph_edges;
+            std::vector<unsigned int> intersection_graph_faces;
+            Gedim::MeshUtilities::SurfacePositions surface_position;
+            unsigned int original_mesh_cell3D_index;
+        };
+
         std::vector<unsigned int> mesh_cell0D_to_vertex;
         std::vector<unsigned int> surface_point_to_vertex;
+        std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData> vertices;
+
         std::vector<std::vector<unsigned int>> mesh_cell1D_to_edges;
         std::vector<unsigned int> surface_segment_to_edge;
-        std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VertexData> vertices;
         std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::EdgeData> edges;
         std::map<std::array<unsigned int, 2>, unsigned int> edges_map;
+
+        std::vector<std::vector<unsigned int>> mesh_cell2D_to_faces;
+        std::vector<unsigned int> surface_triangle_to_face;
+        std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::FaceData> faces;
+
+        std::vector<std::vector<unsigned int>> mesh_cell3D_to_volumes;
+        std::vector<Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData::VolumeData> volumes;
+    };
+
+    struct ConformMeshCell2DsToSurfaceData final
+    {
+        struct FaceData
+        {
+            std::vector<unsigned int> intersection_graph_vertices;
+            std::vector<unsigned int> intersection_graph_edges;
+            Gedim::MeshUtilities::SurfacePositions surface_type;
+            unsigned int original_mesh_cell2D_index;
+            unsigned int original_surface_triangle_index;
+        };
+
+        std::vector<unsigned int> mesh_cell2D_to_face;
     };
 
     struct MarchingSquaresResult final
@@ -518,14 +558,31 @@ struct MeshUtilities
         Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData surface_triangles;
     };
 
-    struct ConformMesh2DToSurfaceResult
+    struct ConformMeshToSurfaceResult
     {
-        Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData surface_intersection_graph;
+        std::vector<unsigned int> new_cell0Ds_to_original_cell0D;
+        std::vector<unsigned int> new_cell1Ds_to_original_cell1D;
+        std::vector<unsigned int> new_cell2Ds_to_original_cell2D;
+        std::vector<unsigned int> new_cell3Ds_to_original_cell3D;
+
+        std::vector<Gedim::MeshUtilities::SurfacePositions> new_cell0Ds_surface_position;
+        std::vector<Gedim::MeshUtilities::SurfacePositions> new_cell1Ds_surface_position;
+        std::vector<Gedim::MeshUtilities::SurfacePositions> new_cell2Ds_surface_position;
+        std::vector<Gedim::MeshUtilities::SurfacePositions> new_cell3Ds_surface_position;
+
+        std::vector<unsigned int> new_cell0Ds_to_surface_vertex;
+        std::vector<unsigned int> new_cell1Ds_to_surface_segment;
+        std::vector<unsigned int> new_cell2Ds_to_surface_triangle;
+
+        std::vector<unsigned int> original_cell0Ds_to_new_cell0D;
+        std::vector<std::vector<unsigned int>> original_cell1Ds_to_new_cell1Ds;
+        std::vector<std::vector<unsigned int>> original_cell2Ds_to_new_cell2Ds;
+        std::vector<std::vector<unsigned int>> original_cell3Ds_to_new_cell3Ds;
     };
 
   public:
-    MeshUtilities(){};
-    ~MeshUtilities(){};
+    MeshUtilities() {};
+    ~MeshUtilities() {};
 
     /// \brief Extract Active Cells from mesh
     /// \note the resulting mesh has no inactive elements
@@ -1269,16 +1326,20 @@ struct MeshUtilities
     static Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData ComputeMeshSurfaceIntersectionGraph(
         const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
         const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData &surface_segments,
+        const Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData &surface_triangles,
         const Gedim::IMeshDAO &mesh);
 
     static Gedim::MeshUtilities::MarchingSquaresResult MarchingSquares(const Gedim::GeometryUtilities &geometry_utilities,
                                                                        const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
                                                                        const Gedim::IMeshDAO &mesh);
 
-    static Gedim::MeshUtilities::ConformMesh2DToSurfaceResult ConformMesh2DToSurface(
+    static Gedim::MeshUtilities::ConformMeshToSurfaceResult ConformMeshToSurface(
         const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
         const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData &surface_segments,
-        const Gedim::IMeshDAO &mesh);
+        const Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData &surface_triangles,
+        const Gedim::IMeshDAO &original_mesh,
+        const Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData &surface_intersection_graph,
+        Gedim::IMeshDAO &conformed_mesh);
 
     static Gedim::MeshUtilities::MarchingCubesResult MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
                                                                    const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,

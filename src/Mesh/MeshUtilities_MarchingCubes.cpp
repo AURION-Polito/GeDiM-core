@@ -409,7 +409,7 @@ inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
                                                                                 const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
                                                                                 const Gedim::IMeshDAO &mesh)
 {
-    using Position = Gedim::MeshUtilities::PointSurfacePositions;
+    using Position = Gedim::MeshUtilities::SurfacePositions;
 
     if (surface_intersections.cell0Ds_surface_point.size() != mesh.Cell0DTotalNumber() ||
         surface_intersections.cell1Ds_surface_point.size() != mesh.Cell1DTotalNumber())
@@ -511,6 +511,143 @@ inline MeshUtilities::MarchingCubesResult::SurfaceTrianglesData CreateTriangles(
     return result;
 }
 // ***************************************************************************
+unsigned int find_face_with_edges_and_vertices(const std::vector<std::vector<unsigned int>> &faces_vertices,
+                                               const std::vector<std::vector<unsigned int>> &faces_edges,
+                                               const std::vector<bool> &faces_filter,
+                                               const std::array<unsigned int, 2> &origin_vertex_edge_id,
+                                               const std::array<unsigned int, 2> &end_vertex_edge_id)
+{
+    for (unsigned int f = 0; f < faces_vertices.size(); ++f)
+    {
+        if (!faces_filter.empty() && !faces_filter.at(f))
+            continue;
+
+        const auto &face_vertices = faces_vertices.at(f);
+        const auto &face_edges = faces_edges.at(f);
+
+        if (origin_vertex_edge_id.at(0) != None)
+        {
+            if (std::find(face_vertices.begin(), face_vertices.end(), origin_vertex_edge_id.at(0)) == face_vertices.end())
+                continue;
+        }
+
+        if (origin_vertex_edge_id.at(1) != None)
+        {
+            if (std::find(face_edges.begin(), face_edges.end(), origin_vertex_edge_id.at(1)) == face_edges.end())
+                continue;
+        }
+
+        if (end_vertex_edge_id.at(0) != None)
+        {
+            if (std::find(face_vertices.begin(), face_vertices.end(), end_vertex_edge_id.at(0)) == face_vertices.end())
+                continue;
+        }
+
+        if (end_vertex_edge_id.at(1) != None)
+        {
+            if (std::find(face_edges.begin(), face_edges.end(), end_vertex_edge_id.at(1)) == face_edges.end())
+                continue;
+        }
+
+        return f;
+    }
+
+    return None;
+}
+// ***************************************************************************
+inline Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData CreateSegments(
+    const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
+    const Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData &surface_triangles,
+    const Gedim::IMeshDAO &mesh)
+{
+    Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData result;
+
+    result.surface_segments.reserve(3 * surface_triangles.surface_triangles.size());
+    result.cell2Ds_surface_segments.resize(mesh.Cell2DTotalNumber());
+    for (unsigned int c_2D = 0; c_2D < mesh.Cell2DTotalNumber(); ++c_2D)
+        result.cell2Ds_surface_segments.at(c_2D).reserve(2);
+
+    std::map<std::array<unsigned int, 2>, unsigned int> edges_map;
+
+    for (unsigned int c_3D = 0; c_3D < mesh.Cell3DTotalNumber(); ++c_3D)
+    {
+        if (surface_triangles.cell3Ds_surface_triangles.at(c_3D).empty())
+            continue;
+
+        const auto cell3D_faces = mesh.Cell3DFaces(c_3D);
+
+        std::vector<std::vector<unsigned int>> faces_vertices(cell3D_faces.size());
+        std::vector<std::vector<unsigned int>> faces_edges(cell3D_faces.size());
+        for (unsigned int f = 0; f < cell3D_faces.size(); ++f)
+        {
+            faces_vertices.at(f) = mesh.Cell2DVertices(cell3D_faces.at(f));
+            faces_edges.at(f) = mesh.Cell2DEdges(cell3D_faces.at(f));
+        }
+
+        for (const auto &t : surface_triangles.cell3Ds_surface_triangles.at(c_3D))
+        {
+            const auto &triangle = surface_triangles.surface_triangles.at(t);
+
+            for (unsigned int te = 0; te < 3; ++te)
+            {
+                const unsigned int edge_origin = triangle.indices.at(te);
+                const unsigned int edge_end = triangle.indices.at((te + 1) % 3);
+
+                const auto &origin_intersection = surface_intersections.surface_intersection_points.at(edge_origin);
+                const auto &end_intersection = surface_intersections.surface_intersection_points.at(edge_end);
+
+                std::array<unsigned int, 2> origin_vertex_edge_id = {None, None};
+                std::array<unsigned int, 2> end_vertex_edge_id = {None, None};
+
+                switch (origin_intersection.Type)
+                {
+                case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex:
+                    origin_vertex_edge_id.at(0) = origin_intersection.mesh_id;
+                    break;
+                case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Edge:
+                    origin_vertex_edge_id.at(1) = origin_intersection.mesh_id;
+                    break;
+                default:
+                    throw std::runtime_error("unknown intersection type");
+                }
+
+                switch (end_intersection.Type)
+                {
+                case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Vertex:
+                    end_vertex_edge_id.at(0) = end_intersection.mesh_id;
+                    break;
+                case Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::SurfacePointData::Types::Edge:
+                    end_vertex_edge_id.at(1) = end_intersection.mesh_id;
+                    break;
+                default:
+                    throw std::runtime_error("unknown intersection type");
+                }
+
+                const auto face_id =
+                    find_face_with_edges_and_vertices(faces_vertices, faces_edges, {}, origin_vertex_edge_id, end_vertex_edge_id);
+
+                std::array<unsigned int, 2> extremes = {std::min(edge_origin, edge_end), std::max(edge_origin, edge_end)};
+
+                if (edges_map.contains(extremes))
+                    continue;
+
+                edges_map.insert(std::make_pair(extremes, edges_map.size()));
+                if (face_id != None)
+                    result.cell2Ds_surface_segments.at(cell3D_faces.at(face_id)).push_back(result.surface_segments.size());
+                result.surface_segments.push_back({std::array<unsigned int, 2>({edge_origin, edge_end}),
+                                                   face_id == None ? None : cell3D_faces.at(face_id)});
+            }
+        }
+    }
+
+    for (unsigned int c_2D = 0; c_2D < mesh.Cell2DTotalNumber(); ++c_2D)
+        result.cell2Ds_surface_segments.at(c_2D).shrink_to_fit();
+
+    result.surface_segments.shrink_to_fit();
+
+    return result;
+}
+// ***************************************************************************
 Gedim::MeshUtilities::MarchingCubesResult Gedim::MeshUtilities::MarchingCubes(
     const Gedim::GeometryUtilities &geometry_utilities,
     const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
@@ -521,6 +658,8 @@ Gedim::MeshUtilities::MarchingCubesResult Gedim::MeshUtilities::MarchingCubes(
     result.surface_intersections = IntersectMeshWithSurface(geometry_utilities, surface_implicit_equation, mesh);
 
     result.surface_triangles = CreateTriangles(geometry_utilities, result.surface_intersections, mesh);
+
+    result.surface_segments = CreateSegments(result.surface_intersections, result.surface_triangles, mesh);
 
     return result;
 }
