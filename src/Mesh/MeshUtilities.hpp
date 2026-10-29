@@ -581,8 +581,8 @@ struct MeshUtilities
     };
 
   public:
-    MeshUtilities(){};
-    ~MeshUtilities(){};
+    MeshUtilities() {};
+    ~MeshUtilities() {};
 
     /// \brief Extract Active Cells from mesh
     /// \note the resulting mesh has no inactive elements
@@ -1326,18 +1326,19 @@ struct MeshUtilities
     static Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData ComputeMeshSurfaceIntersectionGraph(
         const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
         const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData &surface_segments,
-        const Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData& surface_triangles,
+        const Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData &surface_triangles,
         const Gedim::IMeshDAO &mesh);
 
     static Gedim::MeshUtilities::MarchingSquaresResult MarchingSquares(const Gedim::GeometryUtilities &geometry_utilities,
                                                                        const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
                                                                        const Gedim::IMeshDAO &mesh);
 
-    static Gedim::MeshUtilities::ConformMeshToSurfaceResult ConformMeshToSurface(const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
+    static Gedim::MeshUtilities::ConformMeshToSurfaceResult ConformMeshToSurface(
+        const Gedim::MeshUtilities::IntersectMeshWithSurfaceResult &surface_intersections,
         const Gedim::MeshUtilities::MarchingSquaresResult::SurfaceSegmentsData &surface_segments,
         const Gedim::MeshUtilities::MarchingCubesResult::SurfaceTrianglesData &surface_triangles,
         const Gedim::IMeshDAO &original_mesh,
-        const Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData& surface_intersection_graph,
+        const Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData &surface_intersection_graph,
         Gedim::IMeshDAO &conformed_mesh);
 
     static Gedim::MeshUtilities::MarchingCubesResult MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
