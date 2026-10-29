@@ -12,12 +12,30 @@
 #ifndef __Fast_Marching_Method_H
 #define __Fast_Marching_Method_H
 
+#include "Eigen/Eigen"
+#include "GeometryUtilities.hpp"
+#include "IMeshDAO.hpp"
+#include <list>
+#include <vector>
+
 namespace Gedim
 {
-namespace FastMarchingMethod
-{
+  namespace Algorithms
+  {
+    namespace FastMarchingMethod
+    {
+      void fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
+                                   const Eigen::MatrixXd& mesh_vertices,
+                                   const std::vector<std::list<unsigned int>>& mesh_adj_list,
+                                   const double& constant_speed,
+                                   const unsigned int source_index);
+      void fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
+                                   const Gedim::IMeshDAO& mesh,
+                                   const double& constant_speed,
+                                   const unsigned int source_index);
 
-} // namespace FastMarchingMethod
+    } // namespace FastMarchingMethod
+  } // namespace Algorithms
 } // namespace Gedim
 
 #endif // __Fast_Marching_Method_H
