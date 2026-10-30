@@ -37,18 +37,19 @@ namespace Gedim
       inline double eikonal_triangle(const GeometryUtilities& geometry_utilities,
                                      const Eigen::MatrixXd& mesh_vertices,
                                      const double& constant_speed,
+                                     const std::vector<double>& vertices_time,
                                      const unsigned int i,
                                      const unsigned int j,
                                      const unsigned int k)
       {
-        return std::min(compute_time_ij(geometry_utilities,
-                                        mesh_vertices,
-                                        constant_speed,
-                                        i, k),
-                        compute_time_ij(geometry_utilities,
-                                        mesh_vertices,
-                                        constant_speed,
-                                        j, k));
+        return std::min(vertices_time.at(i) + compute_time_ij(geometry_utilities,
+                                                              mesh_vertices,
+                                                              constant_speed,
+                                                              i, k),
+                        vertices_time.at(j) + compute_time_ij(geometry_utilities,
+                                                              mesh_vertices,
+                                                              constant_speed,
+                                                              j, k));
       }
       // ***************************************************************************
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
@@ -117,6 +118,7 @@ namespace Gedim
               const auto time_k = eikonal_triangle(geometry_utilities,
                                                    mesh_vertices,
                                                    constant_speed,
+                                                   result.vertices_time,
                                                    selected_v.second,
                                                    k,
                                                    adj_i);
