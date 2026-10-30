@@ -66,7 +66,12 @@ namespace Gedim
             if (!mesh.Cell0DHasNeighbourCell1D(v, vn))
               continue;
 
-            mesh_adj_list.at(v).push_back(mesh.Cell0DNeighbourCell1D(v, vn));
+            const auto cell1D = mesh.Cell0DNeighbourCell1D(v, vn);
+
+            if (mesh.Cell1DOrigin(cell1D) == v)
+              mesh_adj_list.at(v).push_back(mesh.Cell1DEnd(cell1D));
+            else
+              mesh_adj_list.at(v).push_back(mesh.Cell1DOrigin(cell1D));
           }
         }
 
