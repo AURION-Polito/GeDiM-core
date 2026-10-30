@@ -40,6 +40,7 @@ namespace Gedim
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
                                                                                               const Eigen::MatrixXd& mesh_vertices,
                                                                                               const std::vector<std::list<unsigned int>>& mesh_adj_list,
+                                                                                              const std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int> >& mesh_triangles,
                                                                                               const double& constant_speed,
                                                                                               const unsigned int source_index);
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
