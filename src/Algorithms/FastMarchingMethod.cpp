@@ -10,6 +10,7 @@
 // This file can be used citing references in CITATION.cff file.
 
 #include "FastMarchingMethod.hpp"
+#include <queue>
 
 namespace Gedim
 {
@@ -18,19 +19,41 @@ namespace Gedim
     namespace FastMarchingMethod
     {
       // ***************************************************************************
-      void fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
-                                   const Eigen::MatrixXd& mesh_vertices,
-                                   const std::vector<std::list<unsigned int> >& mesh_adj_list,
-                                   const double& constant_speed,
-                                   const unsigned int source_index)
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
+                                                                                              const Eigen::MatrixXd& mesh_vertices,
+                                                                                              const std::vector<std::list<unsigned int> >& mesh_adj_list,
+                                                                                              const double& constant_speed,
+                                                                                              const unsigned int source_index)
       {
+        using pq_item = std::pair<double, unsigned int>;
+        using status_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult::StatusTypes;
 
+        Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult result;
+
+        constexpr static double infty = std::numeric_limits<double>::infinity();
+
+        result.vertices_status.resize(mesh_vertices.cols(), status_types::Far);
+        result.vertices_time.resize(mesh_vertices.cols(), infty);
+
+        result.vertices_status.at(source_index) = status_types::Verified;
+        result.vertices_time.at(source_index) = 0.0;
+
+        std::priority_queue<pq_item, std::vector<pq_item>, std::greater<pq_item>> min_pq;
+        for (const auto& vn : mesh_adj_list.at(source_index))
+        {
+          result.vertices_time.at(vn) = geometry_utilities.SegmentLength(mesh_vertices.col(source_index),
+                                                                         mesh_vertices.col(vn));
+          result.vertices_status.at(source_index) = status_types::Trial;
+          min_pq.push({ result.vertices_time.at(vn), vn });
+        }
+
+        return result;
       }
       // ***************************************************************************
-      void fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
-                                   const IMeshDAO& mesh,
-                                   const double& constant_speed,
-                                   const unsigned int source_index)
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
+                                                                                              const IMeshDAO& mesh,
+                                                                                              const double& constant_speed,
+                                                                                              const unsigned int source_index)
       {
         std::vector<std::list<unsigned int>> mesh_adj_list(mesh.Cell0DTotalNumber());
         for (unsigned int v = 0; v < mesh.Cell0DTotalNumber(); ++v)

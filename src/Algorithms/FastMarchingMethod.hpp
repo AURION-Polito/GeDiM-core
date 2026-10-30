@@ -24,15 +24,28 @@ namespace Gedim
   {
     namespace FastMarchingMethod
     {
-      void fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
-                                   const Eigen::MatrixXd& mesh_vertices,
-                                   const std::vector<std::list<unsigned int>>& mesh_adj_list,
-                                   const double& constant_speed,
-                                   const unsigned int source_index);
-      void fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
-                                   const Gedim::IMeshDAO& mesh,
-                                   const double& constant_speed,
-                                   const unsigned int source_index);
+      struct FastMarchingMethodResult
+      {
+          enum struct StatusTypes
+          {
+            Far = 0,
+            Trial = 1,
+            Verified = 2
+          };
+
+          std::vector<double> vertices_time;
+          std::vector<Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult::StatusTypes> vertices_status;
+      };
+
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
+                                                                                              const Eigen::MatrixXd& mesh_vertices,
+                                                                                              const std::vector<std::list<unsigned int>>& mesh_adj_list,
+                                                                                              const double& constant_speed,
+                                                                                              const unsigned int source_index);
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
+                                                                                              const Gedim::IMeshDAO& mesh,
+                                                                                              const double& constant_speed,
+                                                                                              const unsigned int source_index);
 
     } // namespace FastMarchingMethod
   } // namespace Algorithms
