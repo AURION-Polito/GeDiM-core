@@ -1,6 +1,8 @@
 list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/FastMarchingMethod.cpp)
+list(APPEND gedim_src_sources ${CMAKE_CURRENT_SOURCE_DIR}/BrentMinimization.cpp)
 
 list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/FastMarchingMethod.hpp)
+list(APPEND gedim_src_headers ${CMAKE_CURRENT_SOURCE_DIR}/BrentMinimization.hpp)
 
 list(APPEND gedim_src_includes ${CMAKE_CURRENT_SOURCE_DIR})
 
