@@ -11,13 +11,9 @@
 
 #include "BrentMinimization.hpp"
 
-#include <iostream>
 #include <cmath>
-#include <limits>
-#include <stdexcept>
-#include <algorithm>
 #include <numbers>
-
+#include <stdexcept>
 
 namespace Gedim
 {
@@ -36,10 +32,9 @@ namespace Gedim
       {
         if (!(a < b) || !std::isfinite(a) || !std::isfinite(b) ||
             !(tol > 0.0) || !std::isfinite(tol) || max_iter <= 0) {
-          throw std::invalid_argument("Invalid Brent parameters");
+          throw std::runtime_error("Invalid Brent parameters");
         }
 
-        // Initial point
         double x = a + golden_section * (b - a);
         double w = x;
         double v = x;
@@ -48,7 +43,6 @@ namespace Gedim
         double fw = fx;
         double fv = fx;
 
-        // Step history
         double d = 0.0;
         double e = 0.0;
 
@@ -61,17 +55,28 @@ namespace Gedim
 
           const double abs_tol = std::abs(x) < 1.0 ? tol :
                                                      tol * std::abs(x);
+
+//          {
+//            std::cout.precision(2);
+//            std::cout<< std::scientific<< "\tx "<< x<< " ";
+//            std::cout<< std::scientific<< "m "<< midpoint<< " ";
+//            std::cout<< std::scientific<< "l "<< left<< " ";
+//            std::cout<< std::scientific<< "r "<< right<< " ";
+//            std::cout<< std::scientific<< "|x-m| "<< std::abs(x - midpoint)<< " ";
+//            std::cout<< std::scientific<< "0.5 (r-l) "<< 2.0 * abs_tol + left<< " ";
+//            std::cout<< std::scientific<< "tol "<< abs_tol<< std::endl;
+//          }
+
           if (std::abs(x - midpoint) <= abs_tol &&
-              right <= 2.0 * abs_tol + left) // max(|x-m|, 0.5 (r-l)) / x < tol
+              right <= 2.0 * (abs_tol + std::numeric_limits<double>::epsilon()) + left) // max(|x-m|, 0.5 (r-l)) / x < tol
           {
             return { x, fx, iter - 1, true };
           }
 
           bool use_golden = true;
 
-          // Attempt parabolic interpolation
-          if (std::abs(e) > abs_tol) {
-
+          if (std::abs(e) > abs_tol)
+          {
             double r = (x - w) * (fx - fv);
             double q = (x - v) * (fx - fw);
             double p = (x - v) * q - (x - w) * r;
@@ -86,7 +91,6 @@ namespace Gedim
             const double previous_e = e;
             e = d;
 
-            // Accept parabolic step only if safe
             if (q > 0.0 &&
                 std::abs(p) < std::abs(0.5 * q * previous_e) &&
                 p > q * (left - x) &&
@@ -95,7 +99,6 @@ namespace Gedim
               d = p / q;
               const double u = x + d;
 
-              // Avoid points too close to boundaries
               if ((u - left) < abs_tol || (right - u) < abs_tol) {
                 d = std::copysign(abs_tol, midpoint - x);
               }
@@ -104,7 +107,6 @@ namespace Gedim
             }
           }
 
-          // Golden-section fallback
           if (use_golden)
           {
             e = (x < midpoint) ? (right - x) : (left - x);
@@ -119,7 +121,6 @@ namespace Gedim
 
           const double fu = f(u);
 
-          // Update interval and interpolation points
           if (fu <= fx)
           {
             if (u < x)

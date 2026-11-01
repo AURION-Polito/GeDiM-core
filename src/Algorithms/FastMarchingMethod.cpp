@@ -10,6 +10,7 @@
 // This file can be used citing references in CITATION.cff file.
 
 #include "FastMarchingMethod.hpp"
+#include "BrentMinimization.hpp"
 #include <queue>
 
 namespace Gedim
@@ -22,16 +23,15 @@ namespace Gedim
       constexpr static double infty = std::numeric_limits<double>::infinity();
       // ***************************************************************************
       inline double compute_time_ij(const GeometryUtilities& geometry_utilities,
-                                    const Eigen::MatrixXd& mesh_vertices,
                                     const double& constant_speed,
-                                    const unsigned int i,
-                                    const unsigned int j)
+                                    const Eigen::Vector3d& x_i,
+                                    const Eigen::Vector3d& x_j)
       {
         return geometry_utilities.IsValueZero(constant_speed,
                                               geometry_utilities.Tolerance1D()) ?
               infty :
-              geometry_utilities.SegmentLength(mesh_vertices.col(i),
-                                               mesh_vertices.col(j)) / constant_speed;
+              geometry_utilities.SegmentLength(x_i,
+                                               x_j) / constant_speed;
       }
       // ***************************************************************************
       inline double eikonal_triangle(const GeometryUtilities& geometry_utilities,
@@ -42,14 +42,54 @@ namespace Gedim
                                      const unsigned int j,
                                      const unsigned int k)
       {
-        return std::min(vertices_time.at(i) + compute_time_ij(geometry_utilities,
-                                                              mesh_vertices,
-                                                              constant_speed,
-                                                              i, k),
-                        vertices_time.at(j) + compute_time_ij(geometry_utilities,
-                                                              mesh_vertices,
-                                                              constant_speed,
-                                                              j, k));
+        //        return std::min(vertices_time.at(i) + compute_time_ij(geometry_utilities,
+        //                                                              mesh_vertices,
+        //                                                              constant_speed,
+        //                                                              i, k),
+        //                        vertices_time.at(j) + compute_time_ij(geometry_utilities,
+        //                                                              mesh_vertices,
+        //                                                              constant_speed,
+        //                                                              j, k));
+
+        auto min_f =
+            [&](double lambda)
+        {
+          return lambda * vertices_time.at(i) +
+              (1.0 - lambda) * vertices_time.at(j) +
+              compute_time_ij(geometry_utilities,
+                              constant_speed,
+                              mesh_vertices.col(k),
+                              lambda * mesh_vertices.col(i) +
+                              (1.0 - lambda) * mesh_vertices.col(j));
+        };
+
+        const auto min_result = Gedim::Algorithms::Minimization::brent_minimize(
+                                  min_f,
+                                  0.0,
+                                  1.0,
+                                  1.0e-6,
+                                  500
+                                  );
+
+        if (!min_result.converged)
+        {
+//          std::cout.precision(2);
+//          std::cout<< std::scientific<< "V_i "<< min_f(0.0)<< " ";
+//          std::cout<< std::scientific<< "V_j "<< min_f(1.0)<< " ";
+//          std::cout<< std::scientific<< "k "<< min_result.min<< " ";
+//          std::cout<< std::scientific<< "V_k "<< min_result.f_min<< " ";
+
+//          Gedim::Algorithms::Minimization::brent_minimize(
+//                min_f,
+//                0.0,
+//                1.0,
+//                1.0e-6,
+//                500);
+
+          throw std::runtime_error("Minimization algorithm failed");
+        }
+
+        return min_result.f_min;
       }
       // ***************************************************************************
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
@@ -75,10 +115,9 @@ namespace Gedim
         {
           result.vertices_time.at(vn) = result.vertices_time.at(source_index) +
                                         compute_time_ij(geometry_utilities,
-                                                        mesh_vertices,
                                                         constant_speed,
-                                                        source_index,
-                                                        vn);
+                                                        mesh_vertices.col(source_index),
+                                                        mesh_vertices.col(vn));
 
           result.vertices_status.at(vn) = status_types::Trial;
           min_pq.push({ result.vertices_time.at(vn), vn });
@@ -104,14 +143,13 @@ namespace Gedim
             auto new_time_i = std::min(result.vertices_time.at(adj_i),
                                        result.vertices_time.at(selected_v.second) +
                                        compute_time_ij(geometry_utilities,
-                                                       mesh_vertices,
                                                        constant_speed,
-                                                       selected_v.second,
-                                                       adj_i));
+                                                       mesh_vertices.col(selected_v.second),
+                                                       mesh_vertices.col(adj_i)));
 
             for (const auto k : mesh_triangles.at(std::make_pair(selected_v.second, adj_i)))
             {
-              if (result.vertices_status.at(selected_v.second) !=
+              if (result.vertices_status.at(k) !=
                   status_types::Verified)
                 continue;
 
