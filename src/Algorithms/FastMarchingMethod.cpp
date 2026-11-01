@@ -40,56 +40,66 @@ namespace Gedim
                                      const std::vector<double>& vertices_time,
                                      const unsigned int i,
                                      const unsigned int j,
-                                     const unsigned int k)
+                                     const unsigned int k,
+                                     const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& miminization_type)
       {
-        //        return std::min(vertices_time.at(i) + compute_time_ij(geometry_utilities,
-        //                                                              mesh_vertices,
-        //                                                              constant_speed,
-        //                                                              i, k),
-        //                        vertices_time.at(j) + compute_time_ij(geometry_utilities,
-        //                                                              mesh_vertices,
-        //                                                              constant_speed,
-        //                                                              j, k));
+        switch (miminization_type) {
+          case Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes::Simple:
+          {
+            return std::min(vertices_time.at(i) + compute_time_ij(geometry_utilities,
+                                                                  constant_speed,
+                                                                  mesh_vertices.col(i),
+                                                                  mesh_vertices.col(k)),
+                            vertices_time.at(j) + compute_time_ij(geometry_utilities,
+                                                                  constant_speed,
+                                                                  mesh_vertices.col(j),
+                                                                  mesh_vertices.col(k)));
+          }
+          case Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes::Linear:
+          {
+            auto min_f =
+                [&](double lambda)
+            {
+              return lambda * vertices_time.at(i) +
+                  (1.0 - lambda) * vertices_time.at(j) +
+                  compute_time_ij(geometry_utilities,
+                                  constant_speed,
+                                  mesh_vertices.col(k),
+                                  lambda * mesh_vertices.col(i) +
+                                  (1.0 - lambda) * mesh_vertices.col(j));
+            };
 
-        auto min_f =
-            [&](double lambda)
-        {
-          return lambda * vertices_time.at(i) +
-              (1.0 - lambda) * vertices_time.at(j) +
-              compute_time_ij(geometry_utilities,
-                              constant_speed,
-                              mesh_vertices.col(k),
-                              lambda * mesh_vertices.col(i) +
-                              (1.0 - lambda) * mesh_vertices.col(j));
-        };
+            const auto min_result = Gedim::Algorithms::Minimization::brent_minimize(
+                                      min_f,
+                                      0.0,
+                                      1.0,
+                                      1.0e-6,
+                                      500
+                                      );
 
-        const auto min_result = Gedim::Algorithms::Minimization::brent_minimize(
-                                  min_f,
-                                  0.0,
-                                  1.0,
-                                  1.0e-6,
-                                  500
-                                  );
+            if (!min_result.converged)
+            {
+              //          std::cout.precision(2);
+              //          std::cout<< std::scientific<< "V_i "<< min_f(0.0)<< " ";
+              //          std::cout<< std::scientific<< "V_j "<< min_f(1.0)<< " ";
+              //          std::cout<< std::scientific<< "k "<< min_result.min<< " ";
+              //          std::cout<< std::scientific<< "V_k "<< min_result.f_min<< " ";
 
-        if (!min_result.converged)
-        {
-//          std::cout.precision(2);
-//          std::cout<< std::scientific<< "V_i "<< min_f(0.0)<< " ";
-//          std::cout<< std::scientific<< "V_j "<< min_f(1.0)<< " ";
-//          std::cout<< std::scientific<< "k "<< min_result.min<< " ";
-//          std::cout<< std::scientific<< "V_k "<< min_result.f_min<< " ";
+              //          Gedim::Algorithms::Minimization::brent_minimize(
+              //                min_f,
+              //                0.0,
+              //                1.0,
+              //                1.0e-6,
+              //                500);
 
-//          Gedim::Algorithms::Minimization::brent_minimize(
-//                min_f,
-//                0.0,
-//                1.0,
-//                1.0e-6,
-//                500);
+              throw std::runtime_error("Minimization algorithm failed");
+            }
 
-          throw std::runtime_error("Minimization algorithm failed");
+            return min_result.f_min;
+          }
+          default:
+            throw std::runtime_error("Minimization type unknown");
         }
-
-        return min_result.f_min;
       }
       // ***************************************************************************
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
@@ -97,7 +107,8 @@ namespace Gedim
                                                                                               const std::vector<std::list<unsigned int> >& mesh_adj_list,
                                                                                               const std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int>>& mesh_triangles,
                                                                                               const double& constant_speed,
-                                                                                              const unsigned int source_index)
+                                                                                              const unsigned int source_index,
+                                                                                              const FastMarchingMethodConfig& config)
       {
         using pq_item = std::pair<double, unsigned int>;
         using status_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult::StatusTypes;
@@ -159,7 +170,8 @@ namespace Gedim
                                                    result.vertices_time,
                                                    selected_v.second,
                                                    k,
-                                                   adj_i);
+                                                   adj_i,
+                                                   config.eikonal_min_type);
 
               if (time_k < new_time_i)
                 new_time_i = time_k;
@@ -180,7 +192,8 @@ namespace Gedim
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
                                                                                               const IMeshDAO& mesh,
                                                                                               const double& constant_speed,
-                                                                                              const unsigned int source_index)
+                                                                                              const unsigned int source_index,
+                                                                                              const FastMarchingMethodConfig& config)
       {
         std::vector<std::list<unsigned int>> mesh_adj_list(mesh.Cell0DTotalNumber());
         std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int> > mesh_triangles;
@@ -231,7 +244,8 @@ namespace Gedim
                                        mesh_adj_list,
                                        mesh_triangles,
                                        constant_speed,
-                                       source_index);
+                                       source_index,
+                                       config);
       }
       // ***************************************************************************
     } // namespace FastMarchingMethod

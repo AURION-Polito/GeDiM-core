@@ -24,6 +24,17 @@ namespace Gedim
   {
     namespace FastMarchingMethod
     {
+      struct FastMarchingMethodConfig
+      {
+          enum struct EikonalMinimizationTypes
+          {
+            Simple = 0, // only vertices are considered
+            Linear = 1 // minimization on the line is considered
+          };
+
+          Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes eikonal_min_type;
+      };
+
       struct FastMarchingMethodResult
       {
           enum struct StatusTypes
@@ -42,11 +53,13 @@ namespace Gedim
                                                                                               const std::vector<std::list<unsigned int>>& mesh_adj_list,
                                                                                               const std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int> >& mesh_triangles,
                                                                                               const double& constant_speed,
-                                                                                              const unsigned int source_index);
+                                                                                              const unsigned int source_index,
+                                                                                              const FastMarchingMethodConfig& config);
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
                                                                                               const Gedim::IMeshDAO& mesh,
                                                                                               const double& constant_speed,
-                                                                                              const unsigned int source_index);
+                                                                                              const unsigned int source_index,
+                                                                                              const FastMarchingMethodConfig& config);
 
     } // namespace FastMarchingMethod
   } // namespace Algorithms
