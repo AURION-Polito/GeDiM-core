@@ -16,6 +16,7 @@
 #include <limits>
 #include <stdexcept>
 #include <algorithm>
+#include <numbers>
 
 
 namespace Gedim
@@ -24,7 +25,7 @@ namespace Gedim
   {
     namespace Minimization
     {
-      constexpr double golden_section = 0.3819660112501051;
+      constexpr double golden_section = 2.0 - std::numbers::phi_v<double>;
       // ***************************************************************************
       BrentResult brent_minimize(
           const std::function<double(double)>& f,
@@ -51,28 +52,25 @@ namespace Gedim
         double d = 0.0;
         double e = 0.0;
 
-        const double eps = std::numeric_limits<double>::epsilon();
-
         double left = a;
         double right = b;
 
-        for (unsigned int iter = 1; iter <= max_iter; ++iter) {
+        for (unsigned int iter = 1; iter <= max_iter; ++iter)
+        {
+          const double midpoint = 0.5 * (right + left);
 
-          const double midpoint = left + 0.5 * (right - left);
-
-          const double tol1 = tol * std::abs(x) + eps;
-          const double tol2 = 2.0 * tol1;
-
-          // Convergence test
-          if (std::abs(x - midpoint) <=
-              tol2 - 0.5 * (right - left)) {
-            return {x, fx, iter - 1, true};
+          const double abs_tol = std::abs(x) < 1.0 ? tol :
+                                                     tol * std::abs(x);
+          if (std::abs(x - midpoint) <= abs_tol &&
+              right <= 2.0 * abs_tol + left) // max(|x-m|, 0.5 (r-l)) / x < tol
+          {
+            return { x, fx, iter - 1, true };
           }
 
           bool use_golden = true;
 
           // Attempt parabolic interpolation
-          if (std::abs(e) > tol1) {
+          if (std::abs(e) > abs_tol) {
 
             double r = (x - w) * (fx - fv);
             double q = (x - v) * (fx - fw);
@@ -98,8 +96,8 @@ namespace Gedim
               const double u = x + d;
 
               // Avoid points too close to boundaries
-              if ((u - left) < tol2 || (right - u) < tol2) {
-                d = std::copysign(tol1, midpoint - x);
+              if ((u - left) < abs_tol || (right - u) < abs_tol) {
+                d = std::copysign(abs_tol, midpoint - x);
               }
 
               use_golden = false;
@@ -107,23 +105,23 @@ namespace Gedim
           }
 
           // Golden-section fallback
-          if (use_golden) {
+          if (use_golden)
+          {
             e = (x < midpoint) ? (right - x) : (left - x);
             d = golden_section * e;
           }
 
-          // Minimum step size
           const double u = x + (
-                             std::abs(d) >= tol1
+                             std::abs(d) >= abs_tol
                              ? d
-                             : std::copysign(tol1, d)
+                             : std::copysign(abs_tol, d)
                                );
 
           const double fu = f(u);
 
           // Update interval and interpolation points
-          if (fu <= fx) {
-
+          if (fu <= fx)
+          {
             if (u < x)
               right = x;
             else
@@ -138,28 +136,33 @@ namespace Gedim
             x = u;
             fx = fu;
 
-          } else {
+          }
+          else
+          {
 
             if (u < x)
               left = u;
             else
               right = u;
 
-            if (fu <= fw || w == x) {
+            if (fu <= fw || w == x)
+            {
               v = w;
               fv = fw;
 
               w = u;
               fw = fu;
 
-            } else if (fu <= fv || v == x || v == w) {
+            }
+            else if (fu <= fv || v == x || v == w)
+            {
               v = u;
               fv = fu;
             }
           }
         }
 
-        return {x, fx, max_iter, false};
+        return { x, fx, max_iter, false };
       }
       // ***************************************************************************
     } // namespace Minimization
