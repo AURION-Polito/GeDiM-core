@@ -30,8 +30,10 @@ namespace Gedim
         return geometry_utilities.IsValueZero(constant_speed,
                                               geometry_utilities.Tolerance1D()) ?
               infty :
-              geometry_utilities.SegmentLength(x_i,
-                                               x_j) / constant_speed;
+              std::isinf(constant_speed) ?
+                0.0 :
+                geometry_utilities.SegmentLength(x_i,
+                                                 x_j) / constant_speed;
       }
       // ***************************************************************************
       inline double eikonal_triangle(const GeometryUtilities& geometry_utilities,
@@ -107,7 +109,7 @@ namespace Gedim
                                                                                               const std::vector<std::list<unsigned int> >& mesh_adj_list,
                                                                                               const std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int>>& mesh_triangles,
                                                                                               const double& constant_speed,
-                                                                                              const unsigned int source_index,
+                                                                                              const std::vector<unsigned int>& sources_index,
                                                                                               const FastMarchingMethodConfig& config)
       {
         using pq_item = std::pair<double, unsigned int>;
@@ -118,21 +120,36 @@ namespace Gedim
         result.vertices_status.resize(mesh_vertices.cols(), status_types::Far);
         result.vertices_time.resize(mesh_vertices.cols(), infty);
 
-        result.vertices_status.at(source_index) = status_types::Verified;
-        result.vertices_time.at(source_index) = 0.0;
+        std::list<unsigned int> starting_trial_vertices;
+        for (const auto source_index : sources_index)
+        {
+          result.vertices_status.at(source_index) = status_types::Verified;
+          result.vertices_time.at(source_index) = 0.0;
+
+          for (const auto& vn : mesh_adj_list.at(source_index))
+          {
+            const auto time_vn = result.vertices_time.at(source_index) +
+                                 compute_time_ij(geometry_utilities,
+                                                 constant_speed,
+                                                 mesh_vertices.col(source_index),
+                                                 mesh_vertices.col(vn));
+
+            if (result.vertices_status.at(vn) == status_types::Far)
+            {
+              starting_trial_vertices.push_back(vn);
+              result.vertices_time.at(vn) = time_vn;
+              result.vertices_status.at(vn) = status_types::Trial;
+            }
+            else if (time_vn < result.vertices_time.at(vn))
+            {
+              result.vertices_time.at(vn) = time_vn;
+            }
+          }
+        }
 
         std::priority_queue<pq_item, std::vector<pq_item>, std::greater<pq_item>> min_pq;
-        for (const auto& vn : mesh_adj_list.at(source_index))
-        {
-          result.vertices_time.at(vn) = result.vertices_time.at(source_index) +
-                                        compute_time_ij(geometry_utilities,
-                                                        constant_speed,
-                                                        mesh_vertices.col(source_index),
-                                                        mesh_vertices.col(vn));
-
-          result.vertices_status.at(vn) = status_types::Trial;
-          min_pq.push({ result.vertices_time.at(vn), vn });
-        }
+        for (const auto& tv : starting_trial_vertices)
+          min_pq.push({ result.vertices_time.at(tv), tv });
 
         while (!min_pq.empty())
         {
@@ -192,7 +209,7 @@ namespace Gedim
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
                                                                                               const IMeshDAO& mesh,
                                                                                               const double& constant_speed,
-                                                                                              const unsigned int source_index,
+                                                                                              const std::vector<unsigned int>& sources_index,
                                                                                               const FastMarchingMethodConfig& config)
       {
         std::vector<std::list<unsigned int>> mesh_adj_list(mesh.Cell0DTotalNumber());
@@ -244,7 +261,7 @@ namespace Gedim
                                        mesh_adj_list,
                                        mesh_triangles,
                                        constant_speed,
-                                       source_index,
+                                       sources_index,
                                        config);
       }
       // ***************************************************************************
