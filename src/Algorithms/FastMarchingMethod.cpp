@@ -24,6 +24,8 @@ namespace Gedim
       using vertex_type = Gedim::Algorithms::FastMarchingMethod::MeshGraph::Vertex::VertexTypes;
       using vertex_initialization_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::VertexInitialCondition::InitializationTypes;
       using edge_restriction_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EdgeRestriction::RestrictionTypes;
+      using speed_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::SpeedTypes;
+      using eikonal_min_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes;
       // ***************************************************************************
       inline double compute_time_ij(const GeometryUtilities& geometry_utilities,
                                     const double& constant_speed,
@@ -80,7 +82,7 @@ namespace Gedim
 
         switch (miminization_type)
         {
-          case Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes::Simple:
+          case eikonal_min_types::Simple:
           {
             return std::min({
                               min_f(edge_reachable_zone.at(0)),
@@ -88,7 +90,7 @@ namespace Gedim
                               min_f(edge_reachable_zone.at(1))
                             });
           }
-          case Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes::Linear:
+          case eikonal_min_types::Linear:
           {
             if (geometry_utilities.IsValueZero(std::abs(edge_reachable_zone.at(1) - edge_reachable_zone.at(0)),
                                                geometry_utilities.Tolerance1D()))
@@ -190,40 +192,51 @@ namespace Gedim
       // ***************************************************************************
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig create_configuration(const GeometryUtilities& geometry_utilities,
                                                                                            const MeshGraph& mesh_graph,
-                                                                                           const unsigned int& ball_center_vertex_index,
+                                                                                           const std::vector<unsigned int>& sources_index,
                                                                                            const double& ball_radius,
                                                                                            const double& constant_speed,
                                                                                            const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& eikonal_minimization_type)
       {
-        std::vector<unsigned int> border_sources;
-        border_sources.reserve(mesh_graph.mesh_vertices.size());
-        for (unsigned int v = 0; v < mesh_graph.mesh_vertices.size(); ++v)
+        const auto consider_radius = geometry_utilities.IsValuePositive(ball_radius,
+                                                                        geometry_utilities.Tolerance1D());
+
+        std::vector<double> borders_distance;
+        if (consider_radius)
         {
-          const auto& vertex = mesh_graph.mesh_vertices.at(v);
-          switch (vertex.type)
+          std::vector<unsigned int> border_sources;
+          border_sources.reserve(mesh_graph.mesh_vertices.size());
+          for (unsigned int v = 0; v < mesh_graph.mesh_vertices.size(); ++v)
           {
-            case vertex_type::Internal:
-              continue;
-            case vertex_type::Border:
-              border_sources.push_back(v);
-              break;
-            default:
-              throw std::runtime_error("Unknown vertex type");
+            const auto& vertex = mesh_graph.mesh_vertices.at(v);
+            switch (vertex.type)
+            {
+              case vertex_type::Internal:
+                continue;
+              case vertex_type::Border:
+                border_sources.push_back(v);
+                break;
+              default:
+                throw std::runtime_error("Unknown vertex type");
+            }
           }
-        }
-        border_sources.shrink_to_fit();
+          border_sources.shrink_to_fit();
 
-        const auto borders_distance_config = Gedim::Algorithms::FastMarchingMethod::create_configuration(geometry_utilities,
-                                                                                                         mesh_graph,
-                                                                                                         border_sources,
-                                                                                                         1.0,
-                                                                                                         Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes::Linear);
-        const auto borders_distance = Gedim::Algorithms::FastMarchingMethod::fast_marching_method_2D(geometry_utilities,
-                                                                                                     mesh_graph,
-                                                                                                     1.0,
-                                                                                                     borders_distance_config);
+          const auto borders_distance_config = Gedim::Algorithms::FastMarchingMethod::create_configuration(geometry_utilities,
+                                                                                                           mesh_graph,
+                                                                                                           border_sources,
+                                                                                                           0.0,
+                                                                                                           1.0,
+                                                                                                           eikonal_minimization_type);
+          const auto borders_distance_computation = Gedim::Algorithms::FastMarchingMethod::fast_marching_method_2D(geometry_utilities,
+                                                                                                                   mesh_graph,
+                                                                                                                   borders_distance_config);
+          borders_distance = borders_distance_computation.vertices_time;
+        }
 
         Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig result;
+
+        result.speed_type = speed_types::Constant;
+        result.speed_value = constant_speed;
         result.eikonal_min_type = eikonal_minimization_type;
 
         result.cell0Ds_initial_condition.resize(mesh_graph.mesh_vertices.size());
@@ -232,6 +245,7 @@ namespace Gedim
           auto& initial_condition = result.cell0Ds_initial_condition.at(v);
           initial_condition.type = vertex_initialization_types::Unknown;
           initial_condition.initial_time = infty;
+          initial_condition.border_distance = consider_radius ? borders_distance.at(v) : 0.0;
         }
 
         result.cell1Ds_restriction.resize(mesh_graph.mesh_edges.size());
@@ -242,56 +256,91 @@ namespace Gedim
           restriction.reachable_zone = { 0.0, 1.0 };
         }
 
-        for (unsigned int v = 0; v < mesh_graph.mesh_vertices.size(); ++v)
-        {
-          const auto& vertex = mesh_graph.mesh_vertices.at(v);
-        }
-
-        return result;
-      }
-      // ***************************************************************************
-      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig create_configuration(const GeometryUtilities& geometry_utilities,
-                                                                                           const MeshGraph& mesh_graph,
-                                                                                           const std::vector<unsigned int>& sources_index,
-                                                                                           const double& constant_speed,
-                                                                                           const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& eikonal_minimization_type)
-      {
-        Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig result;
-
-        result.eikonal_min_type = eikonal_minimization_type;
-
-        result.cell0Ds_initial_condition.resize(mesh_graph.mesh_vertices.size());
-        for (unsigned int v = 0; v < mesh_graph.mesh_vertices.size(); ++v)
-        {
-          auto& initial_condition = result.cell0Ds_initial_condition.at(v);
-          initial_condition.type = vertex_initialization_types::Unknown;
-          initial_condition.initial_time = infty;
-        }
-
-        result.cell1Ds_restriction.resize(mesh_graph.mesh_edges.size());
-        for (unsigned int e = 0; e < mesh_graph.mesh_edges.size(); ++e)
-        {
-          auto& restriction = result.cell1Ds_restriction.at(e);
-          restriction.type = edge_restriction_types::Free;
-          restriction.reachable_zone = { 0.0, 1.0 };
-        }
-
+        std::list<unsigned int> final_sources;
         for (const auto source_index : sources_index)
         {
-          const auto& mesh_vertex_s = mesh_graph.mesh_vertices.at(source_index);
           auto& restriction_s = result.cell0Ds_initial_condition.at(source_index);
 
           restriction_s.type = vertex_initialization_types::Source;
           restriction_s.initial_time = 0.0;
+
+          final_sources.push_back(source_index);
+        }
+
+        if (consider_radius)
+        {
+          for (unsigned int v = 0; v < mesh_graph.mesh_vertices.size(); ++v)
+          {
+            const auto& mesh_vertex_v = mesh_graph.mesh_vertices.at(v);
+            auto& restriction_v = result.cell0Ds_initial_condition.at(v);
+
+            switch (restriction_v.type)
+            {
+              case vertex_initialization_types::Source:
+                continue;
+              case vertex_initialization_types::Unreachable:
+              case vertex_initialization_types::Unknown:
+              case vertex_initialization_types::Initialized:
+                break;
+              default:
+                throw std::runtime_error("Unknown vertex initial condition type");
+            }
+
+            bool distance_from_source_lower_R = false;
+            for (const auto source_index : sources_index)
+            {
+              const auto& mesh_vertex_s = mesh_graph.mesh_vertices.at(source_index);
+
+              if (geometry_utilities.IsValueLowerOrEqual(ball_radius,
+                                                         geometry_utilities.PointDistance(mesh_vertex_s.coordinate,
+                                                                                          mesh_vertex_v.coordinate),
+                                                         geometry_utilities.Tolerance1D()))
+              {
+                distance_from_source_lower_R = true;
+                break;
+              }
+            }
+
+            if (distance_from_source_lower_R)
+            {
+              restriction_v.type = vertex_initialization_types::Source;
+              restriction_v.initial_time = 0.0;
+
+              final_sources.push_back(v);
+              continue;
+            }
+
+            if (geometry_utilities.IsValueLowerOrEqual(ball_radius,
+                                                       borders_distance.at(v),
+                                                       geometry_utilities.Tolerance1D()))
+            {
+              restriction_v.type = vertex_initialization_types::Unreachable;
+              restriction_v.initial_time = infty;
+            }
+          }
+        }
+
+        for (const auto source_index : final_sources)
+        {
+          const auto& mesh_vertex_s = mesh_graph.mesh_vertices.at(source_index);
+          auto& restriction_s = result.cell0Ds_initial_condition.at(source_index);
 
           for (const auto& vn : mesh_vertex_s.adj_list)
           {
             const auto& mesh_vertex_vn = mesh_graph.mesh_vertices.at(vn);
             auto& restriction_vn = result.cell0Ds_initial_condition.at(vn);
 
-            if (restriction_vn.type ==
-                vertex_initialization_types::Source)
-              continue;
+            switch (restriction_vn.type)
+            {
+              case vertex_initialization_types::Unreachable:
+              case vertex_initialization_types::Source:
+                continue;
+              case vertex_initialization_types::Unknown:
+              case vertex_initialization_types::Initialized:
+                break;
+              default:
+                throw std::runtime_error("Unknown vertex initial condition type");
+            }
 
             const auto time_vn = restriction_s.initial_time +
                                  compute_time_ij(geometry_utilities,
@@ -312,7 +361,6 @@ namespace Gedim
       // ***************************************************************************
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
                                                                                               const MeshGraph& mesh_graph,
-                                                                                              const double& constant_speed,
                                                                                               const FastMarchingMethodConfig& config)
       {
         if (mesh_graph.mesh_vertices.size() != config.cell0Ds_initial_condition.size() ||
@@ -387,7 +435,7 @@ namespace Gedim
             auto new_time_i = std::min(result.vertices_time.at(adj_i),
                                        result.vertices_time.at(selected_v.second) +
                                        compute_time_ij(geometry_utilities,
-                                                       constant_speed,
+                                                       config.speed_value,
                                                        mesh_vertex_s.coordinate,
                                                        mesh_vertex_i.coordinate));
 
@@ -402,7 +450,7 @@ namespace Gedim
 
               const auto time_k = eikonal_triangle(geometry_utilities,
                                                    mesh_graph,
-                                                   constant_speed,
+                                                   config.speed_value,
                                                    result.vertices_time,
                                                    selected_v.second,
                                                    k,

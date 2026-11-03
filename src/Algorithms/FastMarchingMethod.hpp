@@ -46,6 +46,11 @@ namespace Gedim
 
       struct FastMarchingMethodConfig
       {
+          enum struct SpeedTypes
+          {
+            Constant = 0
+          };
+
           enum struct EikonalMinimizationTypes
           {
             Simple = 0, // only three points are considered
@@ -64,6 +69,7 @@ namespace Gedim
 
               Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::VertexInitialCondition::InitializationTypes type;
               double initial_time;
+              double border_distance;
           };
 
           struct EdgeRestriction
@@ -79,6 +85,8 @@ namespace Gedim
               std::array<double, 2> reachable_zone;
           };
 
+          Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::SpeedTypes speed_type;
+          double speed_value;
           Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes eikonal_min_type;
           std::vector<VertexInitialCondition> cell0Ds_initial_condition;
           std::vector<EdgeRestriction> cell1Ds_restriction;
@@ -101,20 +109,13 @@ namespace Gedim
 
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig create_configuration(const GeometryUtilities& geometry_utilities,
                                                                                            const MeshGraph& mesh_graph,
-                                                                                           const unsigned int& ball_center_vertex_index,
-                                                                                           const double& ball_radius,
-                                                                                           const double& constant_speed,
-                                                                                           const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& eikonal_minimization_type);
-
-      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig create_configuration(const GeometryUtilities& geometry_utilities,
-                                                                                           const MeshGraph& mesh_graph,
                                                                                            const std::vector<unsigned int>& sources_index,
+                                                                                           const double& ball_radius,
                                                                                            const double& constant_speed,
                                                                                            const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& eikonal_minimization_type);
 
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
                                                                                               const MeshGraph& mesh_graph,
-                                                                                              const double& constant_speed,
                                                                                               const FastMarchingMethodConfig& config);
     } // namespace FastMarchingMethod
   } // namespace Algorithms
