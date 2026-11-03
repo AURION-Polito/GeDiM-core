@@ -24,15 +24,52 @@ namespace Gedim
   {
     namespace FastMarchingMethod
     {
+      struct MeshGraph final
+      {
+          Eigen::MatrixXd mesh_vertices;
+          std::vector<std::list<unsigned int> > mesh_adj_list;
+          std::map<std::pair<unsigned int, unsigned int>, unsigned int> mesh_edges;
+          std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int>> mesh_triangles;
+      };
+
       struct FastMarchingMethodConfig
       {
           enum struct EikonalMinimizationTypes
           {
-            Simple = 0, // only vertices are considered
+            Simple = 0, // only three points are considered
             Linear = 1 // minimization on the line is considered
           };
 
+          struct VertexInitialCondition
+          {
+              enum struct InitializationTypes
+              {
+                Source = 0,
+                Initialized = 1,
+                Unreachable = 2,
+                Unknown = 3
+              };
+
+              Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::VertexInitialCondition::InitializationTypes type;
+              double initial_time;
+          };
+
+          struct EdgeRestriction
+          {
+              enum struct RestrictionTypes
+              {
+                Free = 0,
+                Constrained = 1,
+                Unreachable = 2
+              };
+
+              Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EdgeRestriction::RestrictionTypes type;
+              std::array<double, 2> reachable_zone;
+          };
+
           Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes eikonal_min_type;
+          std::vector<VertexInitialCondition> cell0Ds_initial_condition;
+          std::vector<EdgeRestriction> cell1Ds_restriction;
       };
 
       struct FastMarchingMethodResult
@@ -48,19 +85,18 @@ namespace Gedim
           std::vector<Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult::StatusTypes> vertices_status;
       };
 
-      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
-                                                                                              const Eigen::MatrixXd& mesh_vertices,
-                                                                                              const std::vector<std::list<unsigned int>>& mesh_adj_list,
-                                                                                              const std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int> >& mesh_triangles,
-                                                                                              const double& constant_speed,
-                                                                                              const std::vector<unsigned int>& sources_index,
-                                                                                              const FastMarchingMethodConfig& config);
-      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
-                                                                                              const Gedim::IMeshDAO& mesh,
-                                                                                              const double& constant_speed,
-                                                                                              const std::vector<unsigned int>& sources_index,
-                                                                                              const FastMarchingMethodConfig& config);
+      Gedim::Algorithms::FastMarchingMethod::MeshGraph create_mesh_graph(const Gedim::IMeshDAO& mesh);
 
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig create_configuration(const GeometryUtilities& geometry_utilities,
+                                                                                           const MeshGraph& mesh_graph,
+                                                                                           const std::vector<unsigned int>& sources_index,
+                                                                                           const double& constant_speed,
+                                                                                           const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& eikonal_minimization_type);
+
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
+                                                                                              const MeshGraph& mesh_graph,
+                                                                                              const double& constant_speed,
+                                                                                              const FastMarchingMethodConfig& config);
     } // namespace FastMarchingMethod
   } // namespace Algorithms
 } // namespace Gedim

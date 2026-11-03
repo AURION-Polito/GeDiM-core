@@ -21,6 +21,8 @@ namespace Gedim
     {
       // ***************************************************************************
       constexpr static double infty = std::numeric_limits<double>::infinity();
+      using vertex_initialization_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::VertexInitialCondition::InitializationTypes;
+      using edge_restriction_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EdgeRestriction::RestrictionTypes;
       // ***************************************************************************
       inline double compute_time_ij(const GeometryUtilities& geometry_utilities,
                                     const double& constant_speed,
@@ -43,38 +45,58 @@ namespace Gedim
                                      const unsigned int i,
                                      const unsigned int j,
                                      const unsigned int k,
+                                     const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EdgeRestriction& edge_ij_restriction,
                                      const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& miminization_type)
       {
-        switch (miminization_type) {
+        auto min_f =
+            [&](double lambda)
+        {
+          return lambda * vertices_time.at(i) +
+              (1.0 - lambda) * vertices_time.at(j) +
+              compute_time_ij(geometry_utilities,
+                              constant_speed,
+                              mesh_vertices.col(k),
+                              lambda * mesh_vertices.col(i) +
+                              (1.0 - lambda) * mesh_vertices.col(j));
+        };
+
+        std::array<double, 2> edge_reachable_zone;
+        switch (edge_ij_restriction.type)
+        {
+          case edge_restriction_types::Unreachable:
+            return infty;
+          case edge_restriction_types::Free:
+            edge_reachable_zone = { 0.0, 1.0 };
+            break;
+          case edge_restriction_types::Constrained:
+          {
+            edge_reachable_zone = edge_ij_restriction.reachable_zone;
+          }
+            break;
+          default:
+            throw std::runtime_error("unknown edge restriction type");
+        }
+
+        switch (miminization_type)
+        {
           case Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes::Simple:
           {
-            return std::min(vertices_time.at(i) + compute_time_ij(geometry_utilities,
-                                                                  constant_speed,
-                                                                  mesh_vertices.col(i),
-                                                                  mesh_vertices.col(k)),
-                            vertices_time.at(j) + compute_time_ij(geometry_utilities,
-                                                                  constant_speed,
-                                                                  mesh_vertices.col(j),
-                                                                  mesh_vertices.col(k)));
+            return std::min({
+                              min_f(edge_reachable_zone.at(0)),
+                              min_f(0.5 * (edge_reachable_zone.at(1) + edge_reachable_zone.at(0))),
+                              min_f(edge_reachable_zone.at(1))
+                            });
           }
           case Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes::Linear:
           {
-            auto min_f =
-                [&](double lambda)
-            {
-              return lambda * vertices_time.at(i) +
-                  (1.0 - lambda) * vertices_time.at(j) +
-                  compute_time_ij(geometry_utilities,
-                                  constant_speed,
-                                  mesh_vertices.col(k),
-                                  lambda * mesh_vertices.col(i) +
-                                  (1.0 - lambda) * mesh_vertices.col(j));
-            };
+            if (geometry_utilities.IsValueZero(std::abs(edge_reachable_zone.at(1) - edge_reachable_zone.at(0)),
+                                               geometry_utilities.Tolerance1D()))
+              return min_f(edge_reachable_zone.at(0));
 
             const auto min_result = Gedim::Algorithms::Minimization::brent_minimize(
                                       min_f,
-                                      0.0,
-                                      1.0,
+                                      edge_reachable_zone.at(0),
+                                      edge_reachable_zone.at(1),
                                       1.0e-6,
                                       500
                                       );
@@ -104,52 +126,178 @@ namespace Gedim
         }
       }
       // ***************************************************************************
+      MeshGraph create_mesh_graph(const IMeshDAO& mesh)
+      {
+        Gedim::Algorithms::FastMarchingMethod::MeshGraph mesh_graph;
+
+        mesh_graph.mesh_vertices = mesh.Cell0DsCoordinates();
+
+        mesh_graph.mesh_adj_list.resize(mesh.Cell0DTotalNumber());
+        for (unsigned int v = 0; v < mesh.Cell0DTotalNumber(); ++v)
+        {
+          if (!mesh.Cell0DIsActive(v))
+            continue;
+
+          for (unsigned int vn = 0; vn < mesh.Cell0DNumberNeighbourCell1D(v); ++vn)
+          {
+            if (!mesh.Cell0DHasNeighbourCell1D(v, vn))
+              continue;
+
+            const auto cell1D = mesh.Cell0DNeighbourCell1D(v, vn);
+
+            if (mesh.Cell1DOrigin(cell1D) == v)
+              mesh_graph.mesh_adj_list.at(v).push_back(mesh.Cell1DEnd(cell1D));
+            else
+              mesh_graph.mesh_adj_list.at(v).push_back(mesh.Cell1DOrigin(cell1D));
+          }
+        }
+
+        for (unsigned int e = 0; e < mesh.Cell1DTotalNumber(); ++e)
+        {
+          if (!mesh.Cell1DIsActive(e))
+            continue;
+
+          const auto extremes = mesh.Cell1DExtremes(e);
+          mesh_graph.mesh_edges.insert(std::make_pair(std::make_pair(extremes[0], extremes[1]), e));
+          mesh_graph.mesh_edges.insert(std::make_pair(std::make_pair(extremes[1], extremes[0]), e));
+        }
+
+        for (unsigned int f = 0; f < mesh.Cell2DTotalNumber(); ++f)
+        {
+          if (!mesh.Cell2DIsActive(f))
+            continue;
+
+          for (unsigned int fv = 0; fv < mesh.Cell2DNumberVertices(f); ++fv)
+          {
+            const unsigned int fv_i = mesh.Cell2DVertex(f, fv);
+            const unsigned int fv_j = mesh.Cell2DVertex(f, (fv + 1) % mesh.Cell2DNumberVertices(f));
+            const unsigned int fv_k = mesh.Cell2DVertex(f, (fv + 2) % mesh.Cell2DNumberVertices(f));
+
+            if (!mesh_graph.mesh_triangles.contains(std::make_pair(fv_i, fv_j)))
+            {
+              mesh_graph.mesh_triangles.insert(std::make_pair(std::make_pair(fv_i, fv_j), std::list<unsigned int>()));
+              mesh_graph.mesh_triangles.insert(std::make_pair(std::make_pair(fv_j, fv_i), std::list<unsigned int>()));
+            }
+
+            mesh_graph.mesh_triangles.at(std::make_pair(fv_i, fv_j)).push_back(fv_k);
+            mesh_graph.mesh_triangles.at(std::make_pair(fv_j, fv_i)).push_back(fv_k);
+          }
+        }
+
+        return mesh_graph;
+      }
+      // ***************************************************************************
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig create_configuration(const GeometryUtilities& geometry_utilities,
+                                                                                           const MeshGraph& mesh_graph,
+                                                                                           const std::vector<unsigned int>& sources_index,
+                                                                                           const double& constant_speed,
+                                                                                           const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& eikonal_minimization_type)
+      {
+        Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig result;
+
+        result.eikonal_min_type = eikonal_minimization_type;
+
+        result.cell0Ds_initial_condition.resize(mesh_graph.mesh_vertices.cols());
+        for (unsigned int v = 0; v < mesh_graph.mesh_vertices.cols(); ++v)
+        {
+          auto& initial_condition = result.cell0Ds_initial_condition.at(v);
+          initial_condition.type = vertex_initialization_types::Unknown;
+          initial_condition.initial_time = infty;
+        }
+
+        result.cell1Ds_restriction.resize(mesh_graph.mesh_edges.size());
+        for (unsigned int e = 0; e < mesh_graph.mesh_edges.size(); ++e)
+        {
+          auto& restriction = result.cell1Ds_restriction.at(e);
+          restriction.type = edge_restriction_types::Free;
+          restriction.reachable_zone = { 0.0, 1.0 };
+        }
+
+        for (const auto source_index : sources_index)
+        {
+          auto& restriction_s = result.cell0Ds_initial_condition.at(source_index);
+          restriction_s.type = vertex_initialization_types::Source;
+          restriction_s.initial_time = 0.0;
+
+          for (const auto& vn : mesh_graph.mesh_adj_list.at(source_index))
+          {
+            auto& restriction_vn = result.cell0Ds_initial_condition.at(vn);
+
+            if (restriction_vn.type ==
+                vertex_initialization_types::Source)
+              continue;
+
+            const auto time_vn = restriction_s.initial_time +
+                                 compute_time_ij(geometry_utilities,
+                                                 constant_speed,
+                                                 mesh_graph.mesh_vertices.col(source_index),
+                                                 mesh_graph.mesh_vertices.col(vn));
+
+            if (time_vn < restriction_vn.initial_time)
+            {
+              restriction_vn.type = vertex_initialization_types::Initialized;
+              restriction_vn.initial_time = time_vn;
+            }
+          }
+        }
+
+        return result;
+      }
+      // ***************************************************************************
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
-                                                                                              const Eigen::MatrixXd& mesh_vertices,
-                                                                                              const std::vector<std::list<unsigned int> >& mesh_adj_list,
-                                                                                              const std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int>>& mesh_triangles,
+                                                                                              const MeshGraph& mesh_graph,
                                                                                               const double& constant_speed,
-                                                                                              const std::vector<unsigned int>& sources_index,
                                                                                               const FastMarchingMethodConfig& config)
       {
+        if (static_cast<unsigned int>(mesh_graph.mesh_vertices.cols()) != config.cell0Ds_initial_condition.size() ||
+            mesh_graph.mesh_edges.size() != config.cell1Ds_restriction.size())
+          throw std::runtime_error("Error in input parameters");
+
         using pq_item = std::pair<double, unsigned int>;
         using status_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult::StatusTypes;
 
         Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult result;
 
-        result.vertices_status.resize(mesh_vertices.cols(), status_types::Far);
-        result.vertices_time.resize(mesh_vertices.cols(), infty);
+        result.vertices_status.resize(mesh_graph.mesh_vertices.cols(), status_types::Far);
+        result.vertices_time.resize(mesh_graph.mesh_vertices.cols(), infty);
 
         std::list<unsigned int> starting_trial_vertices;
-        for (const auto source_index : sources_index)
+        std::priority_queue<pq_item, std::vector<pq_item>, std::greater<pq_item>> min_pq;
+        for (unsigned int v = 0; v < config.cell0Ds_initial_condition.size(); ++v)
         {
-          result.vertices_status.at(source_index) = status_types::Verified;
-          result.vertices_time.at(source_index) = 0.0;
+          const auto& initial_condition = config.cell0Ds_initial_condition.at(v);
 
-          for (const auto& vn : mesh_adj_list.at(source_index))
+          switch (initial_condition.type)
           {
-            const auto time_vn = result.vertices_time.at(source_index) +
-                                 compute_time_ij(geometry_utilities,
-                                                 constant_speed,
-                                                 mesh_vertices.col(source_index),
-                                                 mesh_vertices.col(vn));
-
-            if (result.vertices_status.at(vn) == status_types::Far)
+            case vertex_initialization_types::Source:
             {
-              starting_trial_vertices.push_back(vn);
-              result.vertices_time.at(vn) = time_vn;
-              result.vertices_status.at(vn) = status_types::Trial;
+              result.vertices_status.at(v) = status_types::Verified;
+              result.vertices_time.at(v) = initial_condition.initial_time;
             }
-            else if (time_vn < result.vertices_time.at(vn))
+              break;
+            case vertex_initialization_types::Initialized:
             {
-              result.vertices_time.at(vn) = time_vn;
+              result.vertices_status.at(v) = status_types::Trial;
+              result.vertices_time.at(v) = initial_condition.initial_time;
+              min_pq.push({ result.vertices_time.at(v), v });
             }
+              break;
+            case vertex_initialization_types::Unreachable:
+            {
+              result.vertices_status.at(v) = status_types::Verified;
+              result.vertices_time.at(v) = infty;
+            }
+              break;
+            case vertex_initialization_types::Unknown:
+            {
+              result.vertices_status.at(v) = status_types::Far;
+              result.vertices_time.at(v) = infty;
+            }
+              break;
+            default:
+              throw std::runtime_error("Unknown vertex initial condition type");
           }
         }
-
-        std::priority_queue<pq_item, std::vector<pq_item>, std::greater<pq_item>> min_pq;
-        for (const auto& tv : starting_trial_vertices)
-          min_pq.push({ result.vertices_time.at(tv), tv });
 
         while (!min_pq.empty())
         {
@@ -162,7 +310,7 @@ namespace Gedim
 
           result.vertices_status.at(selected_v.second) = status_types::Verified;
 
-          for (const auto& adj_i : mesh_adj_list.at(selected_v.second))
+          for (const auto& adj_i : mesh_graph.mesh_adj_list.at(selected_v.second))
           {
             if (result.vertices_status.at(adj_i) ==
                 status_types::Verified)
@@ -172,22 +320,26 @@ namespace Gedim
                                        result.vertices_time.at(selected_v.second) +
                                        compute_time_ij(geometry_utilities,
                                                        constant_speed,
-                                                       mesh_vertices.col(selected_v.second),
-                                                       mesh_vertices.col(adj_i)));
+                                                       mesh_graph.mesh_vertices.col(selected_v.second),
+                                                       mesh_graph.mesh_vertices.col(adj_i)));
 
-            for (const auto k : mesh_triangles.at(std::make_pair(selected_v.second, adj_i)))
+            for (const auto k : mesh_graph.mesh_triangles.at(std::make_pair(selected_v.second, adj_i)))
             {
               if (result.vertices_status.at(k) !=
                   status_types::Verified)
                 continue;
 
+              const auto& edge_restriction = config.cell1Ds_restriction.at(mesh_graph.mesh_edges.at(std::make_pair(selected_v.second,
+                                                                                                                   k)));
+
               const auto time_k = eikonal_triangle(geometry_utilities,
-                                                   mesh_vertices,
+                                                   mesh_graph.mesh_vertices,
                                                    constant_speed,
                                                    result.vertices_time,
                                                    selected_v.second,
                                                    k,
                                                    adj_i,
+                                                   edge_restriction,
                                                    config.eikonal_min_type);
 
               if (time_k < new_time_i)
@@ -204,65 +356,6 @@ namespace Gedim
         }
 
         return result;
-      }
-      // ***************************************************************************
-      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
-                                                                                              const IMeshDAO& mesh,
-                                                                                              const double& constant_speed,
-                                                                                              const std::vector<unsigned int>& sources_index,
-                                                                                              const FastMarchingMethodConfig& config)
-      {
-        std::vector<std::list<unsigned int>> mesh_adj_list(mesh.Cell0DTotalNumber());
-        std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int> > mesh_triangles;
-
-        for (unsigned int v = 0; v < mesh.Cell0DTotalNumber(); ++v)
-        {
-          if (!mesh.Cell0DIsActive(v))
-            continue;
-
-          for (unsigned int vn = 0; vn < mesh.Cell0DNumberNeighbourCell1D(v); ++vn)
-          {
-            if (!mesh.Cell0DHasNeighbourCell1D(v, vn))
-              continue;
-
-            const auto cell1D = mesh.Cell0DNeighbourCell1D(v, vn);
-
-            if (mesh.Cell1DOrigin(cell1D) == v)
-              mesh_adj_list.at(v).push_back(mesh.Cell1DEnd(cell1D));
-            else
-              mesh_adj_list.at(v).push_back(mesh.Cell1DOrigin(cell1D));
-          }
-        }
-
-        for (unsigned int f = 0; f < mesh.Cell2DTotalNumber(); ++f)
-        {
-          if (!mesh.Cell2DIsActive(f))
-            continue;
-
-          for (unsigned int fv = 0; fv < mesh.Cell2DNumberVertices(f); ++fv)
-          {
-            const unsigned int fv_i = mesh.Cell2DVertex(f, fv);
-            const unsigned int fv_j = mesh.Cell2DVertex(f, (fv + 1) % mesh.Cell2DNumberVertices(f));
-            const unsigned int fv_k = mesh.Cell2DVertex(f, (fv + 2) % mesh.Cell2DNumberVertices(f));
-
-            if (!mesh_triangles.contains(std::make_pair(fv_i, fv_j)))
-            {
-              mesh_triangles.insert(std::make_pair(std::make_pair(fv_i, fv_j), std::list<unsigned int>()));
-              mesh_triangles.insert(std::make_pair(std::make_pair(fv_j, fv_i), std::list<unsigned int>()));
-            }
-
-            mesh_triangles.at(std::make_pair(fv_i, fv_j)).push_back(fv_k);
-            mesh_triangles.at(std::make_pair(fv_j, fv_i)).push_back(fv_k);
-          }
-        }
-
-        return fast_marching_method_2D(geometry_utilities,
-                                       mesh.Cell0DsCoordinates(),
-                                       mesh_adj_list,
-                                       mesh_triangles,
-                                       constant_speed,
-                                       sources_index,
-                                       config);
       }
       // ***************************************************************************
     } // namespace FastMarchingMethod
