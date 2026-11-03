@@ -51,16 +51,19 @@ namespace Gedim
                                      const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EdgeRestriction& edge_ij_restriction,
                                      const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& miminization_type)
       {
+        unsigned int e_ij_o = std::min(i, j);
+        unsigned int e_ij_e = std::max(i, j);
+
         auto min_f =
             [&](double lambda)
         {
-          return lambda * vertices_time.at(i) +
-              (1.0 - lambda) * vertices_time.at(j) +
+          return lambda * vertices_time.at(e_ij_o) +
+              (1.0 - lambda) * vertices_time.at(e_ij_e) +
               compute_time_ij(geometry_utilities,
                               constant_speed,
                               mesh_graph.mesh_vertices.at(k).coordinate,
-                              lambda * mesh_graph.mesh_vertices.at(i).coordinate +
-                              (1.0 - lambda) * mesh_graph.mesh_vertices.at(j).coordinate);
+                              lambda * mesh_graph.mesh_vertices.at(e_ij_o).coordinate +
+                              (1.0 - lambda) * mesh_graph.mesh_vertices.at(e_ij_e).coordinate);
         };
 
         std::array<double, 2> edge_reachable_zone;
@@ -260,10 +263,10 @@ namespace Gedim
         std::list<unsigned int> final_sources;
         for (const auto source_index : sources_index)
         {
-          auto& restriction_s = result.cell0Ds_initial_condition.at(source_index);
+          auto& initial_condition_s = result.cell0Ds_initial_condition.at(source_index);
 
-          restriction_s.type = vertex_initialization_types::Source;
-          restriction_s.initial_time = 0.0;
+          initial_condition_s.type = vertex_initialization_types::Source;
+          initial_condition_s.initial_time = 0.0;
 
           final_sources.push_back(source_index);
         }
@@ -273,9 +276,9 @@ namespace Gedim
           for (unsigned int v = 0; v < mesh_graph.mesh_vertices.size(); ++v)
           {
             const auto& mesh_vertex_v = mesh_graph.mesh_vertices.at(v);
-            auto& restriction_v = result.cell0Ds_initial_condition.at(v);
+            auto& initial_condition_v = result.cell0Ds_initial_condition.at(v);
 
-            switch (restriction_v.type)
+            switch (initial_condition_v.type)
             {
               case vertex_initialization_types::Source:
                 continue;
@@ -306,8 +309,8 @@ namespace Gedim
 
             if (distance_from_source_lower_R)
             {
-              restriction_v.type = vertex_initialization_types::Source;
-              restriction_v.initial_time = 0.0;
+              initial_condition_v.type = vertex_initialization_types::Source;
+              initial_condition_v.initial_time = 0.0;
 
               final_sources.push_back(v);
               continue;
@@ -317,8 +320,45 @@ namespace Gedim
                                                        ball_radius,
                                                        geometry_utilities.Tolerance1D()))
             {
-              restriction_v.type = vertex_initialization_types::Unreachable;
-              restriction_v.initial_time = infty;
+              initial_condition_v.type = vertex_initialization_types::Unreachable;
+              initial_condition_v.initial_time = infty;
+            }
+          }
+
+          for (const auto& mesh_edge : mesh_graph.mesh_edges)
+          {
+            auto& restriction_e = result.cell1Ds_restriction.at(mesh_edge.second);
+
+            const auto e_o = std::min(mesh_edge.first.first,
+                                      mesh_edge.first.second);
+            const auto e_e = std::max(mesh_edge.first.first,
+                                      mesh_edge.first.second);
+
+            const auto& initial_condition_e_o = result.cell0Ds_initial_condition.at(e_o);
+            const auto& initial_condition_e_e = result.cell0Ds_initial_condition.at(e_e);
+
+            if (initial_condition_e_o.type == vertex_initialization_types::Unreachable &&
+                initial_condition_e_e.type == vertex_initialization_types::Unreachable)
+            {
+              restriction_e.type = edge_restriction_types::Unreachable;
+              continue;
+            }
+
+            if (initial_condition_e_o.type == vertex_initialization_types::Unreachable ||
+                initial_condition_e_e.type == vertex_initialization_types::Unreachable)
+            {
+              const auto border_distance_o = borders_distance.at(e_o);
+              const auto border_distance_e = borders_distance.at(e_e);
+
+              const double lambda_R = (ball_radius - border_distance_o) / (border_distance_e - border_distance_o);
+
+              if (border_distance_e > border_distance_o)
+                restriction_e.reachable_zone = { lambda_R, 1.0 };
+              else
+                restriction_e.reachable_zone = { 0.0, lambda_R };
+
+              restriction_e.type = edge_restriction_types::Constrained;
+              continue;
             }
           }
         }
@@ -326,14 +366,14 @@ namespace Gedim
         for (const auto source_index : final_sources)
         {
           const auto& mesh_vertex_s = mesh_graph.mesh_vertices.at(source_index);
-          auto& restriction_s = result.cell0Ds_initial_condition.at(source_index);
+          auto& initial_condition_s = result.cell0Ds_initial_condition.at(source_index);
 
           for (const auto& vn : mesh_vertex_s.adj_list)
           {
             const auto& mesh_vertex_vn = mesh_graph.mesh_vertices.at(vn);
-            auto& restriction_vn = result.cell0Ds_initial_condition.at(vn);
+            auto& initial_condition_vn = result.cell0Ds_initial_condition.at(vn);
 
-            switch (restriction_vn.type)
+            switch (initial_condition_vn.type)
             {
               case vertex_initialization_types::Unreachable:
               case vertex_initialization_types::Source:
@@ -345,16 +385,16 @@ namespace Gedim
                 throw std::runtime_error("Unknown vertex initial condition type");
             }
 
-            const auto time_vn = restriction_s.initial_time +
+            const auto time_vn = initial_condition_s.initial_time +
                                  compute_time_ij(geometry_utilities,
                                                  constant_speed,
                                                  mesh_vertex_s.coordinate,
                                                  mesh_vertex_vn.coordinate);
 
-            if (time_vn < restriction_vn.initial_time)
+            if (time_vn < initial_condition_vn.initial_time)
             {
-              restriction_vn.type = vertex_initialization_types::Initialized;
-              restriction_vn.initial_time = time_vn;
+              initial_condition_vn.type = vertex_initialization_types::Initialized;
+              initial_condition_vn.initial_time = time_vn;
             }
           }
         }
