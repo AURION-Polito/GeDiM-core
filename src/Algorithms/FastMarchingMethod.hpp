@@ -26,8 +26,20 @@ namespace Gedim
     {
       struct MeshGraph final
       {
-          Eigen::MatrixXd mesh_vertices;
-          std::vector<std::list<unsigned int> > mesh_adj_list;
+          struct Vertex
+          {
+              enum struct VertexTypes
+              {
+                Internal = 0,
+                Border = 1
+              };
+
+              Gedim::Algorithms::FastMarchingMethod::MeshGraph::Vertex::VertexTypes type;
+              Eigen::Vector3d coordinate;
+              std::list<unsigned int> adj_list;
+          };
+
+          std::vector<Vertex> mesh_vertices;
           std::map<std::pair<unsigned int, unsigned int>, unsigned int> mesh_edges;
           std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int>> mesh_triangles;
       };
@@ -86,6 +98,12 @@ namespace Gedim
       };
 
       Gedim::Algorithms::FastMarchingMethod::MeshGraph create_mesh_graph(const Gedim::IMeshDAO& mesh);
+
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig create_configuration(const GeometryUtilities& geometry_utilities,
+                                                                                           const MeshGraph& mesh_graph,
+                                                                                           const std::vector<unsigned int>& sources_index,
+                                                                                           const double& constant_speed,
+                                                                                           const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& eikonal_minimization_type);
 
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig create_configuration(const GeometryUtilities& geometry_utilities,
                                                                                            const MeshGraph& mesh_graph,

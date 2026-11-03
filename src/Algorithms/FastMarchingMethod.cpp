@@ -39,7 +39,7 @@ namespace Gedim
       }
       // ***************************************************************************
       inline double eikonal_triangle(const GeometryUtilities& geometry_utilities,
-                                     const Eigen::MatrixXd& mesh_vertices,
+                                     const MeshGraph& mesh_graph,
                                      const double& constant_speed,
                                      const std::vector<double>& vertices_time,
                                      const unsigned int i,
@@ -55,9 +55,9 @@ namespace Gedim
               (1.0 - lambda) * vertices_time.at(j) +
               compute_time_ij(geometry_utilities,
                               constant_speed,
-                              mesh_vertices.col(k),
-                              lambda * mesh_vertices.col(i) +
-                              (1.0 - lambda) * mesh_vertices.col(j));
+                              mesh_graph.mesh_vertices.at(k).coordinate,
+                              lambda * mesh_graph.mesh_vertices.at(i).coordinate +
+                              (1.0 - lambda) * mesh_graph.mesh_vertices.at(j).coordinate);
         };
 
         std::array<double, 2> edge_reachable_zone;
@@ -130,13 +130,18 @@ namespace Gedim
       {
         Gedim::Algorithms::FastMarchingMethod::MeshGraph mesh_graph;
 
-        mesh_graph.mesh_vertices = mesh.Cell0DsCoordinates();
+        mesh_graph.mesh_vertices.resize(mesh.Cell0DTotalNumber());
 
-        mesh_graph.mesh_adj_list.resize(mesh.Cell0DTotalNumber());
         for (unsigned int v = 0; v < mesh.Cell0DTotalNumber(); ++v)
         {
-          if (!mesh.Cell0DIsActive(v))
-            continue;
+          auto& mesh_vertex = mesh_graph.mesh_vertices.at(v);
+
+          mesh_vertex.coordinate = mesh.Cell0DCoordinates(v);
+
+          if (mesh.Cell0DMarker(v) == 0)
+            mesh_vertex.type = Gedim::Algorithms::FastMarchingMethod::MeshGraph::Vertex::VertexTypes::Internal;
+          else
+            mesh_vertex.type = Gedim::Algorithms::FastMarchingMethod::MeshGraph::Vertex::VertexTypes::Border;
 
           for (unsigned int vn = 0; vn < mesh.Cell0DNumberNeighbourCell1D(v); ++vn)
           {
@@ -146,16 +151,14 @@ namespace Gedim
             const auto cell1D = mesh.Cell0DNeighbourCell1D(v, vn);
 
             if (mesh.Cell1DOrigin(cell1D) == v)
-              mesh_graph.mesh_adj_list.at(v).push_back(mesh.Cell1DEnd(cell1D));
+              mesh_vertex.adj_list.push_back(mesh.Cell1DEnd(cell1D));
             else
-              mesh_graph.mesh_adj_list.at(v).push_back(mesh.Cell1DOrigin(cell1D));
+              mesh_vertex.adj_list.push_back(mesh.Cell1DOrigin(cell1D));
           }
         }
 
         for (unsigned int e = 0; e < mesh.Cell1DTotalNumber(); ++e)
         {
-          if (!mesh.Cell1DIsActive(e))
-            continue;
 
           const auto extremes = mesh.Cell1DExtremes(e);
           mesh_graph.mesh_edges.insert(std::make_pair(std::make_pair(extremes[0], extremes[1]), e));
@@ -164,9 +167,6 @@ namespace Gedim
 
         for (unsigned int f = 0; f < mesh.Cell2DTotalNumber(); ++f)
         {
-          if (!mesh.Cell2DIsActive(f))
-            continue;
-
           for (unsigned int fv = 0; fv < mesh.Cell2DNumberVertices(f); ++fv)
           {
             const unsigned int fv_i = mesh.Cell2DVertex(f, fv);
@@ -197,8 +197,8 @@ namespace Gedim
 
         result.eikonal_min_type = eikonal_minimization_type;
 
-        result.cell0Ds_initial_condition.resize(mesh_graph.mesh_vertices.cols());
-        for (unsigned int v = 0; v < mesh_graph.mesh_vertices.cols(); ++v)
+        result.cell0Ds_initial_condition.resize(mesh_graph.mesh_vertices.size());
+        for (unsigned int v = 0; v < mesh_graph.mesh_vertices.size(); ++v)
         {
           auto& initial_condition = result.cell0Ds_initial_condition.at(v);
           initial_condition.type = vertex_initialization_types::Unknown;
@@ -215,12 +215,15 @@ namespace Gedim
 
         for (const auto source_index : sources_index)
         {
+          const auto& mesh_vertex_s = mesh_graph.mesh_vertices.at(source_index);
           auto& restriction_s = result.cell0Ds_initial_condition.at(source_index);
+
           restriction_s.type = vertex_initialization_types::Source;
           restriction_s.initial_time = 0.0;
 
-          for (const auto& vn : mesh_graph.mesh_adj_list.at(source_index))
+          for (const auto& vn : mesh_vertex_s.adj_list)
           {
+            const auto& mesh_vertex_vn = mesh_graph.mesh_vertices.at(vn);
             auto& restriction_vn = result.cell0Ds_initial_condition.at(vn);
 
             if (restriction_vn.type ==
@@ -230,8 +233,8 @@ namespace Gedim
             const auto time_vn = restriction_s.initial_time +
                                  compute_time_ij(geometry_utilities,
                                                  constant_speed,
-                                                 mesh_graph.mesh_vertices.col(source_index),
-                                                 mesh_graph.mesh_vertices.col(vn));
+                                                 mesh_vertex_s.coordinate,
+                                                 mesh_vertex_vn.coordinate);
 
             if (time_vn < restriction_vn.initial_time)
             {
@@ -249,7 +252,7 @@ namespace Gedim
                                                                                               const double& constant_speed,
                                                                                               const FastMarchingMethodConfig& config)
       {
-        if (static_cast<unsigned int>(mesh_graph.mesh_vertices.cols()) != config.cell0Ds_initial_condition.size() ||
+        if (mesh_graph.mesh_vertices.size() != config.cell0Ds_initial_condition.size() ||
             mesh_graph.mesh_edges.size() != config.cell1Ds_restriction.size())
           throw std::runtime_error("Error in input parameters");
 
@@ -258,8 +261,8 @@ namespace Gedim
 
         Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult result;
 
-        result.vertices_status.resize(mesh_graph.mesh_vertices.cols(), status_types::Far);
-        result.vertices_time.resize(mesh_graph.mesh_vertices.cols(), infty);
+        result.vertices_status.resize(mesh_graph.mesh_vertices.size(), status_types::Far);
+        result.vertices_time.resize(mesh_graph.mesh_vertices.size(), infty);
 
         std::list<unsigned int> starting_trial_vertices;
         std::priority_queue<pq_item, std::vector<pq_item>, std::greater<pq_item>> min_pq;
@@ -308,20 +311,22 @@ namespace Gedim
               status_types::Verified)
             continue;
 
+          const auto& mesh_vertex_s = mesh_graph.mesh_vertices.at(selected_v.second);
           result.vertices_status.at(selected_v.second) = status_types::Verified;
 
-          for (const auto& adj_i : mesh_graph.mesh_adj_list.at(selected_v.second))
+          for (const auto& adj_i : mesh_vertex_s.adj_list)
           {
             if (result.vertices_status.at(adj_i) ==
                 status_types::Verified)
               continue;
 
+            const auto& mesh_vertex_i = mesh_graph.mesh_vertices.at(adj_i);
             auto new_time_i = std::min(result.vertices_time.at(adj_i),
                                        result.vertices_time.at(selected_v.second) +
                                        compute_time_ij(geometry_utilities,
                                                        constant_speed,
-                                                       mesh_graph.mesh_vertices.col(selected_v.second),
-                                                       mesh_graph.mesh_vertices.col(adj_i)));
+                                                       mesh_vertex_s.coordinate,
+                                                       mesh_vertex_i.coordinate));
 
             for (const auto k : mesh_graph.mesh_triangles.at(std::make_pair(selected_v.second, adj_i)))
             {
@@ -333,7 +338,7 @@ namespace Gedim
                                                                                                                    k)));
 
               const auto time_k = eikonal_triangle(geometry_utilities,
-                                                   mesh_graph.mesh_vertices,
+                                                   mesh_graph,
                                                    constant_speed,
                                                    result.vertices_time,
                                                    selected_v.second,
