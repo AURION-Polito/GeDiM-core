@@ -447,9 +447,11 @@ namespace Gedim
                   status_types::Verified)
                 continue;
 
+              std::cout<< "edge "<< selected_v.second<< "-"<< k<< ": "<< adj_i<< std::endl;
               const auto& edge_restriction = config.cell1Ds_restriction.at(mesh_graph.mesh_edges.at(std::make_pair(selected_v.second,
                                                                                                                    k)));
 
+              std::cout<< "restriction "<< edge_restriction.reachable_zone.at(0)<< "-"<< edge_restriction.reachable_zone.at(1)<< std::endl;
               const auto time_k = eikonal_triangle(geometry_utilities,
                                                    mesh_graph,
                                                    config.speed_value,
@@ -459,6 +461,7 @@ namespace Gedim
                                                    adj_i,
                                                    edge_restriction,
                                                    config.eikonal_min_type);
+              std::cout<< "time "<< time_k<< std::endl;
 
               if (time_k < new_time_i)
                 new_time_i = time_k;
