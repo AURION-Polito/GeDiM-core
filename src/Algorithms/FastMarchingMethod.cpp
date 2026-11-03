@@ -291,9 +291,11 @@ namespace Gedim
             {
               const auto& mesh_vertex_s = mesh_graph.mesh_vertices.at(source_index);
 
-              if (geometry_utilities.IsValueLowerOrEqual(ball_radius,
-                                                         geometry_utilities.PointDistance(mesh_vertex_s.coordinate,
-                                                                                          mesh_vertex_v.coordinate),
+              const auto distance_from_source = geometry_utilities.PointDistance(mesh_vertex_s.coordinate,
+                                                                                 mesh_vertex_v.coordinate);
+
+              if (geometry_utilities.IsValueLowerOrEqual(distance_from_source,
+                                                         ball_radius,
                                                          geometry_utilities.Tolerance1D()))
               {
                 distance_from_source_lower_R = true;
@@ -310,8 +312,8 @@ namespace Gedim
               continue;
             }
 
-            if (geometry_utilities.IsValueLowerOrEqual(ball_radius,
-                                                       borders_distance.at(v),
+            if (geometry_utilities.IsValueLowerOrEqual(borders_distance.at(v),
+                                                       ball_radius,
                                                        geometry_utilities.Tolerance1D()))
             {
               restriction_v.type = vertex_initialization_types::Unreachable;
