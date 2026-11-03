@@ -101,7 +101,8 @@ namespace Gedim
 
       Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig create_configuration(const GeometryUtilities& geometry_utilities,
                                                                                            const MeshGraph& mesh_graph,
-                                                                                           const std::vector<unsigned int>& sources_index,
+                                                                                           const unsigned int& ball_center_vertex_index,
+                                                                                           const double& ball_radius,
                                                                                            const double& constant_speed,
                                                                                            const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& eikonal_minimization_type);
 
