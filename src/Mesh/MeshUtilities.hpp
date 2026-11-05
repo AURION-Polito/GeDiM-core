@@ -581,8 +581,8 @@ struct MeshUtilities
     };
 
   public:
-    MeshUtilities() {};
-    ~MeshUtilities() {};
+    MeshUtilities(){};
+    ~MeshUtilities(){};
 
     /// \brief Extract Active Cells from mesh
     /// \note the resulting mesh has no inactive elements
@@ -1333,10 +1333,9 @@ struct MeshUtilities
                                                                        const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,
                                                                        const Gedim::IMeshDAO &mesh);
 
-    static Gedim::MeshUtilities::ConformMeshToSurfaceResult ConformMeshToSurface(
-        const Gedim::IMeshDAO &original_mesh,
-        const Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData &surface_intersection_graph,
-        Gedim::IMeshDAO &conformed_mesh);
+    static Gedim::MeshUtilities::ConformMeshToSurfaceResult ConformMeshToSurface(const Gedim::IMeshDAO &original_mesh,
+                                                                                 const Gedim::MeshUtilities::MeshSurfaceIntersectionGraphData &surface_intersection_graph,
+                                                                                 Gedim::IMeshDAO &conformed_mesh);
 
     static Gedim::MeshUtilities::MarchingCubesResult MarchingCubes(const Gedim::GeometryUtilities &geometry_utilities,
                                                                    const std::function<Eigen::VectorXd(const Eigen::MatrixXd &)> &surface_implicit_equation,

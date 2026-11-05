@@ -67,9 +67,8 @@ std::vector<unsigned int> GraphUtilities::BreadthFirstSearch(const unsigned int 
     return visitedVertices;
 }
 // ***************************************************************************
-std::vector<unsigned int> GraphUtilities::DepthFirstSearch(
-    const unsigned int vertex,
-    const std::vector<std::vector<unsigned int>> &graphAdjacency)
+std::vector<unsigned int> GraphUtilities::DepthFirstSearch(const unsigned int vertex,
+                                                           const std::vector<std::vector<unsigned int>> &graphAdjacency)
 {
     unsigned int visitedVertex = vertex;
     std::vector<unsigned int> visitedVertices;
