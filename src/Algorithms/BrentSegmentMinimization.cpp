@@ -35,11 +35,17 @@ namespace Gedim
           throw std::runtime_error("Invalid Brent parameters");
         }
 
+        if (std::isnan(a) || std::isnan(b))
+          return { { std::numeric_limits<double>::quiet_NaN() }, std::numeric_limits<double>::quiet_NaN(), 0, false };
+
         double x = a + golden_section * (b - a);
         double w = x;
         double v = x;
 
         double fx = f(x);
+        if (std::isnan(fx))
+          return { { std::numeric_limits<double>::quiet_NaN() }, std::numeric_limits<double>::quiet_NaN(), 0, false };
+
         double fw = fx;
         double fv = fx;
 
