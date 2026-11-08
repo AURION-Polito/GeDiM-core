@@ -9,7 +9,7 @@
 //
 // This file can be used citing references in CITATION.cff file.
 
-#include "BrentMinimization.hpp"
+#include "BrentSegmentMinimization.hpp"
 
 #include <cmath>
 #include <numbers>
@@ -23,7 +23,7 @@ namespace Gedim
     {
       constexpr double golden_section = 2.0 - std::numbers::phi_v<double>;
       // ***************************************************************************
-      BrentResult brent_minimize(
+      MinimizationResult brent_segment_minimization(
           const std::function<double(double)>& f,
           const double& a,
           const double& b,
@@ -70,7 +70,7 @@ namespace Gedim
           if (std::abs(x - midpoint) <= abs_tol &&
               right <= 2.0 * (abs_tol + std::numeric_limits<double>::epsilon()) + left) // max(|x-m|, 0.5 (r-l)) / x < tol
           {
-            return { x, fx, iter - 1, true };
+            return { { x }, fx, iter - 1, true };
           }
 
           bool use_golden = true;
@@ -163,7 +163,7 @@ namespace Gedim
           }
         }
 
-        return { x, fx, max_iter, false };
+        return { { x }, fx, max_iter, false };
       }
       // ***************************************************************************
     } // namespace Minimization

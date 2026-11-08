@@ -9,9 +9,10 @@
 //
 // This file can be used citing references in CITATION.cff file.
 
-#ifndef __Brent_Minimization_H
-#define __Brent_Minimization_H
+#ifndef __Brent_Triangle_Minimization_H
+#define __Brent_Triangle_Minimization_H
 
+#include "MinimizationResult.hpp"
 #include <functional>
 
 namespace Gedim
@@ -20,21 +21,14 @@ namespace Gedim
   {
     namespace Minimization
     {
-      struct BrentResult final
-      {
-          double min;
-          double f_min;
-          unsigned int iterations;
-          bool converged;
-      };
-
-      BrentResult brent_minimize(const std::function<double(double)>& f,
-                                 const double& a,
-                                 const double& b,
+      MinimizationResult brent_triangle_minimization(const std::function<double(double, double)>& f,
+                                 const std::array<double, 2>& a,
+                                 const std::array<double, 2>& b,
+                                 const std::array<double, 2>& c,
                                  const double& tol,
                                  const unsigned int max_iter);
     } // namespace Minimization
   } // namespace Algorithms
 } // namespace Gedim
 
-#endif // __Fast_Marching_Method_H
+#endif // __Brent_Triangle_Minimization_H

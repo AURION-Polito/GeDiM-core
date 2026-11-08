@@ -10,7 +10,7 @@
 // This file can be used citing references in CITATION.cff file.
 
 #include "FastMarchingMethod.hpp"
-#include "BrentMinimization.hpp"
+#include "BrentSegmentMinimization.hpp"
 #include <queue>
 
 namespace Gedim
@@ -99,7 +99,7 @@ namespace Gedim
                                                geometry_utilities.Tolerance1D()))
               return min_f(edge_reachable_zone.at(0));
 
-            const auto min_result = Gedim::Algorithms::Minimization::brent_minimize(
+            const auto min_result = Gedim::Algorithms::Minimization::brent_segment_minimization(
                                       min_f,
                                       edge_reachable_zone.at(0),
                                       edge_reachable_zone.at(1),
