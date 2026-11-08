@@ -41,7 +41,9 @@ namespace Gedim
 
           std::vector<Vertex> mesh_vertices;
           std::map<std::pair<unsigned int, unsigned int>, unsigned int> mesh_edges;
-          std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int>> mesh_triangles;
+          std::map<std::array<unsigned int, 3>, unsigned int> mesh_triangles;
+          std::map<std::pair<unsigned int, unsigned int>, std::list<unsigned int>> mesh_triangles_by_vertices;
+          std::map<std::pair<unsigned int, unsigned int>, std::list<std::array<unsigned int, 2>>> mesh_tetra_by_vertices;
       };
 
       struct FastMarchingMethodConfig

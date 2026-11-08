@@ -45,15 +45,12 @@ namespace Gedim
                                      const MeshGraph& mesh_graph,
                                      const double& constant_speed,
                                      const std::vector<double>& vertices_time,
-                                     const unsigned int i,
-                                     const unsigned int j,
+                                     const unsigned int e_ij_o,
+                                     const unsigned int e_ij_e,
                                      const unsigned int k,
                                      const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EdgeRestriction& edge_ij_restriction,
                                      const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& miminization_type)
       {
-        unsigned int e_ij_o = std::min(i, j);
-        unsigned int e_ij_e = std::max(i, j);
-
         auto min_f =
             [&](double lambda)
         {
@@ -168,8 +165,10 @@ namespace Gedim
 
           const auto extremes = mesh.Cell1DExtremes(e);
 
-          mesh_graph.mesh_edges.insert(std::make_pair(std::make_pair(extremes[0], extremes[1]), e));
-          mesh_graph.mesh_edges.insert(std::make_pair(std::make_pair(extremes[1], extremes[0]), e));
+          const auto e_ij = std::make_pair(std::min(extremes[0], extremes[1]),
+                                           std::max(extremes[0], extremes[1]));
+
+          mesh_graph.mesh_edges.insert(std::make_pair(e_ij, e));
         }
 
         for (unsigned int f = 0; f < mesh.Cell2DTotalNumber(); ++f)
@@ -180,14 +179,49 @@ namespace Gedim
             const unsigned int fv_j = mesh.Cell2DVertex(f, (fv + 1) % mesh.Cell2DNumberVertices(f));
             const unsigned int fv_k = mesh.Cell2DVertex(f, (fv + 2) % mesh.Cell2DNumberVertices(f));
 
-            if (!mesh_graph.mesh_triangles.contains(std::make_pair(fv_i, fv_j)))
+            if (fv == 0)
             {
-              mesh_graph.mesh_triangles.insert(std::make_pair(std::make_pair(fv_i, fv_j), std::list<unsigned int>()));
-              mesh_graph.mesh_triangles.insert(std::make_pair(std::make_pair(fv_j, fv_i), std::list<unsigned int>()));
+              std::array<unsigned int, 3> t_ijk = { fv_i, fv_j, fv_k };
+              std::sort(t_ijk.begin(), t_ijk.end());
+
+              mesh_graph.mesh_triangles.insert(std::make_pair(t_ijk, f));
             }
 
-            mesh_graph.mesh_triangles.at(std::make_pair(fv_i, fv_j)).push_back(fv_k);
-            mesh_graph.mesh_triangles.at(std::make_pair(fv_j, fv_i)).push_back(fv_k);
+            const auto e_ij = std::make_pair(std::min(fv_i, fv_j),
+                                             std::max(fv_i, fv_j));
+
+            if (!mesh_graph.mesh_triangles_by_vertices.contains(e_ij))
+              mesh_graph.mesh_triangles_by_vertices.insert(std::make_pair(e_ij, std::list<unsigned int>()));
+
+            mesh_graph.mesh_triangles_by_vertices.at(e_ij).push_back(fv_k);
+          }
+        }
+
+        std::array<std::array<unsigned int, 4>, 6> possible_pairs =
+        {
+          std::array<unsigned int, 4>({ 0, 1, 2, 3 }),
+          std::array<unsigned int, 4>({ 0, 2, 1, 3 }),
+          std::array<unsigned int, 4>({ 0, 3, 1, 2 }),
+          std::array<unsigned int, 4>({ 1, 2, 0, 3 }),
+          std::array<unsigned int, 4>({ 1, 3, 0, 2 }),
+          std::array<unsigned int, 4>({ 2, 3, 0, 1 })
+        };
+        for (unsigned int t = 0; t < mesh.Cell3DTotalNumber(); ++t)
+        {
+          for (const auto& possible_pair : possible_pairs)
+          {
+            const unsigned int tv_i = mesh.Cell3DVertex(t, possible_pair.at(0));
+            const unsigned int tv_j = mesh.Cell3DVertex(t, possible_pair.at(1));
+            const unsigned int tv_k = mesh.Cell3DVertex(t, possible_pair.at(2));
+            const unsigned int tv_l = mesh.Cell3DVertex(t, possible_pair.at(3));
+
+            const auto e_ij = std::make_pair(std::min(tv_i, tv_j),
+                                             std::max(tv_i, tv_j));
+
+            if (!mesh_graph.mesh_tetra_by_vertices.contains(e_ij))
+              mesh_graph.mesh_tetra_by_vertices.insert(std::make_pair(e_ij, std::list<std::array<unsigned int, 2>>()));
+
+            mesh_graph.mesh_tetra_by_vertices.at(e_ij).push_back({ tv_k, tv_l });
           }
         }
 
@@ -482,21 +516,27 @@ namespace Gedim
                                                        mesh_vertex_s.coordinate,
                                                        mesh_vertex_i.coordinate));
 
-            for (const auto k : mesh_graph.mesh_triangles.at(std::make_pair(selected_v.second, adj_i)))
+            const auto e_vi = std::make_pair(std::min(selected_v.second, adj_i),
+                                             std::max(selected_v.second, adj_i));
+
+            for (const auto k : mesh_graph.mesh_triangles_by_vertices.at(e_vi))
             {
               if (result.vertices_status.at(k) !=
                   status_types::Verified)
                 continue;
 
-              const auto& edge_restriction = config.cell1Ds_restriction.at(mesh_graph.mesh_edges.at(std::make_pair(selected_v.second,
-                                                                                                                   k)));
+              const unsigned int e_vk_o = std::min(selected_v.second, k);
+              const unsigned int e_vk_e = std::max(selected_v.second, k);
+
+              const auto& edge_restriction = config.cell1Ds_restriction.at(mesh_graph.mesh_edges.at(std::make_pair(e_vk_o,
+                                                                                                                   e_vk_e)));
 
               const auto time_k = eikonal_triangle(geometry_utilities,
                                                    mesh_graph,
                                                    config.speed_value,
                                                    result.vertices_time,
-                                                   selected_v.second,
-                                                   k,
+                                                   e_vk_o,
+                                                   e_vk_e,
                                                    adj_i,
                                                    edge_restriction,
                                                    config.eikonal_min_type);
