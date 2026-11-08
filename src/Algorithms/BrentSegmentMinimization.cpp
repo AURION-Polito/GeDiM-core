@@ -76,6 +76,17 @@ namespace Gedim
           if (std::abs(x - midpoint) <= abs_tol &&
               right <= 2.0 * (abs_tol + std::numeric_limits<double>::epsilon()) + left) // max(|x-m|, 0.5 (r-l)) / x < tol
           {
+            if (std::abs(x - a) <= abs_tol)
+            {
+              fx = f(a);
+              x = a;
+            }
+            else if (std::abs(x - b) <= abs_tol)
+            {
+              fx = f(b);
+              x = b;
+            }
+
             return { { x }, fx, iter - 1, true };
           }
 
