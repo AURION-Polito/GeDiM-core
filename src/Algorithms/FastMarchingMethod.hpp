@@ -87,11 +87,24 @@ namespace Gedim
               std::array<double, 2> reachable_zone;
           };
 
+          struct FaceRestriction
+          {
+              enum struct RestrictionTypes
+              {
+                Free = 0,
+                Constrained = 1,
+                Unreachable = 2
+              };
+
+              Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::FaceRestriction::RestrictionTypes type;
+          };
+
           Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::SpeedTypes speed_type;
           double speed_value;
           Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes eikonal_min_type;
           std::vector<VertexInitialCondition> cell0Ds_initial_condition;
           std::vector<EdgeRestriction> cell1Ds_restriction;
+          std::vector<FaceRestriction> cell2Ds_restriction;
       };
 
       struct FastMarchingMethodResult
@@ -116,7 +129,7 @@ namespace Gedim
                                                                                            const double& constant_speed,
                                                                                            const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& eikonal_minimization_type);
 
-      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const Gedim::GeometryUtilities& geometry_utilities,
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method(const Gedim::GeometryUtilities& geometry_utilities,
                                                                                               const MeshGraph& mesh_graph,
                                                                                               const FastMarchingMethodConfig& config);
     } // namespace FastMarchingMethod

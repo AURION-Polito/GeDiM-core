@@ -11,6 +11,7 @@
 
 #include "FastMarchingMethod.hpp"
 #include "BrentSegmentMinimization.hpp"
+#include "BrentTriangleMinimization.hpp"
 #include <queue>
 
 namespace Gedim
@@ -24,6 +25,7 @@ namespace Gedim
       using vertex_type = Gedim::Algorithms::FastMarchingMethod::MeshGraph::Vertex::VertexTypes;
       using vertex_initialization_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::VertexInitialCondition::InitializationTypes;
       using edge_restriction_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EdgeRestriction::RestrictionTypes;
+      using face_restriction_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::FaceRestriction::RestrictionTypes;
       using speed_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::SpeedTypes;
       using eikonal_min_types = Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes;
       // ***************************************************************************
@@ -129,6 +131,99 @@ namespace Gedim
         }
       }
       // ***************************************************************************
+      inline double eikonal_tetrahedron(const GeometryUtilities& geometry_utilities,
+                                        const MeshGraph& mesh_graph,
+                                        const double& constant_speed,
+                                        const std::vector<double>& vertices_time,
+                                        const std::array<unsigned int, 3>& f_vij,
+                                        const unsigned int k,
+                                        const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::FaceRestriction& face_vij_restriction,
+                                        const Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::EikonalMinimizationTypes& miminization_type)
+      {
+        const auto time_a = vertices_time.at(f_vij.at(0));
+        const auto time_b = vertices_time.at(f_vij.at(1));
+        const auto time_c = vertices_time.at(f_vij.at(2));
+
+        const auto tv_a = mesh_graph.mesh_vertices.at(f_vij.at(0)).coordinate;
+        const auto tv_b = mesh_graph.mesh_vertices.at(f_vij.at(1)).coordinate;
+        const auto tv_c = mesh_graph.mesh_vertices.at(f_vij.at(2)).coordinate;
+
+        auto min_f =
+            [&](double t, double s)
+        {
+          const double time_P = (1.0 - t) * time_a +
+                                t * ((1.0 - s) * time_b +
+                                     s * time_c);
+          const Eigen::Vector3d P = (1.0 - t) * tv_a +
+                                    t * ((1.0 - s) * tv_b +
+                                         s * tv_c);
+
+          return time_P +
+              compute_time_ij(geometry_utilities,
+                              constant_speed,
+                              mesh_graph.mesh_vertices.at(k).coordinate,
+                              P);
+        };
+
+        switch (face_vij_restriction.type)
+        {
+          case face_restriction_types::Unreachable:
+            return infty;
+          case face_restriction_types::Free:
+            break;
+          case face_restriction_types::Constrained:
+            break;
+          default:
+            throw std::runtime_error("unknown face restriction type");
+        }
+
+        switch (miminization_type)
+        {
+          case eikonal_min_types::Simple:
+          {
+            return std::min({
+                              min_f(0.0, 0.0),
+                              min_f(1.0, 0.0),
+                              min_f(1.0, 1.0),
+                              min_f(2.0/3.0, 0.5),
+                            });
+          }
+          case eikonal_min_types::Linear:
+          {
+            const auto min_result = Gedim::Algorithms::Minimization::brent_triangle_minimization(
+                                      min_f,
+                                      { 0.0, 1.0 },
+                                      { 0.0, 1.0 },
+                                      { 0.0, 1.0 },
+                                      1.0e-6,
+                                      500
+                                      );
+
+            if (!min_result.converged)
+            {
+              //          std::cout.precision(2);
+              //          std::cout<< std::scientific<< "V_i "<< min_f(0.0)<< " ";
+              //          std::cout<< std::scientific<< "V_j "<< min_f(1.0)<< " ";
+              //          std::cout<< std::scientific<< "k "<< min_result.min<< " ";
+              //          std::cout<< std::scientific<< "V_k "<< min_result.f_min<< " ";
+
+              //          Gedim::Algorithms::Minimization::brent_minimize(
+              //                min_f,
+              //                0.0,
+              //                1.0,
+              //                1.0e-6,
+              //                500);
+
+              throw std::runtime_error("Minimization algorithm failed");
+            }
+
+            return min_result.f_min;
+          }
+          default:
+            throw std::runtime_error("Minimization type unknown");
+        }
+      }
+      // ***************************************************************************
       MeshGraph create_mesh_graph(const IMeshDAO& mesh)
       {
         Gedim::Algorithms::FastMarchingMethod::MeshGraph mesh_graph;
@@ -166,7 +261,7 @@ namespace Gedim
           const auto extremes = mesh.Cell1DExtremes(e);
 
           const auto e_ij = std::make_pair(std::min(extremes[0], extremes[1]),
-                                           std::max(extremes[0], extremes[1]));
+              std::max(extremes[0], extremes[1]));
 
           mesh_graph.mesh_edges.insert(std::make_pair(e_ij, e));
         }
@@ -265,9 +360,9 @@ namespace Gedim
                                                                                                            0.0,
                                                                                                            1.0,
                                                                                                            eikonal_minimization_type);
-          const auto borders_distance_computation = Gedim::Algorithms::FastMarchingMethod::fast_marching_method_2D(geometry_utilities,
-                                                                                                                   mesh_graph,
-                                                                                                                   borders_distance_config);
+          const auto borders_distance_computation = Gedim::Algorithms::FastMarchingMethod::fast_marching_method(geometry_utilities,
+                                                                                                                mesh_graph,
+                                                                                                                borders_distance_config);
           borders_distance = borders_distance_computation.vertices_time;
         }
 
@@ -436,9 +531,9 @@ namespace Gedim
         return result;
       }
       // ***************************************************************************
-      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method_2D(const GeometryUtilities& geometry_utilities,
-                                                                                              const MeshGraph& mesh_graph,
-                                                                                              const FastMarchingMethodConfig& config)
+      Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodResult fast_marching_method(const GeometryUtilities& geometry_utilities,
+                                                                                           const MeshGraph& mesh_graph,
+                                                                                           const FastMarchingMethodConfig& config)
       {
         if (mesh_graph.mesh_vertices.size() != config.cell0Ds_initial_condition.size() ||
             mesh_graph.mesh_edges.size() != config.cell1Ds_restriction.size())
@@ -519,30 +614,65 @@ namespace Gedim
             const auto e_vi = std::make_pair(std::min(selected_v.second, adj_i),
                                              std::max(selected_v.second, adj_i));
 
-            for (const auto k : mesh_graph.mesh_triangles_by_vertices.at(e_vi))
+            if (mesh_graph.mesh_tetra_by_vertices.empty())
             {
-              if (result.vertices_status.at(k) !=
-                  status_types::Verified)
-                continue;
+              for (const auto k : mesh_graph.mesh_triangles_by_vertices.at(e_vi))
+              {
+                if (result.vertices_status.at(k) !=
+                    status_types::Verified)
+                  continue;
 
-              const unsigned int e_vk_o = std::min(selected_v.second, k);
-              const unsigned int e_vk_e = std::max(selected_v.second, k);
+                const unsigned int e_vk_o = std::min(selected_v.second, k);
+                const unsigned int e_vk_e = std::max(selected_v.second, k);
 
-              const auto& edge_restriction = config.cell1Ds_restriction.at(mesh_graph.mesh_edges.at(std::make_pair(e_vk_o,
-                                                                                                                   e_vk_e)));
+                const auto& edge_restriction = config.cell1Ds_restriction.at(mesh_graph.mesh_edges.at(std::make_pair(e_vk_o,
+                                                                                                                     e_vk_e)));
 
-              const auto time_k = eikonal_triangle(geometry_utilities,
-                                                   mesh_graph,
-                                                   config.speed_value,
-                                                   result.vertices_time,
-                                                   e_vk_o,
-                                                   e_vk_e,
-                                                   adj_i,
-                                                   edge_restriction,
-                                                   config.eikonal_min_type);
+                const auto time_k = eikonal_triangle(geometry_utilities,
+                                                     mesh_graph,
+                                                     config.speed_value,
+                                                     result.vertices_time,
+                                                     e_vk_o,
+                                                     e_vk_e,
+                                                     adj_i,
+                                                     edge_restriction,
+                                                     config.eikonal_min_type);
 
-              if (time_k < new_time_i)
-                new_time_i = time_k;
+                if (time_k < new_time_i)
+                  new_time_i = time_k;
+              }
+            }
+            else
+            {
+              for (const auto k : mesh_graph.mesh_tetra_by_vertices.at(e_vi))
+              {
+                if (result.vertices_status.at(k.at(0)) !=
+                    status_types::Verified ||
+                    result.vertices_status.at(k.at(1)) !=
+                    status_types::Verified)
+                  continue;
+
+                std::array<unsigned int, 3> triangle_vk = { selected_v.second, k.at(0), k.at(1) };
+                std::sort(triangle_vk.begin(), triangle_vk.end());
+                const unsigned int f_vk = mesh_graph.mesh_triangles.at(triangle_vk);
+
+                const auto& face_restriction = config.cell2Ds_restriction.empty() ?
+                                                 Gedim::Algorithms::FastMarchingMethod::FastMarchingMethodConfig::FaceRestriction({ face_restriction_types::Free })
+                                               :
+                                                 config.cell2Ds_restriction.at(f_vk);
+
+                const auto time_k = eikonal_tetrahedron(geometry_utilities,
+                                                        mesh_graph,
+                                                        config.speed_value,
+                                                        result.vertices_time,
+                                                        triangle_vk,
+                                                        adj_i,
+                                                        face_restriction,
+                                                        config.eikonal_min_type);
+
+                if (time_k < new_time_i)
+                  new_time_i = time_k;
+              }
             }
 
             if (new_time_i < result.vertices_time.at(adj_i))
