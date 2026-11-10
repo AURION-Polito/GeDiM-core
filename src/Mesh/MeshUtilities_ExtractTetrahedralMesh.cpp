@@ -110,6 +110,8 @@ namespace Gedim
             num_tetrahedra += cell2Ds_triangles.cell2Ds_triangles.at(mesh.Cell3DFace(c_3D, f)).size();
 
           tetrahedra.reserve(num_tetrahedra);
+          cell3D_additional_points.push_back(cell3D_barycenter);
+          const unsigned int cell3D_barycenter_position = mesh.Cell3DNumberVertices(c_3D) + cell3D_additional_points.size();
           for (unsigned int f = 0; f < mesh.Cell3DNumberFaces(c_3D); ++f)
           {
             const unsigned int c_2D = mesh.Cell3DFace(c_3D, f);
@@ -133,9 +135,7 @@ namespace Gedim
                 }
               }
 
-              tetrahedron.at(3) = mesh.Cell3DNumberVertices(c_3D) + cell3D_additional_points.size();
-              cell3D_additional_points.push_back(cell3D_barycenter);
-
+              tetrahedron.at(3) = cell3D_barycenter_position;
               tetrahedra.push_back(tetrahedron);
 
             }
