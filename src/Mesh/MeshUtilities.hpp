@@ -590,13 +590,18 @@ namespace Gedim
 
           struct TriangleData
           {
-              std::array<unsigned int, 3> vertices;
+              struct Vertex
+              {
+                  unsigned int original_vertex_index;
+                  unsigned int additional_vertex_index;
+              };
+
+              std::array<Gedim::MeshUtilities::MeshCell2DsTrianglesData::TriangleData::Vertex, 3> vertices;
           };
 
           struct AdditionalPointData
           {
               Eigen::Vector3d coordinate;
-              unsigned int cell2D_additional_point_index;
           };
 
           std::vector<std::vector<Gedim::MeshUtilities::MeshCell2DsTrianglesData::TriangleData>> cell2Ds_triangles;
@@ -667,6 +672,9 @@ namespace Gedim
           std::vector<unsigned int> original_cell1Ds_to_edge;
           std::vector<std::vector<unsigned int>> original_cell2Ds_to_triangles;
           std::vector<std::vector<unsigned int>> original_cell3Ds_to_tetrahedra;
+
+          std::vector<std::vector<unsigned int>> cell2Ds_additional_point_to_vertex;
+          std::vector<std::vector<unsigned int>> cell3Ds_additional_point_to_vertex;
       };
 
     public:
@@ -1034,10 +1042,8 @@ namespace Gedim
                                                                     const Gedim::MeshUtilities::MeshCell3DsTetrahedraData::TetrahedraTypes tetrahedra_type,
                                                                     const Gedim::IMeshDAO &mesh);
 
-      static ExtractTetrahedralMeshData ExtractTetrahedralMesh(const std::vector<std::vector<std::array<unsigned int, 3>>> &cell2Ds_triangles,
-                                                               const std::vector<std::vector<Eigen::Matrix3d>> &cell2Ds_triangles_3D_vertices,
-                                                               const std::vector<std::vector<std::array<unsigned int, 4>>> &cell3Ds_tetrahedra,
-                                                               const std::vector<std::vector<Eigen::MatrixXd>> &cell3Ds_tetrahedra_vertices,
+      static ExtractTetrahedralMeshData ExtractTetrahedralMesh(const Gedim::MeshUtilities::MeshCell2DsTrianglesData& cell2Ds_triangles,
+                                                               const Gedim::MeshUtilities::MeshCell3DsTetrahedraData& cell3Ds_tetrahedra,
                                                                const Gedim::IMeshDAO &mesh);
 
       static void MakeMeshTriangularFaces(const std::vector<std::vector<unsigned int>> &faces_triangulation, Gedim::IMeshDAO &mesh);
