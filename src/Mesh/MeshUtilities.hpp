@@ -976,7 +976,11 @@ namespace Gedim
                                                             const Gedim::IMeshDAO &triangular_mesh,
                                                             Gedim::IMeshDAO &mesh);
 
-      static ExtractTetrahedralMeshData ExtractTetrahedralMesh(const Gedim::IMeshDAO &mesh);
+      static ExtractTetrahedralMeshData ExtractTetrahedralMesh(const std::vector<std::vector<std::array<unsigned int, 3>>> &cell2Ds_triangles,
+                                                               const std::vector<std::vector<Eigen::Matrix3d>> &cell2Ds_triangles_3D_vertices,
+                                                               const std::vector<std::vector<std::array<unsigned int, 4>>> &cell3Ds_tetrahedra,
+                                                               const std::vector<std::vector<Eigen::MatrixXd>> &cell3Ds_tetrahedra_vertices,
+                                                               const Gedim::IMeshDAO &mesh);
 
       static void MakeMeshTriangularFaces(const std::vector<std::vector<unsigned int>> &faces_triangulation, Gedim::IMeshDAO &mesh);
 
