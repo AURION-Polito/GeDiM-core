@@ -588,8 +588,19 @@ namespace Gedim
             ByBarycenter = 1
           };
 
-          std::vector<std::vector<std::array<unsigned int, 3>>> cell2Ds_triangles;
-          std::vector<std::vector<Eigen::Vector3d>> cell2Ds_additional_points;
+          struct TriangleData
+          {
+              std::array<unsigned int, 3> vertices;
+          };
+
+          struct AdditionalPointData
+          {
+              Eigen::Vector3d coordinate;
+              unsigned int cell2D_additional_point_index;
+          };
+
+          std::vector<std::vector<Gedim::MeshUtilities::MeshCell2DsTrianglesData::TriangleData>> cell2Ds_triangles;
+          std::vector<std::vector<Gedim::MeshUtilities::MeshCell2DsTrianglesData::AdditionalPointData>> cell2Ds_additional_points;
       };
 
       struct MeshCell3DsTetrahedraData final
@@ -599,8 +610,23 @@ namespace Gedim
             ByBarycenter = 1
           };
 
-          std::vector<std::vector<std::array<unsigned int, 4>>> cell3Ds_tetrahedra;
-          std::vector<std::vector<Eigen::Vector3d>> cell3Ds_additional_points;
+          struct TetrahedronData
+          {
+              std::array<unsigned int, 4> vertices;
+              unsigned int face_index;
+              unsigned int face_triangle_index;
+          };
+
+          struct AdditionalPointData
+          {
+              Eigen::Vector3d coordinate;
+              unsigned int cell3D_additional_point_index;
+              unsigned int face_index;
+              unsigned int face_additional_point_index;
+          };
+
+          std::vector<std::vector<Gedim::MeshUtilities::MeshCell3DsTetrahedraData::TetrahedronData>> cell3Ds_tetrahedra;
+          std::vector<std::vector<Gedim::MeshUtilities::MeshCell3DsTetrahedraData::AdditionalPointData>> cell3Ds_additional_points;
       };
 
       struct ExtractTetrahedralMeshData final

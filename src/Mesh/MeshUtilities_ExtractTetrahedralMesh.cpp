@@ -61,7 +61,12 @@ namespace Gedim
 
           const unsigned int numTriangles = triangulation_indices.size() / 3;
           triangles.resize(numTriangles);
-          cell2D_additional_points = { cell2D_barycenter };
+          cell2D_additional_points = {
+            {
+              cell2D_barycenter,
+              mesh.Cell2DNumberVertices(c_2D)
+            }
+          };
 
           for (unsigned int t = 0; t < numTriangles; t++)
           {
@@ -111,32 +116,51 @@ namespace Gedim
 
           tetrahedra.reserve(num_tetrahedra);
           const unsigned int cell3D_barycenter_position = mesh.Cell3DNumberVertices(c_3D);
-          cell3D_additional_points.push_back(cell3D_barycenter);
+          cell3D_additional_points.push_back({
+                                               cell3D_barycenter,
+                                               cell3D_barycenter_position,
+                                               Gedim::MeshUtilities::None,
+                                               Gedim::MeshUtilities::None,
+                                             });
           for (unsigned int f = 0; f < mesh.Cell3DNumberFaces(c_3D); ++f)
           {
             const unsigned int c_2D = mesh.Cell3DFace(c_3D, f);
+            const auto cell2D_num_vertices = mesh.Cell2DNumberVertices(c_2D);
             const auto& cell2D_additional_points = cell2Ds_triangles.cell2Ds_additional_points.at(c_2D);
             const auto& cell2D_triangles = cell2Ds_triangles.cell2Ds_triangles.at(c_2D);
 
-            for (const auto& cell2D_triangle : cell2D_triangles)
+            for (unsigned int f_t = 0; f_t < cell2D_triangles.size(); ++f_t)
             {
+              const auto& cell2D_triangle = cell2D_triangles.at(f_t);
+
               std::array<unsigned int, 4> tetrahedron;
               for (unsigned int f_t_v = 0; f_t_v < 3; ++f_t_v)
               {
-                if (cell2D_triangle.at(f_t_v) >= mesh.Cell2DNumberVertices(c_2D))
+                if (cell2D_triangle.vertices.at(f_t_v) >= cell2D_num_vertices)
                 {
-                  tetrahedron.at(f_t_v) = mesh.Cell3DNumberVertices(c_3D) + cell3D_additional_points.size();
-                  cell3D_additional_points.push_back(cell2D_additional_points.at(cell2D_triangle.at(f_t_v) - mesh.Cell2DNumberVertices(c_2D)));
+                  const auto& cell2D_additional_point = cell2D_additional_points.at(cell2D_triangle.vertices.at(f_t_v) - cell2D_num_vertices);
+
+                  tetrahedron.at(f_t_v) = (mesh.Cell3DNumberVertices(c_3D) + cell3D_additional_points.size());
+                  cell3D_additional_points.push_back({
+                                                       cell2D_additional_point.coordinate,
+                                                       tetrahedron.at(f_t_v),
+                                                       f,
+                                                       cell2D_additional_point.cell2D_additional_point_index
+                                                     });
                 }
                 else
                 {
-                  const unsigned int cell0D_index = mesh.Cell2DVertex(c_2D, cell2D_triangle.at(f_t_v));
+                  const unsigned int cell0D_index = mesh.Cell2DVertex(c_2D, cell2D_triangle.vertices.at(f_t_v));
                   tetrahedron.at(f_t_v) = mesh.Cell3DFindVertex(c_3D, cell0D_index);
                 }
               }
 
               tetrahedron.at(3) = cell3D_barycenter_position;
-              tetrahedra.push_back(tetrahedron);
+              tetrahedra.push_back({
+                                     tetrahedron,
+                                     f,
+                                     f_t
+                                   });
 
             }
           }
