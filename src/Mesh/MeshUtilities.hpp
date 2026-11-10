@@ -580,44 +580,67 @@ namespace Gedim
           std::vector<std::vector<unsigned int>> original_cell3Ds_to_new_cell3Ds;
       };
 
+      struct MeshCell2DsTrianglesData final
+      {
+          enum struct TrianglesTypes
+          {
+            ByFirstVertex = 0,
+            ByBarycenter = 1
+          };
+
+          std::vector<std::vector<std::array<unsigned int, 3>>> cell2Ds_triangles;
+          std::vector<std::vector<Eigen::Vector3d>> cell2Ds_additional_points;
+      };
+
+      struct MeshCell3DsTetrahedraData final
+      {
+          enum struct TetrahedraTypes
+          {
+            ByBarycenter = 1
+          };
+
+          std::vector<std::vector<std::array<unsigned int, 4>>> cell3Ds_tetrahedra;
+          std::vector<std::vector<Eigen::Vector3d>> cell3Ds_additional_points;
+      };
+
       struct ExtractTetrahedralMeshData final
       {
-        struct VertexData
-        {
-            Eigen::Vector3d coordinate;
-            unsigned int original_cell0D_index;
-        };
+          struct VertexData
+          {
+              Eigen::Vector3d coordinate;
+              unsigned int original_cell0D_index;
+          };
 
-        struct EdgeData
-        {
-            std::array<unsigned int, 2> extremes;
-            unsigned int original_cell1D_index;
-        };
+          struct EdgeData
+          {
+              std::array<unsigned int, 2> extremes;
+              unsigned int original_cell1D_index;
+          };
 
-        struct TriangleData
-        {
-            std::array<unsigned int, 3> vertices;
-            std::array<unsigned int, 3> edges;
-            unsigned int original_cell2D_index;
-        };
+          struct TriangleData
+          {
+              std::array<unsigned int, 3> vertices;
+              std::array<unsigned int, 3> edges;
+              unsigned int original_cell2D_index;
+          };
 
-        struct TetrahedronData
-        {
-            std::array<unsigned int, 4> vertices;
-            std::array<unsigned int, 6> edges;
-            std::array<unsigned int, 4> faces;
-            unsigned int original_cell3D_index;
-        };
+          struct TetrahedronData
+          {
+              std::array<unsigned int, 4> vertices;
+              std::array<unsigned int, 6> edges;
+              std::array<unsigned int, 4> faces;
+              unsigned int original_cell3D_index;
+          };
 
-        std::vector<Gedim::MeshUtilities::ExtractTetrahedralMeshData::VertexData> vertices;
-        std::vector<Gedim::MeshUtilities::ExtractTetrahedralMeshData::EdgeData> edges;
-        std::vector<Gedim::MeshUtilities::ExtractTetrahedralMeshData::TriangleData> triangles;
-        std::vector<Gedim::MeshUtilities::ExtractTetrahedralMeshData::TetrahedronData> tetrahedra;
+          std::vector<Gedim::MeshUtilities::ExtractTetrahedralMeshData::VertexData> vertices;
+          std::vector<Gedim::MeshUtilities::ExtractTetrahedralMeshData::EdgeData> edges;
+          std::vector<Gedim::MeshUtilities::ExtractTetrahedralMeshData::TriangleData> triangles;
+          std::vector<Gedim::MeshUtilities::ExtractTetrahedralMeshData::TetrahedronData> tetrahedra;
 
-        std::vector<unsigned int> original_cell0Ds_to_vertex;
-        std::vector<unsigned int> original_cell1Ds_to_edge;
-        std::vector<std::vector<unsigned int>> original_cell2Ds_to_triangles;
-        std::vector<std::vector<unsigned int>> original_cell3Ds_to_tetrahedra;
+          std::vector<unsigned int> original_cell0Ds_to_vertex;
+          std::vector<unsigned int> original_cell1Ds_to_edge;
+          std::vector<std::vector<unsigned int>> original_cell2Ds_to_triangles;
+          std::vector<std::vector<unsigned int>> original_cell3Ds_to_tetrahedra;
       };
 
     public:
@@ -975,6 +998,15 @@ namespace Gedim
       static void CreateQuadrilateralMeshFromTriangularMesh(const Gedim::GeometryUtilities &geometryUtilities,
                                                             const Gedim::IMeshDAO &triangular_mesh,
                                                             Gedim::IMeshDAO &mesh);
+
+      static MeshCell2DsTrianglesData ComputeMeshCell2DsTriangles(const Gedim::GeometryUtilities& geometry_utilities,
+                                                                  const Gedim::MeshUtilities::MeshCell2DsTrianglesData::TrianglesTypes triangles_type,
+                                                                  const Gedim::IMeshDAO &mesh);
+
+      static MeshCell3DsTetrahedraData ComputeMeshCell3DsTetrahedra(const Gedim::GeometryUtilities& geometry_utilities,
+                                                                    const Gedim::MeshUtilities::MeshCell2DsTrianglesData& cell2Ds_triangles,
+                                                                    const Gedim::MeshUtilities::MeshCell3DsTetrahedraData::TetrahedraTypes tetrahedra_type,
+                                                                    const Gedim::IMeshDAO &mesh);
 
       static ExtractTetrahedralMeshData ExtractTetrahedralMesh(const std::vector<std::vector<std::array<unsigned int, 3>>> &cell2Ds_triangles,
                                                                const std::vector<std::vector<Eigen::Matrix3d>> &cell2Ds_triangles_3D_vertices,
