@@ -110,8 +110,8 @@ namespace Gedim
             num_tetrahedra += cell2Ds_triangles.cell2Ds_triangles.at(mesh.Cell3DFace(c_3D, f)).size();
 
           tetrahedra.reserve(num_tetrahedra);
+          const unsigned int cell3D_barycenter_position = mesh.Cell3DNumberVertices(c_3D);
           cell3D_additional_points.push_back(cell3D_barycenter);
-          const unsigned int cell3D_barycenter_position = mesh.Cell3DNumberVertices(c_3D) + cell3D_additional_points.size();
           for (unsigned int f = 0; f < mesh.Cell3DNumberFaces(c_3D); ++f)
           {
             const unsigned int c_2D = mesh.Cell3DFace(c_3D, f);
