@@ -1045,6 +1045,9 @@ namespace Gedim
                                                                     const Gedim::MeshUtilities::MeshCell3DsTetrahedraData::TetrahedraTypes tetrahedra_type,
                                                                     const Gedim::IMeshDAO &mesh);
 
+      static ExtractTetrahedralMeshData ExtractTriangularMesh(const Gedim::MeshUtilities::MeshCell2DsTrianglesData& cell2Ds_triangles,
+                                                              const Gedim::IMeshDAO &mesh);
+
       static ExtractTetrahedralMeshData ExtractTetrahedralMesh(const Gedim::MeshUtilities::MeshCell2DsTrianglesData& cell2Ds_triangles,
                                                                const Gedim::MeshUtilities::MeshCell3DsTetrahedraData& cell3Ds_tetrahedra,
                                                                const Gedim::IMeshDAO &mesh);
