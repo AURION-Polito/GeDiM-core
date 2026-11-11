@@ -617,15 +617,18 @@ namespace Gedim
 
           struct TetrahedronData
           {
-              std::array<unsigned int, 4> vertices;
-              unsigned int face_index;
-              unsigned int face_triangle_index;
+              struct Vertex
+              {
+                  unsigned int original_vertex_index;
+                  unsigned int additional_vertex_index;
+              };
+
+              std::array<Gedim::MeshUtilities::MeshCell3DsTetrahedraData::TetrahedronData::Vertex, 4> vertices;
           };
 
           struct AdditionalPointData
           {
               Eigen::Vector3d coordinate;
-              unsigned int cell3D_additional_point_index;
               unsigned int face_index;
               unsigned int face_additional_point_index;
           };

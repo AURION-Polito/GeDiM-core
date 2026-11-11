@@ -122,17 +122,15 @@ namespace Gedim
             num_tetrahedra += cell2Ds_triangles.cell2Ds_triangles.at(mesh.Cell3DFace(c_3D, f)).size();
 
           tetrahedra.reserve(num_tetrahedra);
-          const unsigned int cell3D_barycenter_position = mesh.Cell3DNumberVertices(c_3D);
+          const unsigned int cell3D_barycenter_position = cell3D_additional_points.size();
           cell3D_additional_points.push_back({
                                                cell3D_barycenter,
-                                               cell3D_barycenter_position,
                                                Gedim::MeshUtilities::None,
                                                Gedim::MeshUtilities::None,
                                              });
           for (unsigned int f = 0; f < mesh.Cell3DNumberFaces(c_3D); ++f)
           {
             const unsigned int c_2D = mesh.Cell3DFace(c_3D, f);
-            const auto cell2D_num_vertices = mesh.Cell2DNumberVertices(c_2D);
             const auto& cell2D_additional_points = cell2Ds_triangles.cell2Ds_additional_points.at(c_2D);
             const auto& cell2D_triangles = cell2Ds_triangles.cell2Ds_triangles.at(c_2D);
 
@@ -140,34 +138,34 @@ namespace Gedim
             {
               const auto& cell2D_triangle = cell2D_triangles.at(f_t);
 
-              std::array<unsigned int, 4> tetrahedron;
+              std::array<Gedim::MeshUtilities::MeshCell3DsTetrahedraData::TetrahedronData::Vertex, 4> tetrahedron;
               for (unsigned int f_t_v = 0; f_t_v < 3; ++f_t_v)
               {
-                if (cell2D_triangle.vertices.at(f_t_v) >= cell2D_num_vertices)
+                if (cell2D_triangle.vertices.at(f_t_v).additional_vertex_index != Gedim::MeshUtilities::None)
                 {
-                  const auto& cell2D_additional_point = cell2D_additional_points.at(cell2D_triangle.vertices.at(f_t_v) - cell2D_num_vertices);
+                  const auto& cell2D_additional_point = cell2D_additional_points.at(cell2D_triangle.vertices.at(f_t_v).additional_vertex_index);
 
-                  tetrahedron.at(f_t_v) = (mesh.Cell3DNumberVertices(c_3D) + cell3D_additional_points.size());
+                  tetrahedron.at(f_t_v).original_vertex_index = Gedim::MeshUtilities::None;
+                  tetrahedron.at(f_t_v).additional_vertex_index = cell3D_additional_points.size();
                   cell3D_additional_points.push_back({
                                                        cell2D_additional_point.coordinate,
-                                                       tetrahedron.at(f_t_v),
                                                        f,
-                                                       cell2D_additional_point.cell2D_additional_point_index
+                                                       cell2D_triangle.vertices.at(f_t_v).additional_vertex_index
                                                      });
                 }
-                else
+                else if (cell2D_triangle.vertices.at(f_t_v).original_vertex_index != Gedim::MeshUtilities::None)
                 {
-                  const unsigned int cell0D_index = mesh.Cell2DVertex(c_2D, cell2D_triangle.vertices.at(f_t_v));
-                  tetrahedron.at(f_t_v) = mesh.Cell3DFindVertex(c_3D, cell0D_index);
+                  const unsigned int cell0D_index = mesh.Cell2DVertex(c_2D, cell2D_triangle.vertices.at(f_t_v).original_vertex_index);
+                  tetrahedron.at(f_t_v).original_vertex_index = mesh.Cell3DFindVertex(c_3D, cell0D_index);
+                  tetrahedron.at(f_t_v).additional_vertex_index = Gedim::MeshUtilities::None;
                 }
+                else
+                  throw std::runtime_error("Triangle point not recognized");
               }
 
-              tetrahedron.at(3) = cell3D_barycenter_position;
-              tetrahedra.push_back({
-                                     tetrahedron,
-                                     f,
-                                     f_t
-                                   });
+              tetrahedron.at(3).original_vertex_index = Gedim::MeshUtilities::None;
+              tetrahedron.at(3).additional_vertex_index = cell3D_barycenter_position;
+              tetrahedra.push_back({ tetrahedron });
 
             }
           }
@@ -254,10 +252,27 @@ namespace Gedim
     std::map<std::array<unsigned int, 2>, unsigned int> edges;
     result.edges.reserve(3 * num_cell2D_triangles +
                          3 * num_cell3D_tetra);
+
+    for (unsigned int e = 0; e < mesh.Cell1DTotalNumber(); ++e)
+    {
+      result.original_cell1Ds_to_edge.at(e) = result.edges.size();
+
+      const auto& extremes = mesh.Cell1DExtremes(e);
+
+      std::array<unsigned int, 2> edge = {
+        static_cast<unsigned int>(std::min(extremes[0], extremes[1])),
+        static_cast<unsigned int>(std::max(extremes[0], extremes[1]))
+      };
+
+      edges.insert(std::make_pair(edge, result.edges.size()));
+      result.edges.push_back({
+                               edge,
+                               e
+                             });
+    }
+
     for (unsigned int f = 0; f < mesh.Cell2DTotalNumber(); ++f)
     {
-      const unsigned int cell2D_num_vertices = mesh.Cell2DNumberVertices(f);
-
       const auto& cell2D_triangles = cell2Ds_triangles.cell2Ds_triangles.at(f);
       for (unsigned int t = 0; t < cell2D_triangles.size(); ++t)
       {
@@ -265,15 +280,24 @@ namespace Gedim
 
         for (unsigned int t_v = 0; t_v < 3; ++t_v)
         {
-          const unsigned int local_edge_o = cell2D_triangle.vertices.at(t_v);
-          const unsigned int local_edge_e = cell2D_triangle.vertices.at((t_v + 1) % 3);
+          const auto& local_edge_o = cell2D_triangle.vertices.at(t_v);
+          const auto& local_edge_e = cell2D_triangle.vertices.at((t_v + 1) % 3);
 
-          unsigned int edge_o = (local_edge_o < cell2D_num_vertices) ?
-                                  result.original_cell0Ds_to_vertex.at(mesh.Cell2DVertex(f, local_edge_o)) :
-                                  result.cell2Ds_additional_point_to_vertex.at(f).at(local_edge_o - cell2D_num_vertices);
-          unsigned int edge_e = (local_edge_e < cell2D_num_vertices) ?
-                                  result.original_cell0Ds_to_vertex.at(mesh.Cell2DVertex(f, local_edge_e)) :
-                                  result.cell2Ds_additional_point_to_vertex.at(f).at(local_edge_e - cell2D_num_vertices);
+          unsigned int edge_o = Gedim::MeshUtilities::None;
+          if (local_edge_o.original_vertex_index != Gedim::MeshUtilities::None)
+            edge_o = result.original_cell0Ds_to_vertex.at(mesh.Cell2DVertex(f, local_edge_o.original_vertex_index));
+          else if (local_edge_o.additional_vertex_index != Gedim::MeshUtilities::None)
+            edge_o = result.cell2Ds_additional_point_to_vertex.at(f).at(local_edge_o.additional_vertex_index);
+          else
+            throw std::runtime_error("triangle vertex not recognized");
+
+          unsigned int edge_e = Gedim::MeshUtilities::None;
+          if (local_edge_e.original_vertex_index != Gedim::MeshUtilities::None)
+            edge_e = result.original_cell0Ds_to_vertex.at(mesh.Cell2DVertex(f, local_edge_e.original_vertex_index));
+          else if (local_edge_e.additional_vertex_index != Gedim::MeshUtilities::None)
+            edge_e = result.cell2Ds_additional_point_to_vertex.at(f).at(local_edge_e.additional_vertex_index);
+          else
+            throw std::runtime_error("triangle vertex not recognized");
 
           std::array<unsigned int, 2> edge = {
             std::min(edge_o, edge_e),
@@ -281,15 +305,19 @@ namespace Gedim
           };
 
           if (!edges.contains(edge))
-            edges.insert(std::make_pair(edge, edges.size()));
+          {
+            edges.insert(std::make_pair(edge, result.edges.size()));
+            result.edges.push_back({
+                                     edge,
+                                     Gedim::MeshUtilities::None
+                                   });
+          }
         }
       }
     }
 
     for (unsigned int c = 0; c < mesh.Cell3DTotalNumber(); ++c)
     {
-      const unsigned int cell3D_num_vertices = mesh.Cell3DNumberVertices(c);
-
       const auto& cell3D_tetrahedra = cell3Ds_tetrahedra.cell3Ds_tetrahedra.at(c);
       for (unsigned int t = 0; t < cell3D_tetrahedra.size(); ++t)
       {
@@ -297,17 +325,45 @@ namespace Gedim
 
         for (unsigned int e = 0; e < tetrahedron_edges.size(); ++e)
         {
-          const unsigned int local_edge_o = cell3D_tetrahedron.vertices.at(tetrahedron_edges.at(e).at(0));
-          const unsigned int local_edge_e = cell3D_tetrahedron.vertices.at(tetrahedron_edges.at(e).at(1));
+          const auto& local_edge_o = cell3D_tetrahedron.vertices.at(tetrahedron_edges.at(e).at(0));
+          const auto& local_edge_e = cell3D_tetrahedron.vertices.at(tetrahedron_edges.at(e).at(1));
 
           unsigned int edge_o = Gedim::MeshUtilities::None;
-
-          if (local_edge_o < cell3D_num_vertices)
-            edge_o = result.original_cell0Ds_to_vertex.at(mesh.Cell3DVertex(c, local_edge_o));
-          else
+          if (local_edge_o.original_vertex_index != Gedim::MeshUtilities::None)
+            edge_o = result.original_cell0Ds_to_vertex.at(mesh.Cell3DVertex(c, local_edge_o.original_vertex_index));
+          else if (local_edge_o.additional_vertex_index != Gedim::MeshUtilities::None)
           {
-            result.cell3Ds_additional_point_to_vertex.at(c).at(local_edge_o - cell3D_num_vertices);
+            const auto& cell3D_additional_point = cell3Ds_tetrahedra.cell3Ds_additional_points.at(c).at(local_edge_o.additional_vertex_index);
+
+            if (cell3D_additional_point.face_index == Gedim::MeshUtilities::None)
+              edge_o = result.cell3Ds_additional_point_to_vertex.at(c).at(local_edge_o.additional_vertex_index);
+            else
+            {
+              const auto c_2D = mesh.Cell3DFace(c, cell3D_additional_point.face_index);
+              edge_o = result.cell2Ds_additional_point_to_vertex.at(c_2D).at(cell3D_additional_point.face_additional_point_index);
+            }
           }
+          else
+            throw std::runtime_error("tetrahedron vertex not recognized");
+
+
+          unsigned int edge_e = Gedim::MeshUtilities::None;
+          if (local_edge_e.original_vertex_index != Gedim::MeshUtilities::None)
+            edge_e = result.original_cell0Ds_to_vertex.at(mesh.Cell3DVertex(c, local_edge_o.original_vertex_index));
+          else if (local_edge_e.additional_vertex_index != Gedim::MeshUtilities::None)
+          {
+            const auto& cell3D_additional_point = cell3Ds_tetrahedra.cell3Ds_additional_points.at(c).at(local_edge_e.additional_vertex_index);
+
+            if (cell3D_additional_point.face_index == Gedim::MeshUtilities::None)
+              edge_e = result.cell3Ds_additional_point_to_vertex.at(c).at(local_edge_e.additional_vertex_index);
+            else
+            {
+              const auto c_2D = mesh.Cell3DFace(c, cell3D_additional_point.face_index);
+              edge_e = result.cell2Ds_additional_point_to_vertex.at(c_2D).at(cell3D_additional_point.face_additional_point_index);
+            }
+          }
+          else
+            throw std::runtime_error("tetrahedron vertex not recognized");
 
           std::array<unsigned int, 2> edge = {
             std::min(edge_o, edge_e),
@@ -315,12 +371,17 @@ namespace Gedim
           };
 
           if (!edges.contains(edge))
-            edges.insert(std::make_pair(edge, edges.size()));
+          {
+            edges.insert(std::make_pair(edge, result.edges.size()));
+            result.edges.push_back({
+                                     edge,
+                                     Gedim::MeshUtilities::None
+                                   });
+          }
         }
       }
     }
-
-
+    result.edges.shrink_to_fit();
 
     result.original_cell2Ds_to_triangles.reserve(num_cell2D_triangles +
                                                  3 * num_cell3D_tetra);
