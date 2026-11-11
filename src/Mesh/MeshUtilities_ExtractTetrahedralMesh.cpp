@@ -55,8 +55,8 @@ namespace Gedim
           {
             triangles.resize(1);
             triangles.at(0).vertices.at(0) = { 0, Gedim::MeshUtilities::None };
-            triangles.at(0).vertices.at(0) = { 1, Gedim::MeshUtilities::None };
-            triangles.at(0).vertices.at(0) = { 2, Gedim::MeshUtilities::None };
+            triangles.at(0).vertices.at(1) = { 1, Gedim::MeshUtilities::None };
+            triangles.at(0).vertices.at(2) = { 2, Gedim::MeshUtilities::None };
             continue;
           }
 
@@ -87,8 +87,8 @@ namespace Gedim
           {
             triangles.resize(1);
             triangles.at(0).vertices.at(0) = { 0, Gedim::MeshUtilities::None };
-            triangles.at(0).vertices.at(0) = { 1, Gedim::MeshUtilities::None };
-            triangles.at(0).vertices.at(0) = { 2, Gedim::MeshUtilities::None };
+            triangles.at(0).vertices.at(1) = { 1, Gedim::MeshUtilities::None };
+            triangles.at(0).vertices.at(2) = { 2, Gedim::MeshUtilities::None };
             continue;
           }
 
@@ -147,13 +147,12 @@ namespace Gedim
 
           if (cell3D_vertices.cols() == 4)
           {
-            std::array<Gedim::MeshUtilities::MeshCell3DsTetrahedraData::TetrahedronData::Vertex, 4> tetrahedron;
-            tetrahedron.at(0) = { 0, Gedim::MeshUtilities::None };
-            tetrahedron.at(1) = { 1, Gedim::MeshUtilities::None };
-            tetrahedron.at(2) = { 2, Gedim::MeshUtilities::None };
-            tetrahedron.at(3) = { 2, Gedim::MeshUtilities::None };
+            tetrahedra.resize(1);
 
-            tetrahedra = { { tetrahedron } };
+            tetrahedra.at(0).vertices.at(0) = { 0, Gedim::MeshUtilities::None };
+            tetrahedra.at(0).vertices.at(1) = { 1, Gedim::MeshUtilities::None };
+            tetrahedra.at(0).vertices.at(2) = { 2, Gedim::MeshUtilities::None };
+            tetrahedra.at(0).vertices.at(3) = { 2, Gedim::MeshUtilities::None };
             continue;
           }
 
