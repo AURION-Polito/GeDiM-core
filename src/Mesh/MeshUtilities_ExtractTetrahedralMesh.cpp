@@ -460,5 +460,124 @@ namespace Gedim
 
     return result;
   }
+// ***************************************************************************
+  void MeshUtilities::TetrahedralMeshDataToMeshDAO(const ExtractTetrahedralMeshData& tetrahedral_mesh_data,
+                                                   const Gedim::IMeshDAO &original_mesh,
+                                                   IMeshDAO& converted_mesh)
+  {
+    converted_mesh.InitializeDimension(original_mesh.Dimension());
+
+    if (!tetrahedral_mesh_data.vertices.empty())
+    {
+        const unsigned int numCell0Ds = tetrahedral_mesh_data.vertices.size();
+
+        converted_mesh.Cell0DsInitialize(numCell0Ds);
+        for (unsigned int v = 0; v < numCell0Ds; v++)
+        {
+            const auto &vertex = tetrahedral_mesh_data.vertices.at(v);
+
+            if (vertex.original_cell0D_index != Gedim::MeshUtilities::None)
+                mesh.Cell0DSetMarker(v, original_mesh.Cell0DMarker(vertex.original_cell0D_index));
+            else
+                mesh.Cell0DSetMarker(v, 0);
+
+            converted_mesh.Cell0DInsertCoordinates(v, vertex.coordinate);
+            converted_mesh.Cell0DSetState(v, true);
+        }
+    }
+
+    if (!tetrahedral_mesh_data.edges.empty())
+    {
+        const unsigned int numCell1Ds = tetrahedral_mesh_data.edges.size();
+
+        converted_mesh.Cell1DsInitialize(numCell1Ds);
+        for (unsigned int e = 0; e < tetrahedral_mesh_data.edges.size(); e++)
+        {
+            const auto &edge = tetrahedral_mesh_data.edges.at(e);
+
+            if (edge.original_cell1D_index != Gedim::MeshUtilities::None)
+                converted_mesh.Cell1DSetMarker(e, original_mesh.Cell1DMarker(edge.original_cell1D_index));
+            else
+                converted_mesh.Cell1DSetMarker(e, 0);
+
+            converted_mesh.Cell1DInsertExtremes(e, edge.extremes.at(0), edge.extremes.at(1));
+            converted_mesh.Cell1DSetState(e, true);
+        }
+    }
+
+    if (!tetrahedral_mesh_data.triangles.empty())
+    {
+        const unsigned int numCell2Ds = tetrahedral_mesh_data.triangles.size();
+
+        converted_mesh.Cell2DsInitialize(numCell2Ds);
+        std::vector<unsigned int> cell2Ds_num_vertices(numCell2Ds);
+
+        for (unsigned int f = 0; f < numCell2Ds; f++)
+        {
+            const auto &face = tetrahedral_mesh_data.triangles.at(f);
+            cell2Ds_num_vertices.at(f) = face.vertices.size();
+        }
+
+        converted_mesh.Cell2DsInitializeVertices(cell2Ds_num_vertices);
+        converted_mesh.Cell2DsInitializeEdges(cell2Ds_num_vertices);
+
+        for (unsigned int f = 0; f < numCell2Ds; f++)
+        {
+            const auto &face = tetrahedral_mesh_data.triangles.at(f);
+
+            if (face.original_cell2D_index != Gedim::MeshUtilities::None)
+              converted_mesh.Cell2DSetMarker(f, original_mesh.Cell2DMarker(face.original_cell2D_index));
+            else
+                converted_mesh.Cell2DSetMarker(f, 0);
+
+            converted_mesh.Cell2DInsertVertices(f, face.vertices);
+            converted_mesh.Cell2DInsertEdges(f, face.edges);
+            converted_mesh.Cell2DSetState(f, true);
+        }
+    }
+
+    if (!tetrahedral_mesh_data.tetrahedra.empty())
+    {
+        const unsigned int numCell3Ds = tetrahedral_mesh_data.tetrahedra.size();
+
+        converted_mesh.Cell3DsInitialize(numCell3Ds);
+        std::vector<unsigned int> cell3DsNumVertices(numCell3Ds);
+        std::vector<unsigned int> cell3DsNumEdges(numCell3Ds);
+        std::vector<unsigned int> cell3DsNumFaces(numCell3Ds);
+
+        for (unsigned int c = 0; c < numCell3Ds; c++)
+        {
+            const auto volume = tetrahedral_mesh_data.tetrahedra.at(c);
+
+            cell3DsNumVertices.at(c) = volume.vertices.size();
+            cell3DsNumEdges.at(c) = volume.edges.size();
+            cell3DsNumFaces.at(c) = volume.faces.size();
+        }
+
+        converted_mesh.Cell3DsInitializeVertices(cell3DsNumVertices);
+        converted_mesh.Cell3DsInitializeEdges(cell3DsNumEdges);
+        converted_mesh.Cell3DsInitializeFaces(cell3DsNumFaces);
+
+        for (unsigned int c = 0; c < numCell3Ds; c++)
+        {
+            const auto volume = tetrahedral_mesh_data.tetrahedra.at(c);
+
+            if (volume.original_cell3D_index != Gedim::MeshUtilities::None)
+            {
+                converted_mesh.Cell3DSetMarker(c, original_mesh.Cell3DMarker(volume.original_cell3D_index));
+            }
+            else
+                converted_mesh.Cell3DSetMarker(c, 0);
+
+            converted_mesh.Cell3DInsertVertices(c, std::vector<unsigned int>(volume.vertices.begin(),
+                                                                             volume.vertices.end()));
+            converted_mesh.Cell3DInsertEdges(c, std::vector<unsigned int>(volume.edges.begin(),
+                                                                          volume.edges.end()));
+            converted_mesh.Cell3DInsertFaces(c, std::vector<unsigned int>(volume.faces.begin(),
+                                                                          volume.faces.end()));
+            converted_mesh.Cell3DSetState(c, true);
+        }
+    }
+  }
   // ***************************************************************************
 } // namespace Gedim

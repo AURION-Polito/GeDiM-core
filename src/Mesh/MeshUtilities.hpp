@@ -1052,6 +1052,10 @@ namespace Gedim
                                                                const Gedim::MeshUtilities::MeshCell3DsTetrahedraData& cell3Ds_tetrahedra,
                                                                const Gedim::IMeshDAO &mesh);
 
+      static void TetrahedralMeshDataToMeshDAO(const ExtractTetrahedralMeshData& tetrahedral_mesh_data,
+                                               const Gedim::IMeshDAO &original_mesh,
+                                               Gedim::IMeshDAO &mesh);
+
       static void MakeMeshTriangularFaces(const std::vector<std::vector<unsigned int>> &faces_triangulation, Gedim::IMeshDAO &mesh);
 
       /// \brief Import triangular 2D mesh (non standard simple format)
