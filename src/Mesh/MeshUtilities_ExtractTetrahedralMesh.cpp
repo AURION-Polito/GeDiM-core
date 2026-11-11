@@ -50,8 +50,8 @@ namespace Gedim
           for (unsigned int t = 0; t < numTriangles; t++)
           {
             triangles.at(t).vertices.at(0) = { triangulation_indices.at(3 * t), Gedim::MeshUtilities::None };
-            triangles.at(t).vertices.at(0) = { triangulation_indices.at(3 * t + 1), Gedim::MeshUtilities::None };
-            triangles.at(t).vertices.at(0) = { triangulation_indices.at(3 * t + 2), Gedim::MeshUtilities::None };
+            triangles.at(t).vertices.at(1) = { triangulation_indices.at(3 * t + 1), Gedim::MeshUtilities::None };
+            triangles.at(t).vertices.at(2) = { triangulation_indices.at(3 * t + 2), Gedim::MeshUtilities::None };
           };
         }
       }
@@ -79,8 +79,8 @@ namespace Gedim
           for (unsigned int t = 0; t < numTriangles; t++)
           {
             triangles.at(t).vertices.at(0) = { Gedim::MeshUtilities::None, 0 };
-            triangles.at(t).vertices.at(0) = { triangulation_indices.at(3 * t + 1), Gedim::MeshUtilities::None };
-            triangles.at(t).vertices.at(0) = { triangulation_indices.at(3 * t + 2), Gedim::MeshUtilities::None };
+            triangles.at(t).vertices.at(1) = { triangulation_indices.at(3 * t + 1), Gedim::MeshUtilities::None };
+            triangles.at(t).vertices.at(2) = { triangulation_indices.at(3 * t + 2), Gedim::MeshUtilities::None };
           }
         }
       }
@@ -349,7 +349,7 @@ namespace Gedim
 
           unsigned int edge_e = Gedim::MeshUtilities::None;
           if (local_edge_e.original_vertex_index != Gedim::MeshUtilities::None)
-            edge_e = result.original_cell0Ds_to_vertex.at(mesh.Cell3DVertex(c, local_edge_o.original_vertex_index));
+            edge_e = result.original_cell0Ds_to_vertex.at(mesh.Cell3DVertex(c, local_edge_e.original_vertex_index));
           else if (local_edge_e.additional_vertex_index != Gedim::MeshUtilities::None)
           {
             const auto& cell3D_additional_point = cell3Ds_tetrahedra.cell3Ds_additional_points.at(c).at(local_edge_e.additional_vertex_index);
