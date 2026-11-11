@@ -50,9 +50,17 @@ namespace Gedim
           auto& triangles = result.cell2Ds_triangles.at(c_2D);
 
           const auto cell2D_vertices = mesh.Cell2DVerticesCoordinates(c_2D);
-          const auto triangulation_indices = cell2D_vertices.cols() == 3 ?
-                                               std::vector<unsigned int>({ 0, 1, 2 }) :
-                                               geometry_utilities.PolygonTriangulationByFirstVertex(cell2D_vertices);
+
+          if (cell2D_vertices.cols() == 3)
+          {
+            triangles.resize(1);
+            triangles.at(0).vertices.at(0) = { 0, Gedim::MeshUtilities::None };
+            triangles.at(0).vertices.at(0) = { 1, Gedim::MeshUtilities::None };
+            triangles.at(0).vertices.at(0) = { 2, Gedim::MeshUtilities::None };
+            continue;
+          }
+
+          const auto triangulation_indices = geometry_utilities.PolygonTriangulationByFirstVertex(cell2D_vertices);
 
           const unsigned int numTriangles = triangulation_indices.size() / 3;
           triangles.resize(numTriangles);
@@ -74,11 +82,19 @@ namespace Gedim
           auto& triangles = result.cell2Ds_triangles.at(c_2D);
 
           const auto cell2D_vertices = mesh.Cell2DVerticesCoordinates(c_2D);
+
+          if (cell2D_vertices.cols() == 3)
+          {
+            triangles.resize(1);
+            triangles.at(0).vertices.at(0) = { 0, Gedim::MeshUtilities::None };
+            triangles.at(0).vertices.at(0) = { 1, Gedim::MeshUtilities::None };
+            triangles.at(0).vertices.at(0) = { 2, Gedim::MeshUtilities::None };
+            continue;
+          }
+
           const auto cell2D_barycenter = geometry_utilities.PolygonBarycenter(cell2D_vertices);
-          const auto triangulation_indices = cell2D_vertices.cols() == 3 ?
-                                               std::vector<unsigned int>({ 0, 1, 2 }) :
-                                               geometry_utilities.PolygonTriangulationByInternalPoint(cell2D_vertices,
-                                                                                                      cell2D_barycenter);
+          const auto triangulation_indices = geometry_utilities.PolygonTriangulationByInternalPoint(cell2D_vertices,
+                                                                                                    cell2D_barycenter);
 
           const unsigned int numTriangles = triangulation_indices.size() / 3;
           triangles.resize(numTriangles);
