@@ -477,9 +477,9 @@ namespace Gedim
             const auto &vertex = tetrahedral_mesh_data.vertices.at(v);
 
             if (vertex.original_cell0D_index != Gedim::MeshUtilities::None)
-                mesh.Cell0DSetMarker(v, original_mesh.Cell0DMarker(vertex.original_cell0D_index));
+                converted_mesh.Cell0DSetMarker(v, original_mesh.Cell0DMarker(vertex.original_cell0D_index));
             else
-                mesh.Cell0DSetMarker(v, 0);
+                converted_mesh.Cell0DSetMarker(v, 0);
 
             converted_mesh.Cell0DInsertCoordinates(v, vertex.coordinate);
             converted_mesh.Cell0DSetState(v, true);
@@ -530,8 +530,10 @@ namespace Gedim
             else
                 converted_mesh.Cell2DSetMarker(f, 0);
 
-            converted_mesh.Cell2DInsertVertices(f, face.vertices);
-            converted_mesh.Cell2DInsertEdges(f, face.edges);
+            converted_mesh.Cell2DInsertVertices(f, std::vector<unsigned int>(face.vertices.begin(),
+                                                                             face.vertices.end()));
+            converted_mesh.Cell2DInsertEdges(f, std::vector<unsigned int>(face.edges.begin(),
+                                                                          face.edges.end()));
             converted_mesh.Cell2DSetState(f, true);
         }
     }
