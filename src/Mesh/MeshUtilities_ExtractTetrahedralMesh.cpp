@@ -360,7 +360,7 @@ namespace Gedim
       for (unsigned int t = 0; t < cell3D_tetrahedra.size(); ++t)
       {
         Gedim::MeshUtilities::ExtractTetrahedralMeshData::TetrahedronData new_cell3D_tetrahedron;
-        new_cell3D_tetrahedron.original_cell3D_index = t;
+        new_cell3D_tetrahedron.original_cell3D_index = c;
         const auto& cell3D_tetrahedron = cell3D_tetrahedra.at(t);
 
         for (unsigned int t_v = 0; t_v < 4; ++t_v)
