@@ -189,7 +189,7 @@ namespace Gedim
     return result;
   }
   // ***************************************************************************
-  inline Gedim::MeshUtilities::ExtractTetrahedralMeshData Gedim::MeshUtilities::ExtractTriangularMesh(
+  Gedim::MeshUtilities::ExtractTetrahedralMeshData Gedim::MeshUtilities::ExtractTriangularMesh(
       const Gedim::MeshUtilities::MeshCell2DsTrianglesData& cell2Ds_triangles,
       const Gedim::IMeshDAO &mesh)
   {
