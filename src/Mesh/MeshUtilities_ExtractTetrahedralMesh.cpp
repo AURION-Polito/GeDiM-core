@@ -376,7 +376,11 @@ namespace Gedim
             new_cell2D_triangle.edges.at(t_v) = edge_found->second;
         }
 
-        faces.insert(std::make_pair(new_cell2D_triangle.vertices, result.triangles.size()));
+        auto sorted_vertices = new_cell2D_triangle.vertices;
+        std::sort(sorted_vertices.begin(),
+                  sorted_vertices.end());
+
+        faces.insert(std::make_pair(sorted_vertices, result.triangles.size()));
         result.original_cell2Ds_to_triangles.at(f).at(t) = result.triangles.size();
         result.triangles.push_back(new_cell2D_triangle);
       }
@@ -455,7 +459,11 @@ namespace Gedim
           };
           new_cell3D_triangle.original_cell2D_index = Gedim::MeshUtilities::None;
 
-          const auto triangle_found = faces.find(new_cell3D_triangle.vertices);
+          auto sorted_vertices = new_cell3D_triangle.vertices;
+          std::sort(sorted_vertices.begin(),
+                    sorted_vertices.end());
+
+          const auto triangle_found = faces.find(sorted_vertices);
 
           if (triangle_found == faces.end())
           {
@@ -472,7 +480,7 @@ namespace Gedim
               new_cell3D_triangle.edges.at(t_v) = edges.at(edge);
             }
 
-            faces.insert(std::make_pair(new_cell3D_triangle.vertices, result.triangles.size()));
+            faces.insert(std::make_pair(sorted_vertices, result.triangles.size()));
             new_cell3D_tetrahedron.faces.at(f) = result.triangles.size();
             result.triangles.push_back(new_cell3D_triangle);
           }
