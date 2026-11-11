@@ -152,7 +152,7 @@ namespace Gedim
             tetrahedra.at(0).vertices.at(0) = { 0, Gedim::MeshUtilities::None };
             tetrahedra.at(0).vertices.at(1) = { 1, Gedim::MeshUtilities::None };
             tetrahedra.at(0).vertices.at(2) = { 2, Gedim::MeshUtilities::None };
-            tetrahedra.at(0).vertices.at(3) = { 2, Gedim::MeshUtilities::None };
+            tetrahedra.at(0).vertices.at(3) = { 3, Gedim::MeshUtilities::None };
             continue;
           }
 
