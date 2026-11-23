@@ -71,8 +71,11 @@ class GraphUtilities final
                           std::list<unsigned int> &visitedVertices) const;
 
     /// A function to BFS starting from v
-    std::vector<unsigned int> BreadthFirstSearch(const unsigned int &vertex,
-                                                 const std::vector<std::vector<unsigned int>> &graphAdjacency) const;
+    static std::vector<unsigned int> BreadthFirstSearch(const unsigned int vertex,
+                                                        const std::vector<std::vector<unsigned int>> &graphAdjacency);
+
+    static std::vector<unsigned int> DepthFirstSearch(const unsigned int vertex,
+                                                      const std::vector<std::vector<unsigned int>> &graphAdjacency);
 
     /// \return the reverse (or transpose) of a graph
     std::vector<std::vector<unsigned int>> ComputeAdjacencyTranspose(const std::vector<std::vector<unsigned int>> &graphAdjacency) const;

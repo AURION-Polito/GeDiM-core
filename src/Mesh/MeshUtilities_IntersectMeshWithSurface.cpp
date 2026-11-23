@@ -22,7 +22,7 @@ Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::Inter
 {
     Gedim::Utilities::Unused(geometry_utilities);
 
-    using SurfacePosition = Gedim::MeshUtilities::PointSurfacePositions;
+    using SurfacePosition = Gedim::MeshUtilities::SurfacePositions;
 
     Gedim::MeshUtilities::IntersectMeshWithSurfaceResult result;
 
@@ -36,7 +36,7 @@ Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::Inter
     {
         auto &cell0D_surface_data = result.cell0Ds_surface_point.at(p);
         cell0D_surface_data.surface_value = cell0Ds_surface_value[p];
-        cell0D_surface_data.index = Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None;
+        cell0D_surface_data.index = Gedim::MeshUtilities::None;
 
         if (geometry_utilities.IsValuePositive(cell0D_surface_data.surface_value, geometry_utilities.Tolerance1D()))
             cell0D_surface_data.surface_position = SurfacePosition::Positive;
@@ -67,7 +67,7 @@ Gedim::MeshUtilities::IntersectMeshWithSurfaceResult Gedim::MeshUtilities::Inter
     {
         auto &cell1D_surface_data = result.cell1Ds_surface_point.at(e);
         cell1D_surface_data.surface_value = 0.0;
-        cell1D_surface_data.index = Gedim::MeshUtilities::IntersectMeshWithSurfaceResult::None;
+        cell1D_surface_data.index = Gedim::MeshUtilities::None;
 
         const auto origin_id = mesh.Cell1DOrigin(e);
         const auto end_id = mesh.Cell1DEnd(e);
