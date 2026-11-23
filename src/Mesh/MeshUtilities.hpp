@@ -984,7 +984,7 @@ struct MeshUtilities
     /// \param subCell1Ds the list of sub-cells 1D mesh vertices indices, size 2 x numSubCells)
     /// \param mesh the mesh to update
     /// \return the list of new cell1Ds indices, from 0 to Cell1DTotalNumber()
-    static std::vector<unsigned int> SplitCell1D(const unsigned int &cell1DIndex, const Eigen::MatrixXi subCell1Ds, Gedim::IMeshDAO &mesh);
+    static std::vector<unsigned int> SplitCell1D(const unsigned int &cell1DIndex, const Eigen::MatrixXi &subCell1Ds, Gedim::IMeshDAO &mesh);
 
     /// \brief Split cell2D into subcells
     /// \param cell2DIndex the index of Cell2D from 0 to Cell2DTotalNumber()

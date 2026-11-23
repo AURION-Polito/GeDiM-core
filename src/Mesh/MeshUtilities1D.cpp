@@ -216,7 +216,7 @@ void MeshUtilities::ExportMeshGeometricData1DToTxt(const MeshGeometricData1D &me
     file.close();
 }
 // ***************************************************************************
-std::vector<unsigned int> MeshUtilities::SplitCell1D(const unsigned int &cell1DIndex, const Eigen::MatrixXi subCell1Ds, Gedim::IMeshDAO &mesh)
+std::vector<unsigned int> MeshUtilities::SplitCell1D(const unsigned int &cell1DIndex, const Eigen::MatrixXi &subCell1Ds, Gedim::IMeshDAO &mesh)
 {
     const unsigned int numSubCells = subCell1Ds.cols();
     unsigned int newCell1DsStartingIndex = mesh.Cell1DAppend(numSubCells);
